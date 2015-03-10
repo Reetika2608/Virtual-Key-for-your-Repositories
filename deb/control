@@ -1,8 +1,7 @@
 Package: c_mgmt
-Version: 8.6-1.0.001
+Version: 8.6-1.@SVNREVISION@
 Maintainer: Cisco
 Architecture: all
 Section: component
-Pre-depends: tandberg_linux_base
 Description: c_mgmt
  c_mgmt package
