@@ -1,3 +1,33 @@
 #!/bin/bash
+[ -f "/etc/functions" ] && . "/etc/functions"
 
 /etc/init.d/c_mgmt restart
+
+function register_alarms()
+{
+    /sbin/alarm register ba883968-4b5a-4f83-9e71-50c7d7621b44 --id 60050 --severity error
+    /sbin/alarm register cbbf0813-09cb-4e23-9182-f3996d24cc9e --id 60051 --severity error
+    /sbin/alarm register b6417be9-0c57-4254-8392-896b61983ca4 --id 60052 --severity error
+    /sbin/alarm register 3d541e1e-1e9c-4b30-a07d-e93f8445b13e --id 60053 --severity error
+    /sbin/alarm register 76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2 --id 60054 --severity error
+    /sbin/alarm register 598ea3b8-00f9-4674-a90a-919668fec916 --id 60055 --severity error
+    /sbin/alarm register 142f9bb1-74a5-460a-b609-7f33f8acdcaf --id 60056 --severity error
+    /sbin/alarm register 1e9c9c3d-9b35-467c-af1c-90d6947ababb --id 60057 --severity error
+    /sbin/alarm register 635afce6-0ae8-4b84-90f5-837a2234002b --id 60058 --severity error
+    /sbin/alarm register 802e15e0-31cf-4356-8b99-b07d364553f9 --id 60059 --severity error
+    /sbin/alarm register 995ec68e-4c6a-4b16-a615-fdd6b6fe4b43 --id 60060 --severity error
+}
+
+function onboard_ui()
+{
+    /etc/init.d/combine restart
+    /bin/resetcerts.sh gracefully_restart_apache        
+}
+
+#Anything after this point will not get run during a vcs upgrade scenario.
+if upgrade_in_progress; then
+    exit 0
+fi
+
+register_alarms
+onboard_ui

@@ -1,0 +1,12 @@
+#!/bin/sh
+[ -f "/etc/functions" ] && . "/etc/functions"
+
+#Anything after this point will not get run during a vcs upgrade scenario.
+if upgrade_in_progress; then
+    exit 0
+fi
+
+# Remove pyc files, and entire c_mgmt opt directory if it still exists.
+if [ -d /opt/c_mgmt ]; then
+    rm -rf /opt/c_mgmt/
+fi
