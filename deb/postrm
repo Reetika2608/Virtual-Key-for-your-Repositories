@@ -7,6 +7,10 @@ if upgrade_in_progress; then
 fi
 
 # Remove pyc files, and entire c_mgmt opt directory if it still exists.
-if [ -d /opt/c_mgmt ]; then
-    rm -rf /opt/c_mgmt/
+if [ "${1}" == "upgrade" ]; then
+    find -P /opt/c_mgmt/ -name *.pyc | xargs rm
+else
+    if [ -d /opt/c_mgmt ]; then
+        rm -rf /opt/c_mgmt/
+    fi
 fi
