@@ -16,6 +16,7 @@ function register_alarms()
     /sbin/alarm register 635afce6-0ae8-4b84-90f5-837a2234002b --id 60058 --severity error
     /sbin/alarm register 802e15e0-31cf-4356-8b99-b07d364553f9 --id 60059 --severity error
     /sbin/alarm register 995ec68e-4c6a-4b16-a615-fdd6b6fe4b43 --id 60060 --severity error
+    /sbin/alarm register a2a259b5-93a6-4a1a-b03d-36ac0987e6db --id 60061 --severity alert
 }
 
 function onboard_ui()
