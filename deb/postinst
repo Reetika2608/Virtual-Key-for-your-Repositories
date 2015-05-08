@@ -1,8 +1,6 @@
 #!/bin/bash
 [ -f "/etc/functions" ] && . "/etc/functions"
 
-/etc/init.d/c_mgmt restart
-
 function register_alarms()
 {
     /sbin/alarm register ba883968-4b5a-4f83-9e71-50c7d7621b44 --id 60050 --severity error
@@ -28,10 +26,30 @@ function onboard_ui()
     /bin/resetcerts.sh gracefully_restart_apache        
 }
 
+function wait_for_user()
+{
+    i=0
+    while [ $i -lt 12 ]
+    do
+        if [ $i -eq 11 ]; then
+            echo 'user _c_mgmt does not exist, exiting'
+            exit 1
+        elif id -u _c_mgmt > /dev/null 2>&1; then
+            echo 'found user _c_mgmt, continue'
+            break
+        else
+            echo 'user _c_mgmt does not exist, retry'
+            sleep 1
+        fi
+        i=`expr $i + 1`
+    done
+}
+
 #Anything after this point will not get run during a vcs upgrade scenario.
 if upgrade_in_progress; then
     exit 0
 fi
-
+wait_for_user
 register_alarms
 onboard_ui
+/etc/init.d/c_mgmt restart
