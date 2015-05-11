@@ -26,20 +26,23 @@ function onboard_ui()
     /bin/resetcerts.sh gracefully_restart_apache        
 }
 
-function wait_for_user()
+function wait_for_user_and_package()
 {
+    sleep 1
     i=0
     while [ $i -lt 12 ]
     do
+        sleep 1
         if [ $i -eq 11 ]; then
-            echo 'user _c_mgmt does not exist, exiting'
+            echo 'user _c_mgmt or package does not exist, exiting'
             exit 1
-        elif id -u _c_mgmt > /dev/null 2>&1; then
-            echo 'found user _c_mgmt, continue'
-            break
+        elif [ $( dpkg -l | grep -c c_mgmt ) -eq 0 ] ; then
+            echo 'package c_mgmt does not exist, retry'
+        elif ! id -u _c_mgmt  > /dev/null 2>&1 ; then
+            echo 'user _c_mgmt  does not exist, retry'
         else
-            echo 'user _c_mgmt does not exist, retry'
-            sleep 1
+            echo 'found user _c_mgmt and package c_mgmt, continue'
+            break
         fi
         i=`expr $i + 1`
     done
@@ -49,7 +52,7 @@ function wait_for_user()
 if upgrade_in_progress; then
     exit 0
 fi
-wait_for_user
+wait_for_user_and_package
 register_alarms
 onboard_ui
 /etc/init.d/c_mgmt restart
