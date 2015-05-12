@@ -17,6 +17,7 @@ function register_alarms()
     /sbin/alarm register a2a259b5-93a6-4a1a-b03d-36ac0987e6db --id 60061 --severity alert
     /sbin/alarm register 77857c20-94b4-4145-8298-cad741e905fb --id 60062 --severity error
     /sbin/alarm register 77ad9990-4850-4191-9bc2-51d0912daef3 --id 60063 --severity error
+    /sbin/alarm register 47fd43b0-755a-463f-9899-63f589a2d882 --id 60064 --severity alert
 
 }
 
