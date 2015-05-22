@@ -1,0 +1,10 @@
+#!/bin/sh
+[ -f "/etc/functions" ] && . "/etc/functions"
+
+# Ensure ManagementConnector is stopped before uninstall.
+/etc/init.d/c_mgmt stop
+
+#Anything after this point will not get run during a vcs upgrade scenario.
+if upgrade_in_progress; then
+    exit 0
+fi
