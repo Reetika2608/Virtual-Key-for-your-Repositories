@@ -1,8 +1,33 @@
 #!/bin/sh
 [ -f "/etc/functions" ] && . "/etc/functions"
 
+function unregister_alarms()
+{
+    /sbin/alarm unregister ba883968-4b5a-4f83-9e71-50c7d7621b44
+    /sbin/alarm unregister cbbf0813-09cb-4e23-9182-f3996d24cc9e
+    /sbin/alarm unregister b6417be9-0c57-4254-8392-896b61983ca4
+    /sbin/alarm unregister 3d541e1e-1e9c-4b30-a07d-e93f8445b13e
+    /sbin/alarm unregister 76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2
+    /sbin/alarm unregister 598ea3b8-00f9-4674-a90a-919668fec916
+    /sbin/alarm unregister 142f9bb1-74a5-460a-b609-7f33f8acdcaf
+    /sbin/alarm unregister 1e9c9c3d-9b35-467c-af1c-90d6947ababb
+    /sbin/alarm unregister 635afce6-0ae8-4b84-90f5-837a2234002b
+    /sbin/alarm unregister 802e15e0-31cf-4356-8b99-b07d364553f9
+    /sbin/alarm unregister 995ec68e-4c6a-4b16-a615-fdd6b6fe4b43
+    /sbin/alarm unregister a2a259b5-93a6-4a1a-b03d-36ac0987e6db
+    /sbin/alarm unregister 77857c20-94b4-4145-8298-cad741e905fb
+    /sbin/alarm unregister 77ad9990-4850-4191-9bc2-51d0912daef3
+    /sbin/alarm unregister 47fd43b0-755a-463f-9899-63f589a2d882
+    /sbin/alarm unregister 52299415-2719-45d5-bcf7-720b48929ae3
+    /sbin/alarm unregister bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd
+    /sbin/alarm unregister 233f0c18-9c8f-41ba-8800-93937540afe8
+}
+
 # Ensure ManagementConnector is stopped before uninstall.
 /etc/init.d/c_mgmt stop
+
+# unregister alarms prior to uninstalling
+unregister_alarms
 
 #Anything after this point will not get run during a vcs upgrade scenario.
 if upgrade_in_progress; then
