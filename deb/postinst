@@ -4,20 +4,20 @@
 function register_alarms()
 {
     /sbin/alarm register ba883968-4b5a-4f83-9e71-50c7d7621b44 --id 60050 --severity error --solution-links '["txt.DNS", "dns", "txt.PROXY", "fusionproxy", "txt.PING", "ping"]'
-    /sbin/alarm register cbbf0813-09cb-4e23-9182-f3996d24cc9e --id 60051 --severity error --solution-links '["fusionregistration"]'
+    /sbin/alarm register cbbf0813-09cb-4e23-9182-f3996d24cc9e --id 60051 --severity error --solution-links '"fusionregistration"'
     /sbin/alarm register b6417be9-0c57-4254-8392-896b61983ca4 --id 60052 --severity error --solution-links '["txt.DNS", "dns", "txt.PROXY", "fusionproxy", "txt.PING", "ping"]'
     /sbin/alarm register 3d541e1e-1e9c-4b30-a07d-e93f8445b13e --id 60053 --severity error
     /sbin/alarm register 76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2 --id 60054 --severity error
-    /sbin/alarm register 598ea3b8-00f9-4674-a90a-919668fec916 --id 60055 --severity error --solution-links '["trustedcacertificate"]'
-    /sbin/alarm register 142f9bb1-74a5-460a-b609-7f33f8acdcaf --id 60056 --severity error --solution-links '["trustedcacertificate"]'
+    /sbin/alarm register 598ea3b8-00f9-4674-a90a-919668fec916 --id 60055 --severity error --solution-links '"trustedcacertificate"'
+    /sbin/alarm register 142f9bb1-74a5-460a-b609-7f33f8acdcaf --id 60056 --severity error --solution-links '"trustedcacertificate"'
     /sbin/alarm register 1e9c9c3d-9b35-467c-af1c-90d6947ababb --id 60057 --severity error
-    /sbin/alarm register 635afce6-0ae8-4b84-90f5-837a2234002b --id 60058 --severity error --solution-links '["trustedcacertificate"]'
+    /sbin/alarm register 635afce6-0ae8-4b84-90f5-837a2234002b --id 60058 --severity error --solution-links '"trustedcacertificate"'
     /sbin/alarm register 802e15e0-31cf-4356-8b99-b07d364553f9 --id 60059 --severity error
     /sbin/alarm register 995ec68e-4c6a-4b16-a615-fdd6b6fe4b43 --id 60060 --severity error --solution-links '["txt.TRUESTEDCACERTIFICATE", "trustedcacertificate", "txt.NTP", "time"]'
-    /sbin/alarm register a2a259b5-93a6-4a1a-b03d-36ac0987e6db --id 60061 --severity alert --solution-links '["fusionregistration"]'
+    /sbin/alarm register a2a259b5-93a6-4a1a-b03d-36ac0987e6db --id 60061 --severity alert --solution-links '"fusionregistration"'
     /sbin/alarm register 77857c20-94b4-4145-8298-cad741e905fb --id 60062 --severity error
     /sbin/alarm register 77ad9990-4850-4191-9bc2-51d0912daef3 --id 60063 --severity error
-    /sbin/alarm register 47fd43b0-755a-463f-9899-63f589a2d882 --id 60064 --severity alert --solution-links '["fusionregistration"]'
+    /sbin/alarm register 47fd43b0-755a-463f-9899-63f589a2d882 --id 60064 --severity alert --solution-links '"fusionregistration"'
     /sbin/alarm register 52299415-2719-45d5-bcf7-720b48929ae3 --id 60065 --severity error
     /sbin/alarm register bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd --id 60066 --severity error
     /sbin/alarm register 233f0c18-9c8f-41ba-8800-93937540afe8 --id 60067 --severity error --solution-links '["err.SSL_ERROR_LINK", "fusionregistration"]'
