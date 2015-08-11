@@ -52,10 +52,24 @@ function wait_for_user_and_package()
     done
 }
 
+function copy_passwd_file()
+{
+    STAGING_DIR='/tandberg/'
+    BASE_FILE='c_mgmt.passwd'
+    PASSWD_DIR='/tandberg/etc/passwd.d/'
+    VERSION=$(echo $(cat /info/product_info.xml) | sed "s;.*<version>.*<major>\([^<]*\)</major>.*<minor>\([^<]*\)</minor>.*;\1.\2;")
+
+    if [ -f ${STAGING_DIR}${VERSION}${BASE_FILE} ] ; then
+        mv ${STAGING_DIR}${VERSION}${BASE_FILE} ${PASSWD_DIR}${BASE_FILE}
+    fi
+    rm -f ${STAGING_DIR}*${BASE_FILE}
+}
+
 #Anything after this point will not get run during a vcs upgrade scenario.
 if upgrade_in_progress; then
     exit 0
 fi
+copy_passwd_file
 wait_for_user_and_package
 register_alarms
 onboard_ui
