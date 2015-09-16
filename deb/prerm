@@ -22,6 +22,7 @@ function unregister_alarms()
     /sbin/alarm unregister bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd
     /sbin/alarm unregister 233f0c18-9c8f-41ba-8800-93937540afe8
     /sbin/alarm unregister b31d5f2c-d183-4559-97e2-d9da9572af26
+    /sbin/alarm unregister a144127e-57a5-11e5-8ccb-3417ebbf769a
 }
 
 # Ensure ManagementConnector is stopped before uninstall.
