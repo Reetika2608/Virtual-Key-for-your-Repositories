@@ -1,6 +1,14 @@
 #!/bin/sh
 [ -f "/etc/functions" ] && . "/etc/functions"
 
+function reload_logging_plugin()
+{
+    NOTIFICATION_FILE_PATH='/tmp/management/notifications/pluginconfiguration'
+    echo "" > ${NOTIFICATION_FILE_PATH}
+    sleep 1
+    rm -rf ${NOTIFICATION_FILE_PATH}
+}
+
 #Anything after this point will not get run during a vcs upgrade scenario.
 if upgrade_in_progress; then
     exit 0
@@ -13,4 +21,6 @@ else
     if [ -d /opt/c_mgmt ]; then
         rm -rf /opt/c_mgmt/
     fi
+    # Cleanup logging plugins
+    reload_logging_plugin
 fi
