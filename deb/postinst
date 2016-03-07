@@ -68,6 +68,14 @@ function copy_passwd_file()
     rm -f ${STAGING_DIR}*${BASE_FILE}
 }
 
+function reload_logging_plugin()
+{
+    NOTIFICATION_FILE_PATH='/tmp/management/notifications/pluginconfiguration'
+    echo "" > ${NOTIFICATION_FILE_PATH}
+    sleep 1
+    rm -rf ${NOTIFICATION_FILE_PATH}
+}
+
 #Anything after this point will not get run during a vcs upgrade scenario.
 if upgrade_in_progress; then
     exit 0
@@ -75,5 +83,6 @@ fi
 copy_passwd_file
 wait_for_user_and_package
 register_alarms
+reload_logging_plugin
 onboard_ui
 /etc/init.d/c_mgmt restart
