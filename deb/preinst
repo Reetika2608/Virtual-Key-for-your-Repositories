@@ -1,0 +1,144 @@
+#!/bin/bash
+####################################################################################################################
+################################################# Rollback Data Migration ##########################################
+####################################################################################################################
+# This Section will handle the rename of current and previous versions and database cleanup.
+
+LOGFILE=/mnt/harddisk/log/packagesd.log
+
+logit()
+{
+    DATE=`date +"%b %e %T"`
+    while read LINE
+    do
+       echo $DATE tandberg cafe_extract $LINE >> ${LOGFILE}
+    done
+}
+
+PKGDIR=/tmp/fusion/pkgs
+
+# Interrogate
+int_dpkg_deb()
+{
+   OPT=$1
+   DEB=$2
+   FIELD=$3
+   count=1
+   while [ $count -le 50 ]
+   do
+      VALUE=`dpkg-deb $OPT $DEB $FIELD 2>/dev/null | head -n1`
+      retval=$?
+      [ $retval -eq 0 ] && [ "$VALUE" ] && break
+      count=$((count+1))
+      sleep 0.1
+   done
+   echo "int_dpkg_deb: count = $count, value = $VALUE ($OPT, $DEB, $FIELD)" | logit
+   echo $VALUE
+   [ $count -le 5 ] && return 0
+   return 1
+}
+
+extract_function() {
+    local retval
+
+    PACKAGE=$1
+    DIRNAME=`dirname $PACKAGE`
+    MYTMPDIR=${PKGDIR}/$$
+    mkdir -p ${MYTMPDIR}
+    tar xf ${PACKAGE} -C ${MYTMPDIR}
+    retval=$?
+    if [ $retval -eq 0 ]
+    then
+        openssl rsautl -verify -pubin -inkey /share/dpkg/public.pem -in ${MYTMPDIR}/sig -out ${MYTMPDIR}/pp.txt
+        retval=$?
+        if [ $retval -eq 0 ]
+        then
+            for pkg in `ls ${MYTMPDIR}/*pkg.enc`
+            do
+                openssl enc -d -aes-128-cbc -salt -pass file:${MYTMPDIR}/pp.txt -in $pkg -out ${MYTMPDIR}/pkg.deb
+                retval=$?
+                if [ $retval -eq 0 ]
+                then
+                    PKGNAME=`int_dpkg_deb -f ${MYTMPDIR}/pkg.deb Package | tr A-Z a-z`
+                    PKGVER=`int_dpkg_deb -f ${MYTMPDIR}/pkg.deb Version`
+                    rm ${MYTMPDIR}/pkg.deb
+
+                    # Rename the original tlp with version number
+                    mv ${PACKAGE} ${DIRNAME}/${PKGNAME}_${PKGVER}.tlp
+                    echo ${DIRNAME}/${PKGNAME}_${PKGVER}.tlp
+                fi
+            done
+        fi
+    fi
+    rm -rf ${MYTMPDIR}
+    return $retval
+}
+
+extract_all_stashed() {
+# Extract and rename all current and previous tlps
+
+    PREVIOUS_DIR="/mnt/harddisk/persistent/fusion/previousversions"
+    CURRENT_DIR="/mnt/harddisk/persistent/fusion/currentversions"
+
+    for pkg in `ls ${PREVIOUS_DIR}/*.tlp`; do
+        extract_function $pkg
+    done
+
+    for pkg in `ls ${CURRENT_DIR}/*.tlp`; do
+        extract_function $pkg
+    done
+}
+
+delete_stashed_version_entries() {
+    extract_required=`python <<END_PYTHON_PART
+
+from distutils.version import StrictVersion
+
+from ni.cafedynamic.cafexutil import CafeXUtils
+
+def version_number_compare(version1, version2):
+    """
+        Compare connector version: 8.6-1.0.123456
+    """
+
+    def normalize(v):
+        """ Strips Expressway version from connector version """
+        # Strip Expressway Version and split
+        start = v.find("-")+1
+        v = v[start:]
+        return v
+
+    internal_compare = lambda x, y: StrictVersion(x).__cmp__(y)
+
+    return internal_compare(normalize(version1), normalize(version2))
+
+# Version: 8.6-1.0.318968 is last published Management Connector with cluster rollback defect.
+# If version-coming-from is older or equal to 968 trigger extraction
+version = CafeXUtils.get_package_version("c_mgmt")
+difference = version_number_compare(version, "8.6-1.0.318968")
+print difference <= 0
+
+END_PYTHON_PART`
+if [ $extract_required = "True" ]; then
+echo "Doing convert"
+# Delete Database tables
+# Extract All TLPs
+extract_all_stashed
+
+# Delete database paths
+rv=`python <<END_PYTHON_PATH
+from ni.managementconnector.databasehandler import DatabaseHandler
+
+current_path="/configuration/cafe/cafeblobconfiguration/name/c_mgmt_installed_currentversions"
+previous_path="/configuration/cafe/cafeblobconfiguration/name/c_mgmt_installed_previousversions"
+
+database_handler = DatabaseHandler()
+database_handler.send_delete(current_path)
+database_handler.send_delete(previous_path)
+
+END_PYTHON_PATH`
+fi
+}
+
+delete_stashed_version_entries
+################################################# End Migration logic ##############################################
