@@ -1,7 +1,0 @@
-Package: c_mgmt
-Version: 8.6-1.0.321133
-Maintainer: Cisco
-Architecture: all
-Section: component
-Description: c_mgmt
- c_mgmt package
