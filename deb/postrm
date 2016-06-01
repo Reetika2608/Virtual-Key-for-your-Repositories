@@ -16,7 +16,10 @@ fi
 
 # Remove pyc files, and entire c_mgmt opt directory if it still exists.
 if [ "${1}" == "upgrade" ]; then
-    find -P /opt/c_mgmt/ -name *.pyc | xargs rm -f
+    # Find and delete all xcommand and xstatus pyc files to ensure updates are picked up.
+    # pyc files sometimes got created, during upgrade scenarios.
+    # Must exclude the library directory.
+    find -P /opt/c_mgmt/xcommand/ /opt/c_mgmt/xstatus/ -name *.pyc | xargs rm -f
 else
     if [ -d /opt/c_mgmt ]; then
         rm -rf /opt/c_mgmt/
