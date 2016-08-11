@@ -3,5 +3,5 @@ Version: 8.7-1.0.321173
 Maintainer: Cisco
 Architecture: all
 Section: component
-Description: Management connector
+Description: Management Connector
  c_mgmt package
