@@ -1,9 +1,5 @@
 Package: c_mgmt
-<<<<<<< HEAD
-Version: 8.7-1.0.321204
-=======
-Version: 8.7-1.0.321200
->>>>>>> origin/master
+Version: 8.7-1.0.321216
 Maintainer: Cisco
 Architecture: all
 Section: component
