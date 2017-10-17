@@ -25,7 +25,7 @@ function register_alarms()
     /sbin/alarm register a144127e-57a5-11e5-8ccb-3417ebbf769a --id 60069 --severity alert --solution-links '["txt.DEREGISTER_MSG", "fusionregistration"]'
     /sbin/alarm register 29417128-4e59-4ae2-802e-77135c6a7fc9 --id 60070 --severity error
     /sbin/alarm register dc463c51-d111-4cc5-9eba-9e09292183b0 --id 60071 --severity error
-    /sbin/alarm register 3e544328-598e-11e6-8b77-86f30ca893d3 --id 60072 --severity alert --solution-links '["link.PRODUCT_DOWNLOAD", "link.PRODUCT_DOWNLOAD_SOURCE"]'
+    /sbin/alarm register 3e544328-598e-11e6-8b77-86f30ca893d3 --id 60072 --severity alert --solution-links '["link.PRODUCT_DOWNLOAD", "https://collaborationhelp.cisco.com/article/en-us/ruyceab"]'
 }
 
 function onboard_ui()
