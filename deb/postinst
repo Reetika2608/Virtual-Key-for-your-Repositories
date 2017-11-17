@@ -26,7 +26,7 @@ function register_alarms()
     /sbin/alarm register 29417128-4e59-4ae2-802e-77135c6a7fc9 --id 60070 --severity error
     /sbin/alarm register dc463c51-d111-4cc5-9eba-9e09292183b0 --id 60071 --severity error
     /sbin/alarm register 3e544328-598e-11e6-8b77-86f30ca893d3 --id 60072 --severity alert --solution-links '["link.PRODUCT_DOWNLOAD", "https://collaborationhelp.cisco.com/article/en-us/ruyceab"]'
-    /sbin/alarm register 38d69632-5fd8-4b44-94d7-a517b8329eb8 --id 60073 --severity alert --solution-links '["link.UPDATED_PRODUCT_DOWNLOAD", "https://collaborationhelp.cisco.com/article/en-us/ruyceab"]
+    /sbin/alarm register 38d69632-5fd8-4b44-94d7-a517b8329eb8 --id 60073 --severity alert --solution-links '["link.PRODUCT_DOWNLOAD", "https://collaborationhelp.cisco.com/article/en-us/ruyceab"]
 }
 
 function onboard_ui()
