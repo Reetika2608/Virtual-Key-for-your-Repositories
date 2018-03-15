@@ -4,7 +4,7 @@ import sys
 
 logger = logging.getLogger('build.managementconnector_plugin')
 m = module('managementconnector_plugin')
-m.source('./files/tandberg/locale/en_US.utf8/LC_MESSAGES/managementconnector.po')
+m.source('./ni/files/tandberg/locale/en_US.utf8/LC_MESSAGES/managementconnector.po')
 m.on_target('swpkg.lst')
 
 m.set_build_env('PYCHK_SETTINGS', ",".join( [
