@@ -1,0 +1,915 @@
+msgid "ttl.CLOUD_FUSION"
+msgstr "Hybrid Services"
+
+msgid "ttl.FUSION_SERVICES"
+msgstr "Connector Management"
+
+msgid "lbl.FUSION_REDIRECT_WARNING"
+msgstr "When you click Register, you're redirected to https://admin.ciscospark.com, where you need your <b>Organization Administrator Credentials</b>."
+
+msgid "lbl.FUSION_MANAGEMENT_CONNECTOR_UPGRADE"
+msgstr "To ensure that the Expressway registers correctly, the latest version of Management Connector will be downloaded and installed automatically."
+
+msgid "err.FUSION_MANAGEMENT_CONNECTOR_UPGRADE_ERROR"
+msgstr "Error occurred when upgrading Management Connector: %s"
+
+msgid "btn.REGISTER_FUSION_SERVICES"
+msgstr "Register"
+
+msgid "fieldset.CLOUD_FUSION_SERVICES"
+msgstr "Welcome to Hybrid Services"
+
+msgid "fieldset.CLOUD_FUSION_SERVICES_REGISTERED"
+msgstr "Hybrid Services"
+
+msgid "fieldset.CLOUD_FUSION_SERVICES_SERVICE"
+msgstr "Connector management"
+
+msgid "lbl.FUSION_NOT_REGISTERED"
+msgstr "This [[PRODUCT]] is not yet registered with the Cisco Collaboration Cloud. Go to %s to check if it is on the allow list. "
+
+msgid "lbl.FUSION_REVIVE_MAY_BE_REQUIRED"
+msgstr "There is an error in your connection to the Cisco Collaboration Cloud  "
+
+msgid "btn.FUSION_REVIVE"
+msgstr "Re-Register"
+
+msgid "lbl.FUSION_CLUSTER"
+msgstr "Peers in the cluster: %s"
+
+msgid "lbl.FUSION_CERT_REGISTER_TITLE"
+msgstr "Register"
+
+msgid "lbl.FUSION_REGISTRATION_POLLING"
+msgstr "<b>Please wait whilst we check your connection to the Cloud</b>"
+
+msgid "lbl.FUSION_DEREGISTRATION_WAIT"
+msgstr "<b>Removing connectors...</b>"
+
+msgid "msg.C_MGMT_INSTALLING"
+msgstr "Registration can take a few minutes to complete"
+
+msgid "lbl.PRECHECK_FAILED"
+msgstr "Connection failed"
+
+msgid "lbl.PRECHECK_FAILED_EXPLANATION"
+msgstr "We failed the test connection to Cisco Collaboration Cloud. Check the following:"
+
+msgid "lbl.PRECHECK_TRY_FIREWALL"
+msgstr "Does your firewall allow outbound connections from this VCS?"
+
+msgid "lbl.PRECHECK_TRY_DNS_%s"
+msgstr "Are your %s settings valid?"
+
+msgid "lbl.PRECHECK_TRY_PROXY_%s"
+msgstr "Do you need to use a %s to connect to the internet?"
+
+msgid "lbl.PRECHECK_PROXY_BROKEN_%s"
+msgstr "Are your %s settings correct"
+
+msgid "lbl.FUSION_CA_EXPLANATION"
+msgstr "To register for Hybrid Services, the [[PRODUCT]] must establish Certificate Authority trust with Cisco Collaboration Cloud."
+
+msgid "btn.RETRY_FUSION_PRECHECK"
+msgstr "Retry connection"
+
+msgid "err.CONNECTOR_RESTART_TIMED_OUT"
+msgstr "Connector failed to restart within time limit"
+
+msgid "lbl.FUSION_CA_CONFIRMATION_MESSAGE"
+msgstr "I want Cisco to manage the [[PRODUCT]] CA certificates required for this trust."
+
+msgid "lbl.FUSION_CA_GOOD_CONFIRMATION_MESSAGE"
+msgstr "I want Cisco Collaboration Cloud to add the required CA certificates to the [[PRODUCT]] trust list."
+
+msgid "link.CISCO_CLOUD_CA_CERTIFICATES"
+msgstr "Cisco Cloud CA Certificates"
+
+msgid "err.NOT_FUSED_TITLE"
+msgstr "The [[PRODUCT]] is not registered with the Cisco Collaboration Cloud."
+
+msgid "err.USE_CA_TICKBOX_WHEN_REGISTERING"
+msgstr "To attain required CA certificates tick the relevant checkbox at registration."
+
+msgid "lbl.EXCHANGE_LINK"
+msgstr "Configure Exchange Servers"
+
+msgid "link.ACKNOWLEDGE_ALARMS"
+msgstr "Acknowledge these alarms on the alarms page"
+
+msgid "lbl.FUSION_REGISTERED"
+msgstr "This [[PRODUCT]] cluster is registered with the Cisco Collaboration Cloud."
+
+msgid "lbl.FUSION_SERVICES_MESSAGE_%s"
+msgstr "%s - view the status of your clusters and connectors"
+
+msgid "lbl.FUSION_CERTS_ARE_ACCEPTED_%s"
+msgstr "%s -  you are currently allowing Cisco Collaboration Cloud to add required CA certificates to the [[PRODUCT]] trust list"
+
+msgid "lbl.FUSION_CERTS_ARE_NOT_ACCEPTED_%s"
+msgstr "%s -  you are currently not allowing Cisco Collaboration Cloud to add required CA certificates to the [[PRODUCT]] trust list"
+
+msgid "err.SECURITY_REQUIREMENTS_NOT_MET_FOR_FUSION"
+msgstr "Security requirements not met for registration"
+
+msgid "err.PASSWORD_HAS_MD5_ENCRYPTION_%s"
+msgstr "Account password has MD5 encryption, see %s for details"
+
+msgid "err.PASSWORD_HAS_DEFAULT_VALUE_SEE_ALARMS_%s"
+msgstr "Password is set to default value, see %s for details"
+
+msgid "err.PENULTIMATE_SUPPORTED_PRODUCT_VERSION_TEXT_%s"
+msgstr "This version of [[PRODUCT]] will soon be unsupported for Hybrid Services. %s."
+
+msgid "err.PENULTIMATE_SUPPORTED_PRODUCT_VERSION_%s"
+msgstr "[[PRODUCT]] version will soon be unsupported"
+
+msgid "err.UNSUPPORTED_PRODUCT_VERSION_TEXT_%s"
+msgstr "This version of [[PRODUCT]] is no longer supported for Hybrid Services. %s."
+
+msgid "err.UNSUPPORTED_PRODUCT_VERSION_%s"
+msgstr "Unsupported [[PRODUCT]] version"
+
+msgid "link.PRODUCT_DOWNLOAD"
+msgstr "Read more, and download the new version."
+
+# This is not to be translated. Provides the link to download new product versions
+msgid "link.PRODUCT_DOWNLOAD_SOURCE"
+msgstr "https://collaborationhelp.cisco.com/article/en-us/ruyceab"
+
+msgid "err.NTP_SETUP_BROKEN_%s"
+msgstr "NTP failing, see %s for details"
+
+msgid "err.NETWORK_REQUIREMENTS_NOT_MET_FOR_FUSION"
+msgstr "Network configuration not suitable for registration"
+
+msgid "err.DNS_REQUIREMENTS_NOT_MET_FOR_FUSION"
+msgstr "DNS configuration not suitable for registration"
+
+msgid "err.MISSING_HOSTNAME_OR_DOMAIN_%s"
+msgstr "Registration requires both a host and a domain name configured, see %s page"
+
+msgid "btn.DEFUSE"
+msgstr "Deregister"
+
+msgid "lbl.DEFUSE_LOCAL"
+msgstr "Click Deregister to remove this node from Cisco Collaboration Cloud."
+
+msgid "msg.DEFUSE_CONFIRM"
+msgstr "Are you sure you want to remove this node from Cisco Collaboration Cloud?"
+
+msgid "err.FUSION_DEFUSED"
+msgstr "Deregistered from the Cisco Collaboration Cloud"
+
+msgid "err.REMOTE_DEFUSE_TITLE"
+msgstr "Deregistered"
+
+msgid "err.REMOTE_DEFUSE"
+msgstr "This cluster has been deregistered from the Cisco Collaboration Cloud"
+
+msgid "err.CLOUD_MAINTENANCE_MODE_TITLE"
+msgstr "Cloud Maintenance Mode"
+
+msgid "err.CLOUD_MAINTENANCE_MODE"
+msgstr "Maintenance mode for Cisco Spark Hybrid Services is enabled on this [[PRODUCT]]."
+
+msgid "lbl.FUSION_STATUS_INSTRUCTIONS"
+msgstr "<i>Click a connector name below to view or modify the connector details.</i>"
+
+# This is not to be translated. The actual link (href) is set on the php side.
+msgid "link.CISCO_CLOUD_COLLABORATION_PORTAL"
+msgstr "https://admin.ciscospark.com"
+
+msgid "lbl.NOT_INSTALLED"
+msgstr "Not installed"
+
+msgid "btn.REDIRECT_TO_FUSION"
+msgstr "Back to Hybrid Services"
+
+msgid "err.REGISTERED_FOR_FUSION"
+msgstr "Registered with Cisco Collaboration Cloud"
+
+msgid "err.CAFE_REDIRECT_FAILING"
+msgstr "Unable to redirect to the identity provider (IdP) for Cisco Collaboration Cloud"
+
+msgid "err.REGISTRATION_SESSION_TIMED_OUT"
+msgstr "Could not register because the session timed out"
+
+msgid "err.DEREGISTRATION_SESSION_TIMED_OUT"
+msgstr "Could not deregister because the session timed out"
+
+msgid "lbl.CONNECTOR_UNINSTALLING"
+msgstr "Uninstalling"
+
+msgid "lbl.CONNECTOR_INSTALLING"
+msgstr "Installing"
+
+msgid "lbl.CONNECTOR_DOWNLOADING"
+msgstr "Downloading"
+
+msgid "lbl.CONNECTOR_NOT_INSTALLED"
+msgstr "Not installed"
+
+msgid "lbl.CONNECTOR_RUNNING"
+msgstr "Running"
+
+msgid "lbl.CONNECTOR_RUNNING_WITH_ALARMS"
+msgstr "Running, with alarms"
+
+msgid "lbl.CONNECTOR_STOPPED"
+msgstr "Stopped"
+
+msgid "btn.RESTART_CONNECTOR"
+msgstr "Restart connector"
+
+msgid "err.CONNECTOR_RESTARTED"
+msgstr "Connector restarted"
+
+msgid "msg.ENABLING_CONNECTOR"
+msgstr "Enabling connector"
+
+msgid "lbl.CONNECTOR_DISABLED"
+msgstr "Not enabled"
+
+msgid "lbl.CONNECTOR_CONFIGURED_BADLY"
+msgstr "Configuration failed"
+
+msgid "lbl.CONNECTOR_INSTALLED_NOT_CONFIGURED"
+msgstr "Installed, but not configured"
+
+msgid "lbl.ERROR_READING_STATUS "
+msgstr "Unreadable"
+
+msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.title"
+msgstr "[Hybrid services] Connection failed because the CA certificate was not found"
+
+msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.description"
+msgstr "Cannot securely connect to the Cisco Collaboration Cloud because the root CA that signed the certificate from %s is not in the [[PRODUCT]]'s trusted CA list."
+
+msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.solution"
+msgstr "Update the [[PRODUCT]]'s trusted CA list to include the CA that signed the received certificate."
+
+msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.id"
+msgstr "60058"
+
+msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.severity"
+msgstr "error"
+
+msgid "alm.802e15e0-31cf-4356-8b99-b07d364553f9.title"
+msgstr "[Hybrid services] Connection failed because the certificate name did not match"
+
+msgid "alm.802e15e0-31cf-4356-8b99-b07d364553f9.description"
+msgstr "The certificate from %s did not have a CN or SAN attribute that matches its hostname."
+
+msgid "alm.802e15e0-31cf-4356-8b99-b07d364553f9.solution"
+msgstr "Check that the CN or a SAN on the certificate from the remote server matches its hostname."
+
+msgid "alm.802e15e0-31cf-4356-8b99-b07d364553f9.id"
+msgstr "60059"
+
+msgid "alm.802e15e0-31cf-4356-8b99-b07d364553f9.severity"
+msgstr "error"
+
+msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.title"
+msgstr "[Hybrid services] Connection failed because the certificate was not validated"
+
+msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.description"
+msgstr "The [[PRODUCT]] could not validate the certificate from %s. This can happen because the [[PRODUCT]] does not trust the CA, or because the certificate is not currently valid."
+
+msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.solution"
+msgstr "Check that the [[PRODUCT]] %s list contains the root certificate of the CA that signed the received certificate. Check that the CA certificate is current and has not been revoked. Check that the %s is configured and that the [[PRODUCT]] is synchronized. If you can rule out these potential causes and the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.id"
+msgstr "60060"
+
+msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.severity"
+msgstr "error"
+
+msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.title"
+msgstr "[Hybrid services] Upgrade failed because certificate was not valid"
+
+msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.description"
+msgstr "%s"
+
+msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.solution"
+msgstr "Check the [[PRODUCT]]'s trusted CA list for the CA that signed the received certificate."
+
+msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.id"
+msgstr "60056"
+
+msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.severity"
+msgstr "error"
+
+msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.title"
+msgstr "[Hybrid services] Upgrade prevented by user choice"
+
+msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.description"
+msgstr "You previously rejected connector upgrades currently advertised by Cisco Collaboration Cloud. Automatic upgrades will continue when the next versions are available. The advertised versions are: %s"
+
+msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.solution"
+msgstr "View connector versions and either wait for the next automatic upgrade time or go to admin.ciscospark.com > Services > Hybrid Call > View All to open the resources and manually accept the upgrade."
+
+msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.id"
+msgstr "60061"
+
+msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.severity"
+msgstr "alert"
+
+msgid "alm.1e9c9c3d-9b35-467c-af1c-90d6947ababb.title"
+msgstr "[Hybrid services] Upgrade failed because certificate name did not match."
+
+msgid "alm.1e9c9c3d-9b35-467c-af1c-90d6947ababb.description"
+msgstr "%s"
+
+msgid "alm.1e9c9c3d-9b35-467c-af1c-90d6947ababb.solution"
+msgstr "Check that the CN or a SAN on the certificate from %s matches its hostname."
+
+msgid "alm.1e9c9c3d-9b35-467c-af1c-90d6947ababb.id"
+msgstr "60057"
+
+msgid "alm.1e9c9c3d-9b35-467c-af1c-90d6947ababb.severity"
+msgstr "error"
+
+msgid "alm.598ea3b8-00f9-4674-a90a-919668fec916.title"
+msgstr "[Hybrid services] Download failed because the certificate was not valid"
+
+msgid "alm.598ea3b8-00f9-4674-a90a-919668fec916.description"
+msgstr "%s"
+
+msgid "alm.598ea3b8-00f9-4674-a90a-919668fec916.solution"
+msgstr "Check the [[PRODUCT]]'s trusted CA list for the CA that signed the received certificate."
+
+msgid "alm.598ea3b8-00f9-4674-a90a-919668fec916.id"
+msgstr "60055"
+
+msgid "alm.598ea3b8-00f9-4674-a90a-919668fec916.severity"
+msgstr "error"
+
+msgid "alm.ba883968-4b5a-4f83-9e71-50c7d7621b44.title"
+msgstr "[Hybrid services] Connectivity error"
+
+msgid "alm.ba883968-4b5a-4f83-9e71-50c7d7621b44.description"
+msgstr "Could not reach Cisco Collaboration Cloud address: %s"
+
+msgid "alm.ba883968-4b5a-4f83-9e71-50c7d7621b44.solution"
+msgstr "Check %s, or %s, or use network utilities %s, to verify this address."
+
+msgid "alm.ba883968-4b5a-4f83-9e71-50c7d7621b44.id"
+msgstr "60050"
+
+msgid "alm.ba883968-4b5a-4f83-9e71-50c7d7621b44.severity"
+msgstr "error"
+
+msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.title"
+msgstr "[Hybrid services] Communication error"
+
+msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.description"
+msgstr "HTTP error code %s from Cisco Collaboration Cloud (address: %s)"
+
+msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.solution"
+msgstr "Check Hybrid Services status on the [[PRODUCT]]-C. Check status.ciscospark.com for outages. If the error remains, go to admin.ciscospark.com, click your admin username, and then click Feedback to open a case for further investigation."
+
+msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.id"
+msgstr "60051"
+
+msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.severity"
+msgstr "error"
+
+msgid "alm.b6417be9-0c57-4254-8392-896b61983ca4.title"
+msgstr "[Hybrid services] Communication error"
+
+msgid "alm.b6417be9-0c57-4254-8392-896b61983ca4.description"
+msgstr "%s"
+
+msgid "alm.b6417be9-0c57-4254-8392-896b61983ca4.solution"
+msgstr "Verify your %s, %s, %s the address. If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.b6417be9-0c57-4254-8392-896b61983ca4.id"
+msgstr "60052"
+
+msgid "alm.b6417be9-0c57-4254-8392-896b61983ca4.severity"
+msgstr "error"
+
+msgid "alm.3d541e1e-1e9c-4b30-a07d-e93f8445b13e.title"
+msgstr "[Hybrid services] Access error"
+
+msgid "alm.3d541e1e-1e9c-4b30-a07d-e93f8445b13e.description"
+msgstr "%s"
+
+msgid "alm.3d541e1e-1e9c-4b30-a07d-e93f8445b13e.solution"
+msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.3d541e1e-1e9c-4b30-a07d-e93f8445b13e.id"
+msgstr "60053"
+
+msgid "alm.3d541e1e-1e9c-4b30-a07d-e93f8445b13e.severity"
+msgstr "error"
+
+msgid "alm.76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2.title"
+msgstr "[Hybrid services] Connector install error"
+
+msgid "alm.76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2.description"
+msgstr "%s"
+
+msgid "alm.76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2.solution"
+msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2.id"
+msgstr "60054"
+
+msgid "alm.76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2.severity"
+msgstr "error"
+
+
+msgid "alm.77857c20-94b4-4145-8298-cad741e905fb.title"
+msgstr "[Hybrid services] Connector disable error"
+
+msgid "alm.77857c20-94b4-4145-8298-cad741e905fb.description"
+msgstr "Could not disable the %s connector."
+
+msgid "alm.77857c20-94b4-4145-8298-cad741e905fb.solution"
+msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.77857c20-94b4-4145-8298-cad741e905fb.id"
+msgstr "60062"
+
+msgid "alm.77857c20-94b4-4145-8298-cad741e905fb.severity"
+msgstr "error"
+
+
+msgid "alm.77ad9990-4850-4191-9bc2-51d0912daef3.title"
+msgstr "[Hybrid services] Connector enable error"
+
+msgid "alm.77ad9990-4850-4191-9bc2-51d0912daef3.description"
+msgstr "Could not enable the %s connector."
+
+msgid "alm.77ad9990-4850-4191-9bc2-51d0912daef3.solution"
+msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.77ad9990-4850-4191-9bc2-51d0912daef3.id"
+msgstr "60063"
+
+msgid "alm.77ad9990-4850-4191-9bc2-51d0912daef3.severity"
+msgstr "error"
+
+
+msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.title"
+msgstr "[Hybrid services] Connector unexpectedly not running"
+
+msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.description"
+msgstr "The process %s unexpectedly stopped."
+
+msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.solution"
+msgstr "From [[PRODUCT]]-C, restart the connector. If that connector upgraded itself recently, roll it back to the previous connector. If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.id"
+msgstr "60064"
+
+msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.severity"
+msgstr "error"
+
+
+msgid "alm.52299415-2719-45d5-bcf7-720b48929ae3.title"
+msgstr "[Hybrid services] Connector version mismatch"
+
+msgid "alm.52299415-2719-45d5-bcf7-720b48929ae3.description"
+msgstr "%s"
+
+msgid "alm.52299415-2719-45d5-bcf7-720b48929ae3.solution"
+msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.52299415-2719-45d5-bcf7-720b48929ae3.id"
+msgstr "60065"
+
+msgid "alm.52299415-2719-45d5-bcf7-720b48929ae3.severity"
+msgstr "error"
+
+
+msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.title"
+msgstr "[Hybrid services] Routine authentication refresh failed"
+
+msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.description"
+msgstr "The [[PRODUCT]] periodically renews its authentication through %s, but did not succeed this time. The [[PRODUCT]] will retry in %s minutes."
+
+msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.solution"
+msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.id"
+msgstr "60066"
+
+msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.severity"
+msgstr "error"
+
+msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.title"
+msgstr "[Hybrid services] Connectivity Error"
+
+msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.description"
+msgstr "Error when trying to access %s. The [[PRODUCT]] will try again in approximately %s seconds."
+
+msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.solution"
+msgstr "Check %s, and check for network issues if the error persists."
+
+msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.id"
+msgstr "60067"
+
+msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.severity"
+msgstr "error"
+
+msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.title"
+msgstr "[Hybrid services] Invalid responses from Cisco Collaboration Cloud"
+
+msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.description"
+msgstr "Invalid data was received from %s."
+
+msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.solution"
+msgstr "Check that you have the expected address for Cisco Collaboration Cloud."
+
+msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.id"
+msgstr "60068"
+
+msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.severity"
+msgstr "error"
+
+
+msgid "alm.29417128-4e59-4ae2-802e-77135c6a7fc9.title"
+msgstr "[Hybrid services] HTTP exception"
+
+msgid "alm.29417128-4e59-4ae2-802e-77135c6a7fc9.description"
+msgstr "Received exception: %s, while processing HTTP response from %s"
+
+msgid "alm.29417128-4e59-4ae2-802e-77135c6a7fc9.solution"
+msgstr "If the error remains, use admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.29417128-4e59-4ae2-802e-77135c6a7fc9.id"
+msgstr "60070"
+
+msgid "alm.29417128-4e59-4ae2-802e-77135c6a7fc9.severity"
+msgstr "error"
+
+
+msgid "alm.dc463c51-d111-4cc5-9eba-9e09292183b0.title"
+msgstr "[Hybrid services] Key error"
+
+msgid "alm.dc463c51-d111-4cc5-9eba-9e09292183b0.description"
+msgstr "This system could not register properly because of a data error in a connector file. The associated services will not work as expected, even if you appear to have registered successfully."
+
+msgid "alm.dc463c51-d111-4cc5-9eba-9e09292183b0.solution"
+msgstr "If the error remains, use admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "alm.dc463c51-d111-4cc5-9eba-9e09292183b0.id"
+msgstr "60071"
+
+msgid "alm.dc463c51-d111-4cc5-9eba-9e09292183b0.severity"
+msgstr "error"
+
+
+msgid "txt.DEREGISTER_MSG"
+msgstr "deregister"
+
+msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.title"
+msgstr "[Hybrid services] No service connectors"
+
+msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.description"
+msgstr "You registered for Hybrid Services but there are no service connectors installed. The Management Connector is active and is making unnecessary connections to the Cisco Collaboration Cloud."
+
+msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.solution"
+msgstr "Go to admin.ciscospark.com and check that your organization is entitled to use one or more Hybrid Services. If you are not using any Hybrid Services, we strongly recommend that you %s this [[PRODUCT]]."
+
+msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.id"
+msgstr "60069"
+
+msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.severity"
+msgstr "alert"
+
+
+msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.title"
+msgstr "[Hybrid services] Unsupported [[PRODUCT]]  version"
+
+msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.description"
+msgstr "Your version of [[PRODUCT]] is no longer supported for Hybrid Services. To continue using Hybrid Services, you must upgrade to a newer version."
+
+msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.solution"
+msgstr "Please upgrade this [[PRODUCT]]. %s."
+
+msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.id"
+msgstr "60072"
+
+msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.severity"
+msgstr "alert"
+
+
+msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.title"
+msgstr "[Hybrid services] [[PRODUCT]] version will soon be unsupported"
+
+msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.description"
+msgstr "A new version of Cisco [[PRODUCT]] was released. We advise that you upgrade to this version at your earliest convenience to use the latest features and avoid an unsupported Hybrid Services deployment when the next Expressway version is released.\nYour current version will be supported until the next [[PRODUCT]] release."
+
+msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.solution"
+msgstr "Please upgrade this [[PRODUCT]]. %s."
+
+msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.id"
+msgstr "60073"
+
+msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.severity"
+msgstr "alert"
+
+
+msgid "lbl.CONNECTOR_NOT_CONFIGURED"
+msgstr "Not configured"
+
+msgid "txt.DNS"
+msgstr "DNS Settings"
+
+msgid "txt.PROXY"
+msgstr "Proxy Settings"
+
+msgid "txt.PING"
+msgstr "Ping"
+
+msgid "txt.NTP"
+msgstr "NTP server"
+
+msgid "txt.TRUESTEDCACERTIFICATE"
+msgstr "trusted CA certificates"
+
+msgid "err.ROLLBACK_ERROR_NO_CURRENT_VERSION_%s"
+msgstr "Did not roll back %s as current version does not exist"
+
+msgid "err.ROLLBACK_ERROR_NO_PREVIOUS_VERSION_%s"
+msgstr "Did not roll back %s as previous version does not exist"
+
+msgid "err.ROLLBACK_ERROR_AS_ALREADY_BLACK_LISTED_%s"
+msgstr "Did not roll back %s, as it was previously rejected"
+
+msgid "err.ROLLBACK_ERROR_%s_%s"
+msgstr "Error:%s, while attempting to roll back %s"
+
+msgid "err.HTTP_COMMUNICATION_ERROR_%s_%s_%s"
+msgstr "HTTP error %s from %s. Error detail: %s."
+
+msgid "err.URL_CONNECTION_ERROR_%s_%s_%s_%s"
+msgstr "Could not reach %s. Test this address with %s and check your %s and %s."
+
+msgid "err.SSL_ERROR_%s"
+msgstr "SSL Error occurred trying to access %s. Try to register again, and check for network issues if the error persists."
+
+msgid "err.SSL_ERROR_LINK"
+msgstr "Hybrid Services status"
+
+msgid "err.INVALID_RESPONSE_%s"
+msgstr "Invalid responses were received from %s. Check that this is the address you expected for Cisco Collaboration Cloud."
+
+msgid "err.CERT_CONNECTION_ERROR_%s_%s"
+msgstr "Could not register with the Cisco Collaboration Cloud because the certificate from %s was not validated. Check that the root CA which signed the certificate is in the %s. Check whether it is expired or revoked."
+
+msgid "err.CERT_CONNECTION_NAME_ERROR_%s"
+msgstr "Could not register with the Cisco Collaboration Cloud because the certificate name was not recognized. Check that the CN or a SAN on the certificate from %s matches host its URL"
+
+msgid "err.CERT_FUSION_CA_ERROR_%s_%s"
+msgstr "Could not register with the Cisco Collaboration Cloud because the certificate from %s was not validated against the trusted CA list. This list includes root CA certificates added by Cisco Cloud. Check the %s for the root CA that signed the received certificate"
+
+msgid "err.DOWNLOAD_CERT_ERROR_%s_%s"
+msgstr "Could not download %s because the certificate from %s was not validated."
+
+msgid "err.DOWNLOAD_CERT_NAME_ERROR_%s_%s"
+msgstr "Could not download %s because the hostname in the HTTP request did not match any CN or SAN attribute in the certificate from %s."
+
+msgid "err.DOWNLOAD_CERT_FUSION_CA_ERROR_%s_%s"
+msgstr "Could not download %s because the certificate from %s was not validated by CA"
+
+msgid "err.DOWNLOAD_COMM_ERROR_%s_%s"
+msgstr "Could not connect to %s to download connector %s"
+
+msgid "err.DOWNLOAD_ACCESS_ERROR_%s_%s"
+msgstr "Could not download connector %s from %s"
+
+msgid "err.DOWNLOAD_INSTALL_ERROR_%s_%s_%s"
+msgstr "Could not install connector %s (%s), downloaded from %s"
+
+msgid "err.DOWNLOAD_ENABLE_ERROR_%s"
+msgstr "Could not enable the %s connector"
+
+msgid "err.DOWNLOAD_DISABLE_ERROR_%s"
+msgstr "Could not disable the %s connector"
+
+msgid "err.PROCESS_STOPPED_ERROR_%s"
+msgstr "The %s service unexpectedly stopped"
+
+msgid "err.VERSION_MISMATCH_%s_%s_%s"
+msgstr "Cisco Collaboration Cloud is advertising %s version %s but the package version is %s. The version numbers should be identical."
+
+msgid "lbl.SERVICE_ALARMS_%d"
+msgid_plural "lbl.SERVICE_ALARMS_%d.plural"
+msgstr[0] "%d alarm"
+msgstr[1] "%d alarms"
+
+msgid "lbl.SERVICE_NO_ALARMS"
+msgstr "No alarms"
+
+msgid "doc.FUSION_ENABLE_SERVICE"
+msgstr "Enable this connector. <br/><br/><b>Default</b>: Not enabled"
+
+msgid "doc.FUSION_CONFIGURE_SERVICE"
+msgstr "You must configure this connector before you can enable it"
+
+msgid "ttl.FUSION_PROXY"
+msgstr "Connector Proxy"
+
+msgid "lbl.FUSION_PROXY_FIELDSET"
+msgstr "Connector Proxy Configuration"
+
+msgid "lbl.USE_FUSION_PROXY"
+msgstr "Register with Cisco Collaboration Cloud through a proxy"
+
+msgid "lbl.FUSION_PROXY_ADDRESS"
+msgstr "Address"
+
+msgid "lbl.FUSION_PROXY_PORT"
+msgstr "Port"
+
+msgid "lbl.FUSION_PROXY_USERNAME"
+msgstr "Username"
+
+msgid "lbl.FUSION_PROXY_PASSWORD"
+msgstr "Password"
+
+msgid "doc.USE_FUSION_PROXY"
+msgstr "Select whether this [[PRODUCT]] registers through a proxy. <br/><br/><b>Yes</b>: Routes outbound requests to Cisco Collaboration Cloud through the specified proxy. <br/><br/><b>No</b>: The outbound requests to Cisco Collaboration Cloud will go directly."
+
+msgid "doc.FUSION_PROXY_ADDRESS"
+msgstr "Address of your proxy server. Enter either IPv4 address, IPv6 address, or FQDN of the proxy."
+
+msgid "doc.FUSION_PROXY_PORT"
+msgstr "The port on which the proxy server is listening for requests towards the Cisco Collaboration Cloud."
+
+msgid "doc.FUSION_PROXY_USERNAME"
+msgstr "The username for authorizing requests at the proxy server."
+
+msgid "doc.FUSION_PROXY_PASSWORD"
+msgstr "The password for authenticating the authorized user."
+
+msgid "ttl.HYBRID_SERIVCES_LOG"
+msgstr "Hybrid Services Log"
+
+msgid "ttl.HYBRID_SERIVCES_LOG_LEVELS"
+msgstr "Hybrid Services Log Levels"
+
+msgid "ttl.HYBRID_LOGGING"
+msgstr "Connector Logging"
+
+msgid "ttl.HYBRID_SERIVCES_SEND_LOG"
+msgstr "Send Logs to Cisco Collaboration Cloud"
+
+msgid "btn.REDIRECT_TO_HYBRID_LOG"
+msgstr "Back to Hybrid Services Log"
+
+msgid "lbl.HYBRID_SERVICES_LOG_FIELDSET"
+msgstr "Hybrid Services Log Search"
+
+msgid "lbl.HYBRID_SERVICES_INFO_FIELDSET"
+msgstr "Information"
+
+msgid "lbl.HYBRID_SERVICES_INFORMATION"
+msgstr "This action sends Hybrid Services logs and configuration data to the Cisco Collaboration Cloud. We remove all personally identifiable information and passwords before the data leaves the system.<br/><br/>We use the Serial Number and Generated Search Key to locate the logs in the Cisco Collaboration Cloud.<br/><br/>By clicking Send you imply your consent to sending these logs to Cisco."
+
+msgid "btn.SEND_LOGS"
+msgstr "Send Logs"
+
+msgid "err.HYBRID_SEND_LOG_SUCCESS"
+msgstr "Send Logs Success"
+
+msgid "err.HYBRID_SEND_LOG_ERROR"
+msgstr "Send Logs Error"
+
+msgid "doc.HYBRID_SERVICES_LOG"
+msgstr "Hybrid Services Send Logs Help Information"
+
+msgid "lbl.HYBRID_SERVICE_REQUEST"
+msgstr "Service Request Number"
+
+msgid "lbl.HYBRID_SERIAL_NUMBER"
+msgstr "Serial Number"
+
+msgid "lbl.HYBRID_SERVICES_LOG_SENDING_%s"
+msgstr "Sending Logs, this can take up to %s seconds"
+
+msgid "err.HYBRID_SERVICES_LOG_TIMED_OUT_%s_%s_%s"
+msgstr "Timeout limit reached. The sending of logs for Hybrid Services has been unsuccessful for the following period. Seconds: %s Search Key: %s Status: %s"
+
+msgid "msg.HYBRID_SERVICES_LOG_CONFIG"
+msgstr "Are you sure you want to send logs ? Press OK to send, or Cancel otherwise"
+
+msgid "btn.SEND"
+msgstr "Send"
+
+msgid "lbl.HYBRID_LOG_SEARCH_STRING"
+msgstr "Generated Search Key: %s"
+
+msgid "err.LOG_PUSH_CERT_FAILURE_%s"
+msgstr "Log push failed due to a certificate error. Verify that certificates are correct under %s before you try to resend the logs."
+
+msgid "err.LOG_PUSH_MANAGED_CERT_LOCATION"
+msgstr "<b>Applications > Hybrid Services > Connector Management > Cisco Collaboration Cloud certificate management</b>"
+
+msgid "err.LOG_PUSH_UNMANAGED_CERT_LOCATION"
+msgstr "<b>Maintenance > Security certificates > Trusted CA certificates</b>"
+
+msgid "err.LOG_PUSH_NETWORK_FAILURE"
+msgstr "Log push failed due to a networking error, possibly due to network or connectivity issues between Management Connector and the Cisco Collaboration Cloud."
+
+msgid "err.LOG_PUSH_UNSPECIFIED_FAILURE"
+msgstr "Log push failed due to an unspecified error. If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+
+msgid "ttl.FUSION_CERT_TOOL"
+msgstr "Cisco Collaboration Cloud certificate management"
+
+msgid "menu.FUSION_CERT_TOOL"
+msgstr "Cloud Certificate management"
+
+msgid "lbl.FUSION_CERT_FIELDSET"
+msgstr "CA root certificate management"
+
+msgid "err.ADD_FUSION_CERTS"
+msgstr "Added Cisco Cloud CA root certificates"
+
+msgid "lbl.FUSION_CERT_ADD_INSTRUCTIONS"
+msgstr "You are not receiving trusted CA certificates from Cisco Collaboration Cloud. You can choose to get them here, or you must manually update the [[PRODUCT]] trust list."
+
+msgid "btn.ADD_FUSION_CERTS"
+msgstr "Get certificates"
+
+msgid "err.REMOVED_FUSION_CERTS"
+msgstr "Removed Cisco Collaboration Cloud CA root certificates"
+
+msgid "lbl.FUSION_CERT_REMOVE_INSTRUCTIONS"
+msgstr "You are accepting trusted CA certificates from Cisco Collaboration Cloud. If you remove them, you must manually update the [[PRODUCT]] trust list."
+
+msgid "btn.REMOVE_FUSION_CERTS"
+msgstr "Remove certificates"
+
+msgid "lbl.FUSION_CERTDISPLAY_FIELDSET"
+msgstr "CA root certificates"
+
+msgid "lbl.FUSION_CERTS_DESCRIPTION"
+msgstr "The following certificates have been added by Cisco."
+
+# messages for fusion certs page when its on the expressway
+msgid "err.NO_FUSION_ON_EXPRESSWAY_TITLE"
+msgstr "[[EXPRESSWAY]] does not register for any Hybrid Services."
+
+msgid "err.NO_FUSION_ON_EXPRESSWAY"
+msgstr "For Call Service Connect, it must have a secure traversal zone to [[CONTROL]]"
+
+msgid "lbl.EXPRESSWAY_FUSION_CERT_ADD_INSTRUCTIONS"
+msgstr "For some hybrid services, the [[EXPRESSWAY]] needs to trust the CAs that sign the Collaboration Cloud certificates, and you can install them here."
+
+msgid "lbl.EXPRESSWAY_FUSION_CERT_REMOVE_INSTRUCTIONS"
+msgstr "If you do not want to use this [[EXPRESSWAY]] for hybrid services, remove Cisco Collaboration Cloud CA root certificates from the [[PRODUCT]] CA trust list."
+
+msgid "err.TIMED_OUT_ADDING_FUSION_CERTS"
+msgstr "Timed out while trying to add CA certificates"
+
+msgid "err.TIMED_OUT_REMOVING_FUSION_CERTS"
+msgstr "Timed out while trying to remove CA certificates"
+
+msgid "lbl.ADDING_FUSION_CERT"
+msgstr "Getting CA certificates"
+
+msgid "lbl.REMOVING_FUSION_CERT"
+msgstr "Removing CA certificates"
+
+msgid "fieldset.ROLLFORWARD"
+msgstr "Rejected upgrade"
+
+msgid "lbl.BLOCKED_ROLLFORWARD_VERSION"
+msgstr "Rejected version"
+
+msgid "btn.ROLLFORWARD"
+msgstr "Allow this upgrade"
+
+msgid "err.ROLLFOWARD_ALLOWED"
+msgstr "Connector will now attempt to upgrade"
+
+msgid "fieldset.ROLLBACK"
+msgstr "Rollback option"
+
+msgid "lbl.ROLLBACK_VERSION"
+msgstr "Target version"
+
+msgid "btn.ROLLBACK"
+msgstr "Roll back"
+
+msgid "err.ROLLBACK_STARTED"
+msgstr "Rolled back to previous version"
+
+msgid "lbl.ROLLBACK_WARNING_%s"
+msgstr "Rolling back will remove %s and block automatic attempts to reinstall that version. The next version will upgrade as normal."
+
+msgid "msg.ROLLBACK_CONFIRM"
+msgstr "Are you sure you want to roll back this connector?"
+
+msgid "msg.ROLLFORWARD_CONFIRM"
+msgstr "Are you sure you want to allow this upgrade?"
+
+msgid "lbl.CONNECTOR_STATUS"
+msgstr "Connector Status"
