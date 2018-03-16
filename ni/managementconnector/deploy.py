@@ -24,7 +24,6 @@ from ni.managementconnector.platform.serviceutils import ServiceUtils
 from ni.managementconnector.lifecycle.lifecycleutils import LifecycleUtils
 from ni.managementconnector.service.crashmonitor import CrashMonitor
 
-import ni.clusterdatabase.restclient
 import ni.utils.i18n
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()

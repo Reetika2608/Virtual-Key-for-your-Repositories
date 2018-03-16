@@ -12,7 +12,13 @@ import jsonschema
 from ni.managementconnector.platform.certnamematch import match_hostname, CertificateError
 from ni.managementconnector.config.databasehandler import DatabaseHandler
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-import taacrypto
+try:
+    import taacrypto
+except ImportError:
+    import sys
+    import mock
+    sys.modules['taacrypto'] = mock.Mock
+
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()

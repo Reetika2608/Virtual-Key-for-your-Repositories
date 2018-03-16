@@ -10,7 +10,11 @@ import json
 import errno
 
 from ni.managementconnector.config import jsonhandler
-from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
+try:
+    from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
+except:
+    from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
+
 from ni.utils.platform import platforminfo
 
 # =============================================================================

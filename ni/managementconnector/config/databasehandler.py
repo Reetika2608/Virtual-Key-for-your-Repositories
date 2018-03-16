@@ -2,7 +2,11 @@
 
 import json
 
-from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
+try:
+    from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
+except:
+    from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
+
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
 from ni.cafedynamic.cafexutil import CafeXUtils

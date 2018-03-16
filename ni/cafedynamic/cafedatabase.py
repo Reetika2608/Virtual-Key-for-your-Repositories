@@ -6,7 +6,10 @@
 
 # Local application / library specific imports
 from ni.managementconnector.config.cafeproperties import CAFEProperties
-from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
+try:
+    from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
+except:
+    from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
 
 DEV_LOGGER = CAFEProperties.get_dev_logger()
 

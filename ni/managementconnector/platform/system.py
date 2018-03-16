@@ -11,15 +11,23 @@ from ni.managementconnector.config.managementconnectorproperties import Manageme
 from ni.cafedynamic.cafexutil import CafeXUtils
 
 # DE2834 - Temporary Fix - initialise logging before importing clusterconfigurationutils
-import ni.utils.logging.setup
-ni.utils.logging.setup.initialise_logging("managementconnector")
+try:
+    import ni.utils.logging.setup as logging_setup
+except (ImportError, IOError):
+    import ni.uchenvironment.utils.logging.setup as logging_setup
+
+logging_setup.initialise_logging("managementconnector")
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 
 
 from ni.clusterconfig.clusterconfigurationutils import XMLAPIConfigurationManager, ClusterConfigurationException
-import ni.clusterdatabase.restclient as restclient
+
+try:
+    import ni.clusterdatabase.restclient as restclient
+except:
+    from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as restclient
 
 
 class System(object):
