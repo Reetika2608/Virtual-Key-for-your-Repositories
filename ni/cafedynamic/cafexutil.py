@@ -12,7 +12,7 @@ import errno
 from ni.managementconnector.config import jsonhandler
 try:
     from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
-except:
+except ImportError:
     from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
 
 from ni.utils.platform import platforminfo
