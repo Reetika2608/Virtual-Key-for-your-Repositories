@@ -8,7 +8,7 @@
 from ni.managementconnector.config.cafeproperties import CAFEProperties
 try:
     from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
-except:
+except ImportError:
     from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
 
 DEV_LOGGER = CAFEProperties.get_dev_logger()
