@@ -201,7 +201,7 @@ class DatabaseHandlerTest(unittest.TestCase):
         register_all_default_loggers()
         mock_register.assert_called_once_with(expected_call)
 
-    @mock.patch('ni.managementconnector.config.databasehandler.DEV_LOGGER')
+    @mock.patch('ni.managementconnector.config.databasehandler.DEV_LOGGER.error')
     @mock.patch("ni.managementconnector.config.databasehandler.CafeXUtils.get_installed_connectors")
     @mock.patch('ni.managementconnector.config.databasehandler.register_default_loggers')
     def test_register_all_default_loggers_error(self, mock_register, mock_installed, mock_logger):
