@@ -4,7 +4,7 @@ import json
 
 try:
     from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
-except:
+except ImportError:
     from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
 
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
