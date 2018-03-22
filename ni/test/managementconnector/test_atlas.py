@@ -204,7 +204,7 @@ class AtlasTest(unittest.TestCase):
         DEV_LOGGER.info('test_get_post_request_data: RESPONSE %s' %(json_request))
 
         self.assertEqual(json_request['status']['alarms'][0]['solution_replacement_values'], [])
-        self.assertIn( "Check Hybrid Services status", json_request['status']['alarms'][0]['solution'])
+        self.assertIn( "60051", json_request['status']['alarms'][0]['id'])
 
         # alarm 2
         alarm_list_str = '[{ "uuid" : "635afce6-0ae8-4b84-90f5-837a2234002b", "id" : "60058", ' \
@@ -238,9 +238,12 @@ class AtlasTest(unittest.TestCase):
         expected_val = [{'text': u'DNS Settings', 'link': alarm_prefix_url + 'dns'},
                         {'text': u'Proxy Settings', 'link': alarm_prefix_url + 'fusionproxy'},
                         {'text': u'Ping', 'link': alarm_prefix_url + 'ping'}]
-        self.assertEqual(json_request['status']['alarms'][0]['solution_replacement_values'], expected_val)
-        self.assertEqual(json_request['status']['alarms'][0]['solution'], "Check %s, or %s, or use network utilities %s, to verify this address.")
 
+        alarm = json_request['status']['alarms'][0]
+        self.assertEqual(alarm['solution_replacement_values'][0]['link'], expected_val[0]['link'])
+        self.assertEqual(alarm['solution_replacement_values'][1]['link'], expected_val[1]['link'])
+        self.assertEqual(alarm['solution_replacement_values'][2]['link'], expected_val[2]['link'])
+        self.assertEqual(alarm['id'], "60058")
 
         http._http_request = _orig_http_request
 
