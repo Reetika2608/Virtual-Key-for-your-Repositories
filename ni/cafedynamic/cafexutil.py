@@ -222,6 +222,7 @@ class CafeXUtils(object):
 
         rtn_list = None
 
+        # grep contains a space to ensure traffic_server is not returned
         output = commands.getstatusoutput("dpkg -l | grep \" %s\" | awk '{print $2}'" % (connector_type))
 
         if output[1]:

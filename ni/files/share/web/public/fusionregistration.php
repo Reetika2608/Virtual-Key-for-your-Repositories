@@ -309,6 +309,7 @@ class CafePage extends ApplicationPage
             {
                 $dropdown = new DropDownBox("enable_service", $enabled, tt_gettext("doc.FUSION_CONFIGURE_SERVICE"));
                 $dropdown->disable();
+                $this->service_form->removeDefaultSubmitButton();
             }
 
 

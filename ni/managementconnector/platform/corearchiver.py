@@ -126,7 +126,7 @@ class CoreArchiver(object):
     def archive_core(tar_file, file_paths):
         """ Create archive of core dumps """
         cmd_response = 0
-        tar_command = ["tar", "-zcvf", tar_file] + file_paths + ["--ignore-failed-read"]
+        tar_command = ["tar", "--exclude=" + tar_file, "-zcvf", tar_file] + file_paths + ["--ignore-failed-read"]
         try:
             subprocess.check_output(tar_command, cwd=CORE_DUMP_STORAGE)
         except subprocess.CalledProcessError as tar_ex:

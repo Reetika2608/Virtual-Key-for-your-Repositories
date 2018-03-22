@@ -199,7 +199,9 @@ def register_all_default_loggers():
         if ManagementConnectorProperties.SERVICE_NAME in currently_installed:
             currently_installed.remove(ManagementConnectorProperties.SERVICE_NAME)
 
-        full_loggers = [ManagementConnectorProperties.HYBRID_PREFIX + name for name in currently_installed]
+        # In certain circumstances get_installed_connectors can return a dpkg error. By checking for c_ in the name, this
+        # ensures that only valid connectors register a logger.
+        full_loggers = [ManagementConnectorProperties.HYBRID_PREFIX + name for name in currently_installed if "c_" in name]
 
         all_loggers = full_loggers + ManagementConnectorProperties.DEFAULT_LOGGERS
 
