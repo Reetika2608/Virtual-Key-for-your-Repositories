@@ -3,13 +3,11 @@ import sys
 import logging
 import mock
 
-
 from ni.managementconnector.config.certhandler import merge_certs, repair_certs
 
 sys.path.append("/opt/c_mgmt/bin/")
 
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
@@ -151,7 +149,7 @@ AA9WjQKZ7aKQRUzkuxCkPfAyAw7xzvjoyVGM5mKf5p/AfbdynMk2OmufTqj/ZA1k
 
     '''
 
-    data_after= '''-----BEGIN CERTIFICATE-----
+    data_after = '''-----BEGIN CERTIFICATE-----
 MIIEPTCCAyWgAwIBAgIJAIoT80FOqKbvMA0GCSqGSIb3DQEBCwUAMIG0MTowOAYD
 VQQKDDFUZW1wb3JhcnkgQ0EgZjEyMDE4NmItZDY5My00MWUzLTgxNzEtZDk3YzEx
 M2E4YzUzMTowOAYDVQQLDDFUZW1wb3JhcnkgQ0EgZjEyMDE4NmItZDY5My00MWUz
@@ -281,24 +279,23 @@ AA9WjQKZ7aKQRUzkuxCkPfAyAw7xzvjoyVGM5mKf5p/AfbdynMk2OmufTqj/ZA1k
 
     def setUp(self):
         """ CertHandler Test Setup """
-        
-        DEV_LOGGER.debug('***TEST Setup***')
 
+        DEV_LOGGER.debug('***TEST Setup***')
 
     @mock.patch('__builtin__.open')
     def test_repair_certs(self, mock_file):
         """ Repair Certs Test """
 
-        mock.mock_open(mock_file,read_data=self.data_before)
+        mock.mock_open(mock_file, read_data=self.data_before)
 
         repair_certs()
 
         mock_file.assert_has_calls([mock.call(ManagementConnectorProperties.COMBINED_CA_FILE, "rU"),
                                     mock.call(ManagementConnectorProperties.COMBINED_CA_FILE, "w")],
-                                    any_order=True)
+                                   any_order=True)
         mock_write = mock_file()
-        mock_write.write.assert_has_calls([mock.call().write('\n' + c  + '\n') for c in self.data_after.split('\n\n')], any_order=False)
-
+        mock_write.write.assert_has_calls([mock.call().write('\n' + c + '\n') for c in self.data_after.split('\n\n')],
+                                          any_order=False)
 
     @mock.patch('ni.managementconnector.config.certhandler.repair_certs')
     @mock.patch('shutil.copyfileobj')
@@ -309,25 +306,25 @@ AA9WjQKZ7aKQRUzkuxCkPfAyAw7xzvjoyVGM5mKf5p/AfbdynMk2OmufTqj/ZA1k
         mock.mock_open(mock_file)
 
         # test with two files
-        merge_certs(["test_infile1.txt","test_infile2.txt"],"test_outfile.txt")
+        merge_certs(["test_infile1.txt", "test_infile2.txt"], "test_outfile.txt")
 
         mock_file.assert_has_calls([mock.call("test_infile1.txt", "rb"),
                                     mock.call("test_infile2.txt", "rb"),
                                     mock.call("test_outfile.txt", "wb")],
-                                   any_order=True)        
+                                   any_order=True)
 
         mock_repair.assert_called_once()
 
         mock_file.reset_mock
-        
+        mock_repair.reset_mock
+
         # test with one files
-        merge_certs(["test_infile1.txt"],"test_outfile.txt")
+        merge_certs(["test_infile1.txt"], "test_outfile.txt")
 
         mock_file.assert_has_calls([mock.call("test_infile1.txt", "rb"),
                                     mock.call("test_outfile.txt", "wb")],
-                                   any_order=True)        
-
-        mock_repair.assert_called_once()
+                                   any_order=True)
+        self.assertEqual(mock_repair.call_count, 2, "It should have been called twice")
 
 
 if __name__ == "__main__":
