@@ -26,7 +26,7 @@ from ni.clusterconfig.clusterconfigurationutils import XMLAPIConfigurationManage
 
 try:
     import ni.clusterdatabase.restclient as restclient
-except:
+except ImportError:
     from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as restclient
 
 
