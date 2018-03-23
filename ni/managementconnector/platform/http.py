@@ -17,7 +17,8 @@ try:
 except ImportError:
     import sys
     import mock
-    sys.modules['taacrypto'] = mock.Mock
+    sys.modules['taacrypto'] = mock.Mock()
+    import taacrypto
 
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
