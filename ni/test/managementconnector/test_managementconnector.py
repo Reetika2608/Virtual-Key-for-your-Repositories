@@ -263,7 +263,7 @@ class ManagementConnectorTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.managementconnector.CertHandler')
     def test_on_config_update_doesnt_trigger_merge_certs(self, mock_cert, mock_merge, mock_json, mock_config, mock_deploy, mock_manager,
                                mock_cert_added, mock_getsize, mock_listdir, machine_runner, mercury_runner, mock_feature, mock_watchdog, mock_u2c):
-
+    """ Verifies that on config updates does not trigger merge certs if it is already merged - currently failing """
         DEV_LOGGER.info("TEST: test_on_config_update_doesnt_trigger_merge_certs.")
         global CERT_ADD_RUN
         # Managed certs
