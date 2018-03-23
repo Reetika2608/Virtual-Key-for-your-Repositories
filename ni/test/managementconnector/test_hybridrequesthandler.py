@@ -76,7 +76,7 @@ class HybridRequestHandler(unittest.TestCase):
                                                        "false")
 
         mock_db.reset_mock()
-        on_request(mock_db, '{"connector": "c_test", "request": "setconfiguredstatus", "value": true}')
+        on_request(mock_db, '{"connector": "c_test", "request": "do_not_setconfiguredstatus", "value": true}')
         mock_db.update_blob_entries.assert_not_called()
 
     def test_hybrid_request_unsupported_request_are_not_handled(self):
