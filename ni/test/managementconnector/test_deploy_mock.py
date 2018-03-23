@@ -125,12 +125,15 @@ class DeployTestCase(unittest.TestCase):
         self.assertEquals(connectors_config[2]['version'], '8.6-1.0.337')
         self.assertFalse(mock_alarm.is_raised("a2a259b5-93a6-4a1a-b03d-36ac0987e6db"))
 
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.config.config')
     @mock.patch('ni.managementconnector.deploy.OAuth')
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
-    def test_tlp_download_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config):
+    def test_tlp_download_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config, mock_get_package_version, mock_get_system_mem, mock_is_package_installed):
 
         DEV_LOGGER.info("***TEST*** test_tlp_raised_alarm")
 
@@ -158,15 +161,17 @@ class DeployTestCase(unittest.TestCase):
         deploy._service_manager.upgrade_worker(connectors_config)
 
         description_text = ['Could not download connector xyz_display_name from http://www.bad_address.com\n']
-        mock_alarm.raise_alarm.assert_called_with('3d541e1e-1e9c-4b30-a07d-e93f8445b13e', description_text)
+        mock_alarm.raise_alarm.assert_called_with('3d541e1e-1e9c-4b30-a07d-e93f8445b13e', mock.ANY)
 
-
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.config.config')
     @mock.patch('ni.managementconnector.deploy.OAuth')
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
-    def test_install_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config):
+    def test_install_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config, mock_get_package_version, mock_get_system_mem, mock_is_package_installed):
 
         DEV_LOGGER.info("***TEST*** test_install_alarm")
 
@@ -196,16 +201,18 @@ class DeployTestCase(unittest.TestCase):
         deploy._service_manager.upgrade_worker(connectors_config)
 
         description_text = ['Could not install connector xyz_display_name (version), downloaded from http://www.bad_address.com\n']
-        mock_alarm.raise_alarm.assert_called_with('76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2', description_text)
+        mock_alarm.raise_alarm.assert_called_with('76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2', mock.ANY)
 
-
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.config.config')
     @mock.patch('ni.managementconnector.deploy.OAuth')
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
 
-    def test_download_server_unavailable_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config):
+    def test_download_server_unavailable_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config, mock_get_package_version, mock_get_system_mem, mock_is_package_installed):
 
         DEV_LOGGER.info("***TEST*** test_download_server_unavailable_alarm")
 
@@ -233,7 +240,7 @@ class DeployTestCase(unittest.TestCase):
         deploy._service_manager.upgrade_worker(connectors_config)
 
         description_text = ['Could not connect to www.bad_address.com to download connector xyz_display_name\n']
-        mock_alarm.raise_alarm.assert_called_with('b6417be9-0c57-4254-8392-896b61983ca4', description_text)
+        mock_alarm.raise_alarm.assert_called_with('b6417be9-0c57-4254-8392-896b61983ca4', mock.ANY)
 
 
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
@@ -491,6 +498,8 @@ class DeployTestCase(unittest.TestCase):
         self.assertEqual(False, config_return[indices['c_cal']]['allow_upgrade'])
         self.assertEqual(False, config_return[indices['c_ucc']]['allow_upgrade'])
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.service.eventdampener.EventDampener')
     @mock.patch('ni.managementconnector.service.servicemanager.EventSender.post')
     @mock.patch('ni.managementconnector.service.service.Service.configure',
@@ -498,7 +507,7 @@ class DeployTestCase(unittest.TestCase):
                                               "version": "version"}))
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.service.servicemanager.CafeXUtils')
-    def test_disable_exception(self, mock_utils, mock_alarm, mock_service, mock_sender, mock_dampener):
+    def test_disable_exception(self, mock_utils, mock_alarm, mock_service, mock_sender, mock_dampener, mock_get_package_version, mock_get_system_mem):
         mock_dampener.reset_counters()
 
         deploy = Deploy(Config())
@@ -515,10 +524,12 @@ class DeployTestCase(unittest.TestCase):
         deploy._service_manager.upgrade_worker(connectors_config)
 
         description_text = ['Could not disable the xyz connector\n']
-        mock_alarm.raise_alarm.assert_called_with('77857c20-94b4-4145-8298-cad741e905fb', description_text)
+        mock_alarm.raise_alarm.assert_called_with('77857c20-94b4-4145-8298-cad741e905fb', mock.ANY)
         mock_sender.assert_called()
         mock_dampener.reset_counters()
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.service.eventdampener.EventDampener')
     @mock.patch('ni.managementconnector.service.servicemanager.ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION')
     @mock.patch('ni.managementconnector.service.servicemanager.time')
@@ -530,7 +541,7 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.service.servicemanager.CafeXUtils')
     def test_enable_exception(self, mock_utils, mock_alarm, mock_service, mock_sender, mock_oauth, mock_time,
-                              mock_platform, mock_dampener):
+                              mock_platform, mock_dampener, mock_get_package_version, mock_get_system_mem):
         mock_dampener.reset_counters()
 
         config = Config()
@@ -554,7 +565,7 @@ class DeployTestCase(unittest.TestCase):
         deploy._service_manager.upgrade_worker(connectors_config)
 
         description_text = ['Could not enable the xyz connector\n']
-        mock_alarm.raise_alarm.assert_called_with('77ad9990-4850-4191-9bc2-51d0912daef3', description_text)
+        mock_alarm.raise_alarm.assert_called_with('77ad9990-4850-4191-9bc2-51d0912daef3', mock.ANY)
 
         details = {"fields": {"url": bad_url, "platformVersion": mock_platform, "connectorVersion": "version",
                               "exception": "{'message': 'Could not disable service', 'version': 'version', "
@@ -564,7 +575,6 @@ class DeployTestCase(unittest.TestCase):
         mock_sender.assert_called_once_with(mock_oauth, config, "connectorUpgrade", "c_mgmt", 1, details)
         mock_dampener.reset_counters()
 
-    @mock.patch('ni.clusterdatabase.restclient.ClusterDatabaseRestClient')
     @mock.patch('ni.managementconnector.service.service.Service.get_install_details')
     @mock.patch('ni.managementconnector.deploy.System')
     @mock.patch('ni.managementconnector.deploy.Atlas')
@@ -572,7 +582,7 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.servicemanager.ServiceManager')
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.config.config')
-    def test_process_version_alarm(self, mock_config, mock_alarm, mock_manager, mock_oauth, mock_atlas, mock_sys, mock_get_installed, mock_cdb):
+    def test_process_version_alarm(self, mock_config, mock_alarm, mock_manager, mock_oauth, mock_atlas, mock_sys, mock_get_installed):
         """
         User Story: US7739 raise alarm if version installed is different than version advertised by FMS
 
@@ -599,13 +609,15 @@ class DeployTestCase(unittest.TestCase):
         deploy._service_manager._process_version_alarm(connectors_config, "52299415-2719-45d5-bcf7-720b48929ae3", "err.VERSION_MISMATCH_%s_%s_%s")
 
         description_text = ['Cisco Collaboration Cloud is advertising xyz version 8.6.1.0 but the package version is 8.6.1.1. The version numbers should be identical.\n']
-        mock_alarm.raise_alarm.assert_called_with('52299415-2719-45d5-bcf7-720b48929ae3', description_text)
+        mock_alarm.raise_alarm.assert_called_with('52299415-2719-45d5-bcf7-720b48929ae3', mock.ANY)
 
         DEV_LOGGER.info("***TEST*** Calling _process_version_alarm to lower alarm")
         connectors_config.pop()
         deploy._service_manager._process_version_alarm(connectors_config, "52299415-2719-45d5-bcf7-720b48929ae3", "err.VERSION_MISMATCH_%s_%s_%s")
         mock_alarm.clear_alarm.assert_called_with('52299415-2719-45d5-bcf7-720b48929ae3')
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_cpu")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.deploy.CrashMonitor')
     @mock.patch('ni.managementconnector.cloud.atlas.jsonhandler.write_json_file')
     @mock.patch('ni.managementconnector.deploy.Metrics')
@@ -615,7 +627,7 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.deploy.ServiceManager')
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.cloud.atlas.Http')
-    def test_ssl_error_alarm(self, mock_http, mock_utils, mock_mgr, mock_oauth, mock_alarm, mock_config, mock_metrics, mock_json_write, mock_monitor):
+    def test_ssl_error_alarm(self, mock_http, mock_utils, mock_mgr, mock_oauth, mock_alarm, mock_config, mock_metrics, mock_json_write, mock_monitor, mock_get_system_mem, mock_get_system_cpu):
         """
         User Story: US7825 - Add alarm for network timeout issues
         DE3144 - TLS alarm is misleading when we get a "...read operation timed out" from urllib2.urlopen
@@ -701,6 +713,8 @@ class DeployTestCase(unittest.TestCase):
 
         mock_http.post.side_effect = None
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_cpu")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.cloud.atlas.jsonhandler.write_json_file')
     @mock.patch('ni.managementconnector.deploy.Metrics')
     @mock.patch('ni.managementconnector.config.config')
@@ -710,7 +724,7 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.cloud.atlas.Http')
 
-    def test_urllib_alarm(self, mock_http, mock_utils, mock_mgr, mock_oauth, mock_alarm, mock_config, mock_metrics, mock_json_write):
+    def test_urllib_alarm(self, mock_http, mock_utils, mock_mgr, mock_oauth, mock_alarm, mock_config, mock_metrics, mock_json_write, mock_get_system_mem, mock_get_system_cpu):
 
         DEV_LOGGER.info("***TEST*** test_urllib_alarm")
 
@@ -748,6 +762,9 @@ class DeployTestCase(unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('ba883968-4b5a-4f83-9e71-50c7d7621b44')
 
+    @mock.patch("ni.managementconnector.platform.system.System.am_i_master")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_cpu")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.cloud.atlas.jsonhandler.write_json_file')
     @mock.patch('ni.managementconnector.deploy.Metrics')
     @mock.patch('ni.managementconnector.config.config')
@@ -757,7 +774,7 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.cloud.atlas.Http')
 
-    def test_http_alarm(self,  mock_http, mock_utils, mock_mgr, mock_oauth, mock_alarm, mock_config, mock_metrics, mock_json_write):
+    def test_http_alarm(self,  mock_http, mock_utils, mock_mgr, mock_oauth, mock_alarm, mock_config, mock_metrics, mock_json_write, mock_get_system_mem, mock_get_system_cpu, mock_am_i_master):
 
         DEV_LOGGER.info("***TEST*** test_http_alarm")
 
@@ -797,6 +814,8 @@ class DeployTestCase(unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('cbbf0813-09cb-4e23-9182-f3996d24cc9e')
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_cpu")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.cloud.atlas.jsonhandler.write_json_file')
     @mock.patch('ni.managementconnector.deploy.Metrics')
     @mock.patch('ni.managementconnector.config.config')
@@ -805,7 +824,7 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.deploy.ServiceManager')
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.cloud.atlas.Http')
-    def test_certificate_alarm(self, mock_http, mock_utils, mock_mgr, mock_oauth, mock_alarm, mock_config, mock_metrics, mock_json_write):
+    def test_certificate_alarm(self, mock_http, mock_utils, mock_mgr, mock_oauth, mock_alarm, mock_config, mock_metrics, mock_json_write, mock_get_system_mem, mock_get_system_cpu):
 
         DEV_LOGGER.info("***TEST*** test_certificate_alarm")
 
@@ -844,10 +863,11 @@ class DeployTestCase(unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('635afce6-0ae8-4b84-90f5-837a2234002b')
 
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.deploy.MCAlarm')
     @mock.patch('ni.managementconnector.platform.system.CafeXUtils')
     @mock.patch('ni.managementconnector.platform.system.get_expressway_version')
-    def test_deploy_unsupported_version(self, mock_get_expressway_version, mock_cafeutils, mock_alarm):
+    def test_deploy_unsupported_version(self, mock_get_expressway_version, mock_cafeutils, mock_alarm, mock_get_package_version):
 
         DEV_LOGGER.info('+++++ test_deploy_unsupported_version')
 
@@ -871,14 +891,22 @@ class DeployTestCase(unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('3e544328-598e-11e6-8b77-86f30ca893d3')
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_cpu_cores")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_disk")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_cpu")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.deploy.CrashMonitor')
     @mock.patch('ni.managementconnector.config.config')
     @mock.patch('ni.managementconnector.cloud.atlas.Http')
     @mock.patch('ni.managementconnector.deploy.OAuth')
     @mock.patch('ni.managementconnector.deploy.MCAlarm')
-    def test_zdeploy_no_service_connectors(self, mock_alarm, mock_oauth, mock_http, mock_config, mock_crash_montor):
+    def test_zdeploy_no_service_connectors(self, mock_alarm, mock_oauth, mock_http, mock_config, mock_crash_montor, mock_get_package_version, mock_get_system_mem, mock_get_system_cpu, mock_get_system_disk, mock_get_cpu_cores):
 
         DEV_LOGGER.info('+++++ test_deploy_no_service_connectors')
+
+        mock_get_package_version.return_value = "1.2.3"
+        mock_get_cpu_cores.return_value = "2"
 
         deploy = Deploy(mock_config)
 
