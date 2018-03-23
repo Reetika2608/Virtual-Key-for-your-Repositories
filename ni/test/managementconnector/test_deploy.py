@@ -251,14 +251,22 @@ class DeployTest(unittest.TestCase):
         self._oauth._get_oauth_resp_from_idp.return_value = token
         self._oauth.get_access_token.return_value = token['access_token']
 
-
-    def test_long_install_and_status_update(self):
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
+    @mock.patch("ni.managementconnector.platform.system.System.get_cpu_cores")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_disk")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_cpu")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
+    def test_long_install_and_status_update(self, mock_get_package_version, mock_get_system_mem, mock_get_system_cpu, mock_get_system_disk, mock_get_cpu_cores, mock_is_package_installed):
         http.DEV_LOGGER.info('+++++ test_long_install_and_status_update')
         global number_of_status_updates
         number_of_status_updates = 0
         global install_executing
         global deploy_global
         install_executing = False
+
+        mock_get_package_version.return_value = "1.2.3"
+        mock_get_cpu_cores.return_value = "2"
 
         _orig_http_request = http._http_request
         http._http_request = _http_request
