@@ -228,6 +228,7 @@ class LogArchiverTest(unittest.TestCase):
                                    any_order=True)
 
         # Test 2: tmp directory already exists
+        mock_makedirs.reset_mock()
         mock_exists.return_value = True
 
         LogArchiver.gather_status_files()
@@ -273,6 +274,7 @@ class LogArchiverTest(unittest.TestCase):
                                   any_order=True)
 
         # Test 2: tmp directory already exists
+        mock_makedirs.reset_mock()
         mock_exists.return_value = True
 
         LogArchiver.gather_config_files()
@@ -284,6 +286,7 @@ class LogArchiverTest(unittest.TestCase):
                                    mock.call('/opt/c_mgmt/etc/config/c_ucmc.json', '/tmp/config_files/c_ucmc.json')],
                                   any_order=True)
 
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("ni.managementconnector.platform.logarchiver.LogArchiver.validate_request")
     @mock.patch("ni.managementconnector.platform.logarchiver.LogArchiver.rm_archive")
     @mock.patch("ni.managementconnector.platform.logarchiver.LogArchiver.rm_config_files")
@@ -295,7 +298,7 @@ class LogArchiverTest(unittest.TestCase):
     @mock.patch("ni.managementconnector.config.config.Config")
     def test_rd_log_request_does_not_call_include_config_function(self, mock_config, mock_atlas_logger, mock_build_archive,
                                                   mock_write_json_file, mock_time, mock_get_size, mock_rm_config,
-                                                  mock_rm_archive, mock_validate_request):
+                                                  mock_rm_archive, mock_validate_request, mock_get_package_version):
         """ User Story: US25210: Add Connector JSON (config) files to the Send Log Output """
         log_request_id = "12345"
         quantity = 1
