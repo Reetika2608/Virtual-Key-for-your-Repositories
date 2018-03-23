@@ -10,7 +10,11 @@ import os
 import sys
 import time
 
-from ni.utils.logging.setup import LoggingFramework
+try:
+    from ni.utils.logging.setup import LoggingFramework
+except (ImportError, IOError):
+    from ni.uchenvironment.utils.logging.setup import LoggingFramework
+
 
 HYBRIDSERVICES_LOGGING_FRAMEWORK = None
 
@@ -19,7 +23,6 @@ class HybridServicesLogger(LoggingFramework):
     """Class to configure the HybridServices logging framework """
 
     name = "hybridservices"
-    facility = logging.handlers.SysLogHandler.LOG_LOCAL7
 
     def __init__(self, enable_crash_report_handler, application_name=None):
         LoggingFramework.__init__(self)

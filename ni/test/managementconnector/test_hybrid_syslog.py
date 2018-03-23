@@ -13,9 +13,12 @@ import unittest
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from ni.managementconnector.config.databasehandler import register_default_loggers
 
-import ni.utils.logging.setup
-ni.utils.logging.setup.initialise_logging("hybridservices_log4conf_test",
-    with_log4configuration_monitor=False, with_twisted=False)
+try:
+    import ni.utils.logging.setup as logging_setup
+except (ImportError, IOError):
+    import ni.uchenvironment.utils.logging.setup as logging_setup
+
+logging_setup.initialise_logging("hybridservices_log4conf_test")
 
 
 #Initialise logging application handle for hybridservices
@@ -50,8 +53,6 @@ class HybridSyslogTests(unittest.TestCase):
                              {"name": "hybridservices.managementconnector"})
         cafe_call = mock.call("/configuration/hybridserviceslogger/name/hybridservices.cafedynamic",
                               {"name": "hybridservices.cafedynamic"})
-        c_cal_call = mock.call("/configuration/hybridserviceslogger/name/hybridservices.c_cal",
-                               {"name": "hybridservices.c_cal"})
 
         # Step. 1
         mock_get.return_value = None
@@ -71,7 +72,8 @@ class HybridSyslogTests(unittest.TestCase):
         # Step. 3
         mock_get.return_value = [fmc_entry, cafe_entry]
         register_default_loggers([ManagementConnectorProperties.HYBRID_PREFIX + "c_cal"])
-        mock_write.assert_has_calls(c_cal_call)
+        mock_write.assert_called_with("/configuration/hybridserviceslogger/name/hybridservices.c_cal",
+                               {"name": "hybridservices.c_cal"})
         self.assertEquals(mock_write.call_count, 1)
         mock_write.reset_mock()
 
