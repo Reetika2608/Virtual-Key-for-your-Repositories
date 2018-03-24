@@ -163,13 +163,14 @@ class MercuryTest(unittest.TestCase):
         with self.assertRaises(Exception):
             mercury.heartbeat()
 
+    @mock.patch('ni.managementconnector.cloud.wdm.Http.create_tracking_id')
     @mock.patch('ni.managementconnector.cloud.mercury.Http.get_proxy')
     @mock.patch('ni.managementconnector.cloud.wdm.DeviceManager.register_with_wdm')
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.jsonhandler.delete_file')
-    @mock.patch('ni.managementconnector.cloud.remotedispatcher.Http.post')
+    @mock.patch('ni.managementconnector.cloud.wdm.Http.delete')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
     @mock.patch('ni.managementconnector.config.config.Config')
-    def test_remote_dispatcher_exception_on_initial_startup(self, mock_config, mock_oauth, mock_post, mock_delete_config, mock_wdm_register, mock_proxy):
+    def test_remote_dispatcher_exception_on_initial_startup(self, mock_config, mock_oauth, mock_delete, mock_delete_config, mock_wdm_register, mock_proxy, mock_tracking_id):
         """
         User Story: Remote Dispatcher: Improve Mercury Connection Resiliency
         Notes:
@@ -186,7 +187,7 @@ class MercuryTest(unittest.TestCase):
             }
 
         mock_wdm_register.return_value = {"last_refreshed": "123"}
-        mock_post.side_effect = Exception()
+        # mock_delete.side_effect = Exception()
 
         mercury = Mercury(mock_config, mock_oauth)
         mercury.heartbeat()
@@ -359,7 +360,9 @@ class MercuryTest(unittest.TestCase):
         # Assert Send error is called when an exception is passed
         mock_metrics.send_mercury_error_metrics.assert_called_with(header_val, ManagementConnectorProperties.SERVICE_NAME, expected_content)
 
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.cloud.mercury.Mercury.handle_missing_mercury_probe')
+    @mock.patch('ni.managementconnector.cloud.mercury.threading.Timer')
     @mock.patch('ni.managementconnector.cloud.mercury.threading.Thread')
     @mock.patch('ni.managementconnector.cloud.mercury.websocket')
     @mock.patch('ni.managementconnector.cloud.wdm.jsonhandler.read_json_file')
@@ -368,7 +371,7 @@ class MercuryTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.cloud.wdm.time.time')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
     @mock.patch('ni.managementconnector.config.config.Config')
-    def test_missing_mercury_probe_increments_counter(self, mock_config, mock_oauth, mock_time, mock_isfile, mock_http, mock_read_json, mock_socket, mock_thread, mock_handler):
+    def test_missing_mercury_probe_increments_counter(self, mock_config, mock_oauth, mock_time, mock_isfile, mock_http, mock_read_json, mock_socket, mock_thread, mock_timer, mock_handler, mock_get_package_version):
         """
         User Story: US9628 - FMC: Mercury Probe Implementation
         """
@@ -398,7 +401,7 @@ class MercuryTest(unittest.TestCase):
         time.sleep(ManagementConnectorProperties.MERCURY_PROBE_TIMEOUT)
 
         ManagementConnectorProperties.MERCURY_PROBE_TIMEOUT = previous_value
-        mock_handler.assert_called()
+        mock_timer.assert_called()
 
     @mock.patch('ni.managementconnector.cloud.mercury.Mercury._run_probe_timer')
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.register')
@@ -418,13 +421,13 @@ class MercuryTest(unittest.TestCase):
         mock_register.assert_called_with(mock_oauth, mock_config)
         self.assertEqual(mercury._missed_mercury_probes, 1)
 
-
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.cloud.mercury.Mercury.heartbeat')
     @mock.patch('ni.managementconnector.cloud.mercury.Mercury.shutdown')
     @mock.patch('ni.managementconnector.cloud.mercury.websocket.WebSocketApp')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
     @mock.patch('ni.managementconnector.config.config.Config')
-    def test_missing_multiple_mercury_probes_resets_websocket(self, mock_config, mock_oauth, mock_socket, mock_shutdown, mock_heartbeat):
+    def test_missing_multiple_mercury_probes_resets_websocket(self, mock_config, mock_oauth, mock_socket, mock_shutdown, mock_heartbeat, mock_get_package_version):
         """
         User Story: US9628 - FMC: Mercury Probe Implementation
         """
