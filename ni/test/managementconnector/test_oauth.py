@@ -67,13 +67,15 @@ class OAuthTest(unittest.TestCase):
     def tearDown(self):
         ''' Test tearDown '''
 
-
+    @mock.patch('ni.managementconnector.cloud.oauth.taacrypto.decrypt_with_system_key')
     @mock.patch('ni.managementconnector.platform.http.Http.post', side_effect=post)
     @mock.patch('ni.managementconnector.config.config.Config')
-    def test_init(self, mock_config, mock_http):
+    def test_init(self, mock_config, mock_http, mock_decrypt):
         """ Test Init OAuth """
 
         DEV_LOGGER.info("****** test_init ******")
+
+        mock_decrypt.return_value = "test"
 
         mock_config.read.side_effect = config_read_side_effect
 
@@ -112,13 +114,16 @@ class OAuthTest(unittest.TestCase):
 
         self.assertTrue(token == ACCESS_TOKEN)
 
+    @mock.patch('ni.managementconnector.config.config.Config.read')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth._get_machine_details_from_json')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth._is_machine_account_cache_stale')
     @mock.patch('ni.managementconnector.cloud.oauth.Http')
-    def test_get_access_token_expired(self, mock_http, mock_is_machine_acc_cache_stale, mock_json_config):
+    def test_get_access_token_expired(self, mock_http, mock_is_machine_acc_cache_stale, mock_json_config, mock_config_read):
         """ Get Access Token Tests """
 
         DEV_LOGGER.info("****** test_get_access_token_expired ******")
+
+        mock_config_read.return_value = {"clientId": "test", "clientSecret": "test", "idpHost": "test"}
 
         curr_time = OAuth.get_current_time()
 
@@ -147,13 +152,16 @@ class OAuthTest(unittest.TestCase):
 
         self.assertTrue(token == REFRESHED_TOKEN)
 
+    @mock.patch('ni.managementconnector.cloud.oauth.taacrypto.decrypt_with_system_key')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth._is_machine_account_cache_stale')
     @mock.patch('ni.managementconnector.config.config.Config')
     @mock.patch('ni.managementconnector.platform.http.Http.post', side_effect=post)
-    def test_get_access_token_refresh_expired(self, mock_http, mock_config, mock_is_machine_acc_cache_stale):
+    def test_get_access_token_refresh_expired(self, mock_http, mock_config, mock_is_machine_acc_cache_stale, mock_decrypt):
         """ Get Access Token Tests """
 
         DEV_LOGGER.info("****** test_get_access_token_refresh_expired ******")
+
+        mock_decrypt.return_value = "test"
 
         mock_config.read.side_effect = config_read_side_effect
         test_oauth = OAuth(mock_config)
@@ -203,12 +211,14 @@ class OAuthTest(unittest.TestCase):
         self.assertTrue(oauth_info['refresh_time_read'] > time_in_past)
         self.assertTrue(oauth_info['access_token'] == REFRESHED_TOKEN)
 
-
+    @mock.patch('ni.managementconnector.config.config.Config.read')
     @mock.patch('ni.managementconnector.cloud.oauth.Http')
-    def test_refresh_oauth_resp_with_idp(self, mock_http):
+    def test_refresh_oauth_resp_with_idp(self, mock_http, mock_config_read):
         """ Get Refresh Token Tests """
 
         DEV_LOGGER.info("****** test_refresh_oauth_resp_with_idp ******")
+
+        mock_config_read.return_value = {"clientId": "test", "clientSecret": "test", "idpHost": "test"}
 
         time_in_past = OAuth.get_current_time() - 100
 
