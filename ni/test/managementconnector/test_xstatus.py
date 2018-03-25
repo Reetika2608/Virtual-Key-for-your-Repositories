@@ -1,11 +1,14 @@
 
 import sys
+import mock
+
 from xml.etree.ElementTree import ElementTree
 import unittest
 import logging
 sys.path.append("/opt/c_mgmt/bin/")
 sys.path.append("/opt/c_mgmt/xstatus/")
-import c_mgmt 
+# import c_mgmt
+import ni.files.opt.c_mgmt.xstatus.c_mgmt as c_mgmt
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 import ni.managementconnector.service.manifest
 
@@ -68,8 +71,11 @@ class XStatusTest(unittest.TestCase):
         # reload c_mgmt as xstatus and xcommand share the same module name
         sys.path.insert(0, "/opt/c_mgmt/xstatus/")
         reload(c_mgmt)
-        
-    def test_alarms(self):
+
+    @mock.patch("ni.files.opt.c_mgmt.xstatus.c_mgmt.Service.get_status")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils")
+    def test_alarms(self, mock_get_package_version, mock_get_system_mem, mock_get_status):
         """ Test alarms"""
 
         DEV_LOGGER.info('***TEST*** XStatusTest start')
