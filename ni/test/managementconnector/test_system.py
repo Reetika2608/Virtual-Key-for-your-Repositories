@@ -1,6 +1,7 @@
 import unittest
 import logging
 import mock
+import __builtin__
 
 from ni.managementconnector.platform.system import System
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
@@ -19,33 +20,49 @@ class ManagementConnectorTest(unittest.TestCase):
         self._system = System()
         assert self._system is not None
 
+    def mock_open(self):
+        __builtin__.open = mock.Mock()
+        from cStringIO import StringIO
+        __builtin__.open.return_value = StringIO("cpu 123\ncpu 123\ncpu 123")
+
     def test_management_connector_system_memory(self):
         ''' Test Management Connector System memory '''
 
         DEV_LOGGER.debug('***TEST*** test_management_connector_system_memory')
+        open_orig = __builtin__.open
+        self.mock_open()
         system_memory = System.get_system_mem()
 
         DEV_LOGGER.debug(system_memory)
         self.assertNotEqual(system_memory['total_kb'], 0)
         self.assertNotEqual(system_memory['percent'], '')
         self.assertNotEqual(system_memory['total_gb'], '')
+        __builtin__.open = open_orig
 
     def test_management_connector_system_cpu_time(self):
         ''' Test Management Connector System cpu '''
 
         DEV_LOGGER.debug('***TEST*** test_management_connector_system_cpu_time')
+        open_orig = __builtin__.open
+        self.mock_open()
         cpu_time = System.get_system_cpu_time()
 
         DEV_LOGGER.debug(cpu_time)
 
         self.assertNotEqual(cpu_time, 0)
+        __builtin__.open = open_orig
 
     def test_management_connector_get_system_cpu(self):
         DEV_LOGGER.debug('***TEST*** test_management_connector_get_system_cpu')
+
+        open_orig = __builtin__.open
+        self.mock_open()
+
         system_cpu = self._system.get_system_cpu_time()
         DEV_LOGGER.debug(system_cpu)
 
         self.assertNotEqual(system_cpu, 0)
+        __builtin__.open = open_orig
 
     def test_version_from_filename(self):
         """
@@ -66,12 +83,14 @@ class ManagementConnectorTest(unittest.TestCase):
             version = System.get_version_from_file(path)
             self.assertEquals(version, expected)
 
-    def test_platform_supported_against_baked_in_version(self):
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
+    def test_platform_supported_against_baked_in_version(self, mock_get_package_version):
         """
             User Story: US13965: Alert the Admin in case of unsupported version
             Purpose: To verify baked in version is <= platform version, otherwise alarm will be raised after fresh install.
         """
         DEV_LOGGER.debug('***TEST*** test_platform_supported_against_baked_in_version')
+        mock_get_package_version.return_value = "1.2.3"
 
         self.assertTrue(System.get_platform_supported_status(), "baked in version of FMC should not exceed Expressway version")
 
