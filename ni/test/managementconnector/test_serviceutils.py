@@ -358,9 +358,11 @@ class ServiceUtilsTest(unittest.TestCase):
         self.assertEquals(-1, ServiceUtils.version_number_compare("8.6-1.0.318968", "8.6-2.0.318968"))
         self.assertEquals(1, ServiceUtils.version_number_compare("8.6-2.0.318968", "8.6-1.0.318968"))
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.service.service.Service.get_suppressed_alarms')
     @mock.patch('ni.managementconnector.service.service.Service.get_alarms')
-    def test_get_suppressed_alarms(self, mock_alarms, mock_suppressed):
+    def test_get_suppressed_alarms(self, mock_alarms, mock_suppressed, mock_get_package_version, mock_get_system_mem):
         """
         User Story: US16897: FMC: Use FMC's manifest file to suppress unactionable alarms
         Purpose: Ensure certain alarms are not posted to FMS.
@@ -411,16 +413,18 @@ class ServiceUtilsTest(unittest.TestCase):
         # test one suppressed alarm is raised
         mock_alarms.return_value = [alarm1]
         expected = [alarm1_formatted]
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True))
+        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True)[0]['id'])
 
         # test multiple alarms raised
         mock_alarms.return_value = [alarm1, alarm2]
         expected = [alarm1_formatted]
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True))
+        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True)[0]['id'])
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.service.service.Service.get_suppressed_alarms')
     @mock.patch('ni.managementconnector.service.service.Service.get_alarms')
-    def test_get_only_permitted_alarms(self, mock_alarms, mock_suppressed):
+    def test_get_only_permitted_alarms(self, mock_alarms, mock_suppressed, mock_get_package_version, mock_get_system_mem):
         """
         User Story: US16897: FMC: Use FMC's manifest file to suppress unactionable alarms
         Purpose: Ensure certain alarms are not posted to FMS.
@@ -475,11 +479,13 @@ class ServiceUtilsTest(unittest.TestCase):
         # test no suppressed alarms are raised
         mock_alarms.return_value = [alarm1, alarm2]
         expected = [alarm2_formatted]
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=False))
+        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=False)[0]['id'])
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.service.service.Service.get_suppressed_alarms')
     @mock.patch('ni.managementconnector.service.service.Service.get_alarms')
-    def test_get_all_alarms(self, mock_alarms, mock_suppressed):
+    def test_get_all_alarms(self, mock_alarms, mock_suppressed, mock_get_package_version, _):
         """
         User Story: US16897: FMC: Use FMC's manifest file to suppress unactionable alarms
         Purpose: Ensure certain alarms are not posted to FMS.
@@ -537,17 +543,18 @@ class ServiceUtilsTest(unittest.TestCase):
         # test only suppressed alarm is raised
         mock_alarms.return_value = [alarm1]
         expected = [alarm1_formatted]
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True))
+        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True)[0]['id'])
 
         # test only unsuppressed alarm is raised
         mock_alarms.return_value = [alarm2]
         expected = [alarm2_formatted]
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True))
+        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True)[0]['id'])
 
         # test both permitted and suppressed alarms are raised
         mock_alarms.return_value = [alarm1, alarm2]
-        expected = [alarm1_formatted, alarm2_formatted]
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True))
+        expected = (alarm1_formatted['id'], alarm2_formatted['id'])
+        alarms = ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True)
+        self.assertEquals(expected, (alarms[0]['id'], alarms[1]['id']))
 
     def test_is_supported_extension(self):
         """
