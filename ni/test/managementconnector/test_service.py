@@ -15,8 +15,9 @@ DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 class ServiceTest(unittest.TestCase):
     """ Service Test Class """
 
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
-    def test_requires_refresh(self, mock_cafeutils):
+    def test_requires_refresh(self, mock_cafeutils, mock_get_system_mem):
 
         mock_cafeutils.is_package_installed.return_value = True
         mock_cafeutils.get_package_version.return_value = "version"
@@ -35,6 +36,9 @@ class ServiceTest(unittest.TestCase):
 
      # -------------------------------------------------------------------------
 
+    @mock.patch('ni.managementconnector.service.service.register_default_loggers')
+    @mock.patch('ni.managementconnector.service.service.ServiceUtils.cache_service_cdb_schema')
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.service.service.ServiceUtils.is_supported_extension')
     @mock.patch('ni.managementconnector.service.service.ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION')
     @mock.patch('ni.managementconnector.service.service.time')
@@ -45,7 +49,7 @@ class ServiceTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.service.Service.uninstall')
     @mock.patch('ni.managementconnector.service.service.Service.disable')
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
-    def test_configure(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_oauth, mock_sender, mock_time, mock_platform, mock_serviceutils):
+    def test_configure(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_oauth, mock_sender, mock_time, mock_platform, mock_serviceutils, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers):
         config = Config(False)
         service = Service('c_xyz', config, mock_oauth)
 
@@ -74,8 +78,12 @@ class ServiceTest(unittest.TestCase):
                    "measurementName": 'connectorUpgradeEvent', "tags": {"state": 'success', "connectorType": "c_xyz"}}
         mock_sender.assert_called_with(mock_oauth, config, "connectorUpgrade", "c_mgmt", 1, details)
 
+    @mock.patch('ni.managementconnector.service.service.DatabaseHandler')
+    @mock.patch('ni.managementconnector.service.service.register_default_loggers')
+    @mock.patch('ni.managementconnector.service.service.ServiceUtils.cache_service_cdb_schema')
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
-    def test_disable(self, mock_cafeutils):
+    def test_disable(self, mock_cafeutils, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers, mock_delete_enabled_service_blob):
 
         service = Service('c_xyz', Config(), None)
 
@@ -91,11 +99,11 @@ class ServiceTest(unittest.TestCase):
             d = {'message': 'Could not disable service', 'version': "2.0", 'name': 'c_xyz'}
             self.assertEqual(d, details)
 
-
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
     @mock.patch('ni.managementconnector.config.config.Config')
-    def test_get_composed_status(self, mock_config, mock_cafeutils, mock_serviceutils):
+    def test_get_composed_status(self, mock_config, mock_cafeutils, mock_serviceutils, mock_get_system_mem):
 
         DEV_LOGGER.info("***TEST*** test_get_composed_status")
 
@@ -230,6 +238,9 @@ class ServiceTest(unittest.TestCase):
         alarm = {"parameters": []}
         self.assertFalse(Service.is_related_external_alarm(alarm, mock_config), "This is a not related external alarm.")
 
+    @mock.patch('ni.managementconnector.service.service.register_default_loggers')
+    @mock.patch('ni.managementconnector.service.service.ServiceUtils.cache_service_cdb_schema')
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.service.service.ManagementConnectorProperties.EXPRESSWAY_VERSION')
     @mock.patch('ni.managementconnector.service.service.EventSender')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
@@ -241,7 +252,7 @@ class ServiceTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.service.Service.uninstall')
     @mock.patch('ni.managementconnector.service.service.Service.disable')
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
-    def test_configure_prevent_connector(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_config, mock_serviceutils, mock_leg, mock_oath, mock_sender, mock_platform):
+    def test_configure_prevent_connector(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_config, mock_serviceutils, mock_leg, mock_oath, mock_sender, mock_platform, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers):
         service = Service('c_xyz', Config(), mock_oath)
 
         mock_cafeutils.get_package_version.return_value = '2.0'
