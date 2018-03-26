@@ -18,7 +18,7 @@ except ImportError:
     import sys
     import mock
     sys.modules['taacrypto'] = mock.Mock()
-    import taacrypto
+    import taacrypto # pylint: disable=ungrouped-imports
 
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
