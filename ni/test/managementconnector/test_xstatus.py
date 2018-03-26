@@ -7,10 +7,13 @@ import unittest
 import logging
 sys.path.append("/opt/c_mgmt/bin/")
 sys.path.append("/opt/c_mgmt/xstatus/")
-# import c_mgmt
-import ni.files.opt.c_mgmt.xstatus.c_mgmt as c_mgmt
+
+try:
+    import c_mgmt
+except ImportError:
+    import ni.files.opt.c_mgmt.xstatus.c_mgmt as c_mgmt
+
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-import ni.managementconnector.service.manifest
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
@@ -72,36 +75,41 @@ class XStatusTest(unittest.TestCase):
         sys.path.insert(0, "/opt/c_mgmt/xstatus/")
         reload(c_mgmt)
 
-    @mock.patch("ni.files.opt.c_mgmt.xstatus.c_mgmt.Service.get_status")
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils")
-    def test_alarms(self, mock_get_package_version, mock_get_system_mem, mock_get_status):
+    def test_alarms(self, mock_get_package_version, mock_get_system_mem):
         """ Test alarms"""
+        def alarms():
+            DEV_LOGGER.info('***TEST*** XStatusTest start')
 
-        DEV_LOGGER.info('***TEST*** XStatusTest start')
-     
 
-        xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}, {"display_name": "UCM Service", "name": "c_ucmc"}]', 'name': 'c_mgmt_entitled_services'}], 
-                  MockConfigNoAlarms(),
-                  MockServiceManifest)
+            xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}, {"display_name": "UCM Service", "name": "c_ucmc"}]', 'name': 'c_mgmt_entitled_services'}],
+                      MockConfigNoAlarms(),
+                      MockServiceManifest)
 
-        xtree = xstatus[0]
-        node = xtree.find("c_mgmt")
-        alarms = node.find("alarms")
-        self.assertEquals(alarms.text, "0")
+            xtree = xstatus[0]
+            node = xtree.find("c_mgmt")
+            alarms = node.find("alarms")
+            self.assertEquals(alarms.text, "0")
 
-        DEV_LOGGER.info('***TEST*** XStatusTest, finished first test')
-  
-        xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}, {"display_name": "UCM Service", "name": "c_ucmc"}]', 'name': 'c_mgmt_entitled_services'}], 
-                                  MockConfig2Alarms(),
-                                  MockServiceManifest)
-        xtree = xstatus[0]
-        node = xtree.find("c_mgmt")
-        alarms = node.find("alarms")
-        self.assertEquals(alarms.text, "2")
+            DEV_LOGGER.info('***TEST*** XStatusTest, finished first test')
 
-        DEV_LOGGER.info('***TEST*** XStatusTest end')
- 
+            xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}, {"display_name": "UCM Service", "name": "c_ucmc"}]', 'name': 'c_mgmt_entitled_services'}],
+                                      MockConfig2Alarms(),
+                                      MockServiceManifest)
+            xtree = xstatus[0]
+            node = xtree.find("c_mgmt")
+            alarms = node.find("alarms")
+            self.assertEquals(alarms.text, "2")
+
+            DEV_LOGGER.info('***TEST*** XStatusTest end')
+
+        try:
+            with mock.patch('c_mgmt.Service.get_status'):
+                alarms()
+        except ImportError:
+            with mock.patch('ni.files.opt.c_mgmt.xstatus.c_mgmt.Service.get_status'):
+                alarms()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
