@@ -75,10 +75,6 @@ class HybridRequestHandler(unittest.TestCase):
                                                        ["c_test"],
                                                        "false")
 
-        mock_db.reset_mock()
-        on_request(mock_db, '{"connector": "c_test", "request": "do_not_setconfiguredstatus", "value": true}')
-        mock_db.update_blob_entries.assert_not_called()
-
     def test_hybrid_request_unsupported_request_are_not_handled(self):
         """
         User Story: US25227: FMC: Support new CDB configured state
