@@ -187,7 +187,6 @@ class MercuryTest(unittest.TestCase):
             }
 
         mock_wdm_register.return_value = {"last_refreshed": "123"}
-        # mock_delete.side_effect = Exception()
 
         mercury = Mercury(mock_config, mock_oauth)
         mercury.heartbeat()
