@@ -1,7 +1,7 @@
 import unittest
 import logging
 import mock
-import __builtin__
+from cStringIO import StringIO
 
 from ni.managementconnector.platform.system import System
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
@@ -20,49 +20,41 @@ class ManagementConnectorTest(unittest.TestCase):
         self._system = System()
         assert self._system is not None
 
-    def mock_open(self):
-        __builtin__.open = mock.Mock()
-        from cStringIO import StringIO
-        __builtin__.open.return_value = StringIO("cpu 123\ncpu 123\ncpu 123")
-
-    def test_management_connector_system_memory(self):
+    @mock.patch('__builtin__.open')
+    def test_management_connector_system_memory(self, mock_file):
         ''' Test Management Connector System memory '''
 
         DEV_LOGGER.debug('***TEST*** test_management_connector_system_memory')
-        open_orig = __builtin__.open
-        self.mock_open()
+        mock_file.return_value = StringIO("cpu 123\ncpu 123\ncpu 123")
         system_memory = System.get_system_mem()
 
         DEV_LOGGER.debug(system_memory)
         self.assertNotEqual(system_memory['total_kb'], 0)
         self.assertNotEqual(system_memory['percent'], '')
         self.assertNotEqual(system_memory['total_gb'], '')
-        __builtin__.open = open_orig
 
-    def test_management_connector_system_cpu_time(self):
+    @mock.patch('__builtin__.open')
+    def test_management_connector_system_cpu_time(self, mock_file):
         ''' Test Management Connector System cpu '''
 
         DEV_LOGGER.debug('***TEST*** test_management_connector_system_cpu_time')
-        open_orig = __builtin__.open
-        self.mock_open()
+        mock_file.return_value = StringIO("cpu 123\ncpu 123\ncpu 123")
         cpu_time = System.get_system_cpu_time()
 
         DEV_LOGGER.debug(cpu_time)
 
         self.assertNotEqual(cpu_time, 0)
-        __builtin__.open = open_orig
 
-    def test_management_connector_get_system_cpu(self):
+    @mock.patch('__builtin__.open')
+    def test_management_connector_get_system_cpu(self, mock_file):
         DEV_LOGGER.debug('***TEST*** test_management_connector_get_system_cpu')
 
-        open_orig = __builtin__.open
-        self.mock_open()
+        mock_file.return_value = StringIO("cpu 123\ncpu 123\ncpu 123")
 
         system_cpu = self._system.get_system_cpu_time()
         DEV_LOGGER.debug(system_cpu)
 
         self.assertNotEqual(system_cpu, 0)
-        __builtin__.open = open_orig
 
     def test_version_from_filename(self):
         """
