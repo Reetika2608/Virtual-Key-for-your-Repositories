@@ -315,8 +315,8 @@ AA9WjQKZ7aKQRUzkuxCkPfAyAw7xzvjoyVGM5mKf5p/AfbdynMk2OmufTqj/ZA1k
 
         mock_repair.assert_called_once()
 
-        mock_file.reset_mock
-        mock_repair.reset_mock
+        mock_file.reset_mock()
+        mock_repair.reset_mock()
 
         # test with one files
         merge_certs(["test_infile1.txt"], "test_outfile.txt")
@@ -324,7 +324,7 @@ AA9WjQKZ7aKQRUzkuxCkPfAyAw7xzvjoyVGM5mKf5p/AfbdynMk2OmufTqj/ZA1k
         mock_file.assert_has_calls([mock.call("test_infile1.txt", "rb"),
                                     mock.call("test_outfile.txt", "wb")],
                                    any_order=True)
-        self.assertEqual(mock_repair.call_count, 2, "It should have been called twice")
+        mock_repair.assert_called_once()
 
 
 if __name__ == "__main__":
