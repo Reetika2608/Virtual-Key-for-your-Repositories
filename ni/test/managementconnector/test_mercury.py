@@ -361,7 +361,6 @@ class MercuryTest(unittest.TestCase):
 
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.cloud.mercury.Mercury.handle_missing_mercury_probe')
-    @mock.patch('ni.managementconnector.cloud.mercury.threading.Timer')
     @mock.patch('ni.managementconnector.cloud.mercury.threading.Thread')
     @mock.patch('ni.managementconnector.cloud.mercury.websocket')
     @mock.patch('ni.managementconnector.cloud.wdm.jsonhandler.read_json_file')
@@ -370,7 +369,7 @@ class MercuryTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.cloud.wdm.time.time')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
     @mock.patch('ni.managementconnector.config.config.Config')
-    def test_missing_mercury_probe_increments_counter(self, mock_config, mock_oauth, mock_time, mock_isfile, mock_http, mock_read_json, mock_socket, mock_thread, mock_timer, mock_handler, mock_get_package_version):
+    def test_missing_mercury_probe_increments_counter(self, mock_config, mock_oauth, mock_time, mock_isfile, mock_http, mock_read_json, mock_socket, mock_thread, mock_handler, mock_get_package_version):
         """
         User Story: US9628 - FMC: Mercury Probe Implementation
         """
@@ -400,7 +399,9 @@ class MercuryTest(unittest.TestCase):
         time.sleep(ManagementConnectorProperties.MERCURY_PROBE_TIMEOUT)
 
         ManagementConnectorProperties.MERCURY_PROBE_TIMEOUT = previous_value
-        mock_timer.assert_called()
+
+        # For some reason, timer thread doesnt start in Mercury._run_probe_timer
+        mock_handler.assert_called()
 
     @mock.patch('ni.managementconnector.cloud.mercury.Mercury._run_probe_timer')
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.register')
