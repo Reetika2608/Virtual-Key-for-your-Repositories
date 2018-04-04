@@ -42,11 +42,9 @@ SYMLINK: "../postinstall-scripts.d/cmgmt-transform"                 "/tandberg/e
 FILE: "ni/files/opt/c_mgmt/etc/certs/verisign-class3-G5.pem"           "/opt/c_mgmt/etc/certs/verisign-class3-G5.pem"
 FILE: "ni/files/opt/c_mgmt/etc/certs/gd-class2-root.pem"               "/opt/c_mgmt/etc/certs/gd-class2-root.pem"
 FILE: "ni/files/opt/c_mgmt/etc/certs/gdroot-g2.pem"                    "/opt/c_mgmt/etc/certs/gdroot-g2.pem"
-FILE: "ni/files/opt/c_mgmt/etc/certs/cdn_gtecorporation.pem"           "/opt/c_mgmt/etc/certs/cdn_gtecorporation.pem"
 FILE: "ni/files/opt/c_mgmt/etc/certs/quovadis.pem"                     "/opt/c_mgmt/etc/certs/quovadis.pem"
 FILE: "ni/files/opt/c_mgmt/etc/certs/baltimore_cybertrust_root.pem"    "/opt/c_mgmt/etc/certs/baltimore_cybertrust_root.pem"
 FILE: "ni/files/opt/c_mgmt/etc/certs/thawte.pem"                       "/opt/c_mgmt/etc/certs/thawte.pem"
-FILE: "ni/files/opt/c_mgmt/etc/certs/verisign-old.pem"                 "/opt/c_mgmt/etc/certs/verisign-old.pem"
 FILE: "ni/files/opt/c_mgmt/etc/certs/digicert.pem"                     "/opt/c_mgmt/etc/certs/digicert.pem"
 
 FILE: "ni/files/sbin/request-addfusioncerts"                           "/sbin/request-addfusioncerts"
