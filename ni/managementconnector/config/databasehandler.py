@@ -2,11 +2,6 @@
 
 import json
 
-try:
-    from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
-except ImportError:
-    from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
-
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
 from ni.cafedynamic.cafexutil import CafeXUtils
@@ -14,6 +9,11 @@ from ni.cafedynamic.cafexutil import CafeXUtils
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 
+try:
+    from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
+except ImportError:
+    DEV_LOGGER.info('Detail="Running unittests? Could not import ClusterDatabaseRestClient, importing ClusterSyncDBClient"')
+    from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
 
 class DatabaseHandler(ClusterDatabaseRestClient):
     """

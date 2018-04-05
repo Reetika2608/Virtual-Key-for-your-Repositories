@@ -12,18 +12,18 @@ import jsonschema
 from ni.managementconnector.platform.certnamematch import match_hostname, CertificateError
 from ni.managementconnector.config.databasehandler import DatabaseHandler
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-try:
-    import taacrypto
-except ImportError:
-    import sys
-    import mock
-    sys.modules['taacrypto'] = mock.Mock()
-    import taacrypto # pylint: disable=ungrouped-imports
-
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 
+try:
+    import taacrypto
+except ImportError:
+    DEV_LOGGER.info('Detail="Running unittests? Could not import taacrypto, mocking it"')
+    import sys
+    import mock
+    sys.modules['taacrypto'] = mock.Mock()
+    import taacrypto # pylint: disable=ungrouped-imports
 
 class CertificateExceptionFusionCA(Exception):
     ''' CertificateExceptionFusionCA '''

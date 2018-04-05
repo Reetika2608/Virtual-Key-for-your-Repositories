@@ -27,6 +27,7 @@ from ni.clusterconfig.clusterconfigurationutils import XMLAPIConfigurationManage
 try:
     import ni.clusterdatabase.restclient as restclient
 except ImportError:
+    DEV_LOGGER.info('Detail="Running unittests? Could not import restclient, importing ClusterSyncDBClient"')
     from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as restclient
 
 
