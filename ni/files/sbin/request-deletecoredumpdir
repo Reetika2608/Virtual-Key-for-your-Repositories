@@ -1,9 +1,0 @@
-#!/bin/bash
-
-DELETEFILE="/tmp/request/deletecoredumpdir"
-COREDIR="/tmp/coredumps"
-
-if [ -f ${DELETEFILE} ] ; then
-    rm -rf ${COREDIR}
-    rm ${DELETEFILE}
-fi

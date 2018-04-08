@@ -1,8 +1,0 @@
-#!/bin/bash
-
-REQUESTFIX="/tmp/request/fixfusioncerts"
-
-if [ -f ${REQUESTFIX} ] ; then
-    /etc/init.d/c_mgmt repaircerts
-    rm $REQUESTFIX
-fi

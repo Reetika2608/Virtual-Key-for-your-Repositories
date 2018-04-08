@@ -1,8 +1,0 @@
-#!/bin/bash
-
-REQUESTUPDATE="/tmp/request/removefusioncerts"
-
-if [ -f ${REQUESTUPDATE} ] ; then
-    /etc/init.d/c_mgmt removefusioncerts
-    rm $REQUESTUPDATE
-fi

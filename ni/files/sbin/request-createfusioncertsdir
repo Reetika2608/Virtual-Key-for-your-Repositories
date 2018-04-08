@@ -1,8 +1,0 @@
-#!/bin/bash
-
-REQUESTUPDATE="/tmp/request/createfusioncertsdir"
-
-if [ -f ${REQUESTUPDATE} ] ; then
-    /etc/init.d/c_mgmt createfusioncertsdir
-    rm $REQUESTUPDATE
-fi
