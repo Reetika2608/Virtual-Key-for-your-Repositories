@@ -1,4 +1,0 @@
-[DESIGN]
-max-line-length=120
-[MESSAGES CONTROL]
-disable-msg=C0111,R0201,C0103,W0613
