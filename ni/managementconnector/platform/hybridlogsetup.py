@@ -23,6 +23,7 @@ class HybridServicesLogger(LoggingFramework):
     """Class to configure the HybridServices logging framework """
 
     name = "hybridservices"
+    facility = logging.handlers.SysLogHandler.LOG_LOCAL7
 
     def __init__(self, enable_crash_report_handler, application_name=None):
         LoggingFramework.__init__(self)
