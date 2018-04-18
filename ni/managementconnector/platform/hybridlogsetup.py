@@ -13,7 +13,7 @@ import time
 try:
     from ni.utils.logging.setup import LoggingFramework
 except (ImportError, IOError):
-    from ni.uchenvironment.utils.logging.setup import LoggingFramework
+    from ni.cmgmtlog.setup import LoggingFramework
 
 
 HYBRIDSERVICES_LOGGING_FRAMEWORK = None
