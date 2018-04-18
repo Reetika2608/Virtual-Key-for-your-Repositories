@@ -14,7 +14,7 @@ from ni.cafedynamic.cafexutil import CafeXUtils
 try:
     import ni.utils.logging.setup as logging_setup
 except (ImportError, IOError):
-    import ni.uchenvironment.utils.logging.setup as logging_setup
+    import ni.cmgmtlog.setup as logging_setup
 
 logging_setup.initialise_logging("managementconnector")
 
