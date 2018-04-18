@@ -1,0 +1,8 @@
+{
+        "solution_links": [
+          "txt.DNS", "dns",
+          "txt.PROXY", "fusionproxy",
+          "txt.PING", "ping"        
+        ]
+}
+

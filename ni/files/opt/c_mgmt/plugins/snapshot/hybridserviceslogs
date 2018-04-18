@@ -1,0 +1,40 @@
+#!/bin/bash
+LEVEL=full
+LEVEL=logs
+CUSTOM_OPTION=HybridServices_Logs
+
+snapshot_hybridserviceslogs()
+{
+    OUTPUTDIR=${1}
+    LEVEL=${2}
+
+    log_dir="/mnt/harddisk/log"
+    readonly HYBRIDLOGS=${OUTPUTDIR}/hybrid_services_logs.tar.gz
+
+    # Create a tarfile of /mnt/harddisk/logs/hybrid_services_log
+
+    if [ -f "${log_dir}/hybrid_services_log" ]; then
+        (cd $log_dir && tar -Pcvzhf${HYBRIDLOGS} hybrid_services_log*)
+    fi
+
+}
+
+test_snapshot_hybridserviceslogs()
+{
+    TESTDIR=${1}
+    OUTPUTDIR=${2}
+
+    log_dir="/mnt/harddisk/log"
+    hybrid_services_log="hybrid_services_logs.tar.gz"
+
+    if [ ! -f "${log_dir}/hybrid_services_log" ]; then
+        handle_success "There are no hybrid services log files present for snapshot"
+    else
+        if [ -f ${TESTDIR}/${OUTPUTDIR}/${hybrid_services_log} ]; then
+            handle_success "Successfully created snapshot file for hybrid_services_log... '${hybrid_services_log}'"
+        else
+            handle_failure "Failed to create snapshot file for hybrid_services_log... '${hybrid_services_log}'"
+        fi
+    fi
+    return 0
+}

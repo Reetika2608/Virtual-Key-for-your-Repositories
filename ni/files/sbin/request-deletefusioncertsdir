@@ -1,0 +1,8 @@
+#!/bin/bash
+
+REQUESTUPDATE="/tmp/request/deletefusioncertsdir"
+
+if [ -f ${REQUESTUPDATE} ] ; then
+    /etc/init.d/c_mgmt deletefusioncertsdir
+    rm $REQUESTUPDATE
+fi
