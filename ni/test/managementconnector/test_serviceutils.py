@@ -385,7 +385,7 @@ class ServiceUtilsTest(unittest.TestCase):
                             'title': u'[Hybrid services] Communication error',
                             'last_reported': '2014-11-26T14:23:31',
                             'solution': u'Check Hybrid Services status on the VCS-C. Check status.ciscospark.com '
-                                        u'for outages. If the error remains, go to admin.ciscospark.com, click your'
+                                        u'for outages. If the error remains, go to admin.webex.com, click your'
                                         u' admin username, and then click Feedback to open a case for '
                                         u'further investigation.',
                             'id': '60051',
@@ -508,7 +508,7 @@ class ServiceUtilsTest(unittest.TestCase):
                             'title': u'[Hybrid services] Communication error',
                             'last_reported': '2014-11-26T14:23:31',
                             'solution': u'Check Hybrid Services status on the VCS-C. Check status.ciscospark.com '
-                                        u'for outages. If the error remains, go to admin.ciscospark.com, click your '
+                                        u'for outages. If the error remains, go to admin.webex.com, click your '
                                         u'admin username, and then click Feedback to open a case '
                                         u'for further investigation.',
                             'id': '60051',

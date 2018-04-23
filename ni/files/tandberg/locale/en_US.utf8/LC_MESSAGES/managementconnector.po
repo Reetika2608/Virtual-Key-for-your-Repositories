@@ -5,7 +5,7 @@ msgid "ttl.FUSION_SERVICES"
 msgstr "Connector Management"
 
 msgid "lbl.FUSION_REDIRECT_WARNING"
-msgstr "When you click Register, you're redirected to https://admin.ciscospark.com, where you need your <b>Organization Administrator Credentials</b>."
+msgstr "When you click Register, you're redirected to https://admin.webex.com, where you need your <b>Organization Administrator Credentials</b>."
 
 msgid "lbl.FUSION_MANAGEMENT_CONNECTOR_UPGRADE"
 msgstr "To ensure that the Expressway registers correctly, the latest version of Management Connector will be downloaded and installed automatically."
@@ -178,7 +178,7 @@ msgstr "<i>Click a connector name below to view or modify the connector details.
 
 # This is not to be translated. The actual link (href) is set on the php side.
 msgid "link.CISCO_CLOUD_COLLABORATION_PORTAL"
-msgstr "https://admin.ciscospark.com"
+msgstr "https://admin.webex.com"
 
 msgid "lbl.NOT_INSTALLED"
 msgstr "Not installed"
@@ -277,7 +277,7 @@ msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.description"
 msgstr "The [[PRODUCT]] could not validate the certificate from %s. This can happen because the [[PRODUCT]] does not trust the CA, or because the certificate is not currently valid."
 
 msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.solution"
-msgstr "Check that the [[PRODUCT]] %s list contains the root certificate of the CA that signed the received certificate. Check that the CA certificate is current and has not been revoked. Check that the %s is configured and that the [[PRODUCT]] is synchronized. If you can rule out these potential causes and the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "Check that the [[PRODUCT]] %s list contains the root certificate of the CA that signed the received certificate. Check that the CA certificate is current and has not been revoked. Check that the %s is configured and that the [[PRODUCT]] is synchronized. If you can rule out these potential causes and the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.id"
 msgstr "60060"
@@ -307,7 +307,7 @@ msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.description"
 msgstr "You previously rejected connector upgrades currently advertised by Cisco Collaboration Cloud. Automatic upgrades will continue when the next versions are available. The advertised versions are: %s"
 
 msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.solution"
-msgstr "View connector versions and either wait for the next automatic upgrade time or go to admin.ciscospark.com > Services > Hybrid Call > View All to open the resources and manually accept the upgrade."
+msgstr "View connector versions and either wait for the next automatic upgrade time or go to admin.webex.com > Services > Hybrid Call > View All to open the resources and manually accept the upgrade."
 
 msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.id"
 msgstr "60061"
@@ -367,7 +367,7 @@ msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.description"
 msgstr "HTTP error code %s from Cisco Collaboration Cloud (address: %s)"
 
 msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.solution"
-msgstr "Check Hybrid Services status on the [[PRODUCT]]-C. Check status.ciscospark.com for outages. If the error remains, go to admin.ciscospark.com, click your admin username, and then click Feedback to open a case for further investigation."
+msgstr "Check Hybrid Services status on the [[PRODUCT]]-C. Check status.ciscospark.com for outages. If the error remains, go to admin.webex.com, click your admin username, and then click Feedback to open a case for further investigation."
 
 msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.id"
 msgstr "60051"
@@ -382,7 +382,7 @@ msgid "alm.b6417be9-0c57-4254-8392-896b61983ca4.description"
 msgstr "%s"
 
 msgid "alm.b6417be9-0c57-4254-8392-896b61983ca4.solution"
-msgstr "Verify your %s, %s, %s the address. If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "Verify your %s, %s, %s the address. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.b6417be9-0c57-4254-8392-896b61983ca4.id"
 msgstr "60052"
@@ -397,7 +397,7 @@ msgid "alm.3d541e1e-1e9c-4b30-a07d-e93f8445b13e.description"
 msgstr "%s"
 
 msgid "alm.3d541e1e-1e9c-4b30-a07d-e93f8445b13e.solution"
-msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.3d541e1e-1e9c-4b30-a07d-e93f8445b13e.id"
 msgstr "60053"
@@ -412,7 +412,7 @@ msgid "alm.76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2.description"
 msgstr "%s"
 
 msgid "alm.76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2.solution"
-msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2.id"
 msgstr "60054"
@@ -428,7 +428,7 @@ msgid "alm.77857c20-94b4-4145-8298-cad741e905fb.description"
 msgstr "Could not disable the %s connector."
 
 msgid "alm.77857c20-94b4-4145-8298-cad741e905fb.solution"
-msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.77857c20-94b4-4145-8298-cad741e905fb.id"
 msgstr "60062"
@@ -444,7 +444,7 @@ msgid "alm.77ad9990-4850-4191-9bc2-51d0912daef3.description"
 msgstr "Could not enable the %s connector."
 
 msgid "alm.77ad9990-4850-4191-9bc2-51d0912daef3.solution"
-msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.77ad9990-4850-4191-9bc2-51d0912daef3.id"
 msgstr "60063"
@@ -460,7 +460,7 @@ msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.description"
 msgstr "The process %s unexpectedly stopped."
 
 msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.solution"
-msgstr "From [[PRODUCT]]-C, restart the connector. If that connector upgraded itself recently, roll it back to the previous connector. If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "From [[PRODUCT]]-C, restart the connector. If that connector upgraded itself recently, roll it back to the previous connector. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.id"
 msgstr "60064"
@@ -476,7 +476,7 @@ msgid "alm.52299415-2719-45d5-bcf7-720b48929ae3.description"
 msgstr "%s"
 
 msgid "alm.52299415-2719-45d5-bcf7-720b48929ae3.solution"
-msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.52299415-2719-45d5-bcf7-720b48929ae3.id"
 msgstr "60065"
@@ -492,7 +492,7 @@ msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.description"
 msgstr "The [[PRODUCT]] periodically renews its authentication through %s, but did not succeed this time. The [[PRODUCT]] will retry in %s minutes."
 
 msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.solution"
-msgstr "If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.id"
 msgstr "60066"
@@ -538,7 +538,7 @@ msgid "alm.29417128-4e59-4ae2-802e-77135c6a7fc9.description"
 msgstr "Received exception: %s, while processing HTTP response from %s"
 
 msgid "alm.29417128-4e59-4ae2-802e-77135c6a7fc9.solution"
-msgstr "If the error remains, use admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "If the error remains, use admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.29417128-4e59-4ae2-802e-77135c6a7fc9.id"
 msgstr "60070"
@@ -554,7 +554,7 @@ msgid "alm.dc463c51-d111-4cc5-9eba-9e09292183b0.description"
 msgstr "This system could not register properly because of a data error in a connector file. The associated services will not work as expected, even if you appear to have registered successfully."
 
 msgid "alm.dc463c51-d111-4cc5-9eba-9e09292183b0.solution"
-msgstr "If the error remains, use admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "If the error remains, use admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.dc463c51-d111-4cc5-9eba-9e09292183b0.id"
 msgstr "60071"
@@ -573,7 +573,7 @@ msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.description"
 msgstr "You registered for Hybrid Services but there are no service connectors installed. The Management Connector is active and is making unnecessary connections to the Cisco Collaboration Cloud."
 
 msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.solution"
-msgstr "Go to admin.ciscospark.com and check that your organization is entitled to use one or more Hybrid Services. If you are not using any Hybrid Services, we strongly recommend that you %s this [[PRODUCT]]."
+msgstr "Go to admin.webex.com and check that your organization is entitled to use one or more Hybrid Services. If you are not using any Hybrid Services, we strongly recommend that you %s this [[PRODUCT]]."
 
 msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.id"
 msgstr "60069"
@@ -818,7 +818,7 @@ msgid "err.LOG_PUSH_NETWORK_FAILURE"
 msgstr "Log push failed due to a networking error, possibly due to network or connectivity issues between Management Connector and the Cisco Collaboration Cloud."
 
 msgid "err.LOG_PUSH_UNSPECIFIED_FAILURE"
-msgstr "Log push failed due to an unspecified error. If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "Log push failed due to an unspecified error. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "ttl.FUSION_CERT_TOOL"
 msgstr "Cisco Collaboration Cloud certificate management"
