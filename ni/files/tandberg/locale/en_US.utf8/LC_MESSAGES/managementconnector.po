@@ -171,7 +171,7 @@ msgid "err.CLOUD_MAINTENANCE_MODE_TITLE"
 msgstr "Cloud Maintenance Mode"
 
 msgid "err.CLOUD_MAINTENANCE_MODE"
-msgstr "Maintenance mode for Cisco Spark Hybrid Services is enabled on this [[PRODUCT]]."
+msgstr "Maintenance mode for Cisco Webex Hybrid Services is enabled on this [[PRODUCT]]."
 
 msgid "lbl.FUSION_STATUS_INSTRUCTIONS"
 msgstr "<i>Click a connector name below to view or modify the connector details.</i>"
