@@ -1,6 +1,6 @@
 {
         "solution_links": [ 
-            "txt.TRUESTEDCACERTIFICATE", "trustedcacertificate",
+            "txt.TRUSTEDCACERTIFICATE", "trustedcacertificate",
             "txt.NTP", "time"
         ]
 }

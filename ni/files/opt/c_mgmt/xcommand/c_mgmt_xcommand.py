@@ -309,7 +309,7 @@ def run(command_name, parameters, rest_cdb_adaptor, callback, error_queue):  # p
             DEV_LOGGER.error('Detail="Management Connector XCommand failed with CertificateExceptionFusionCA error: %s, stacktrace=%s' %
                              (cert_exception, traceback.format_exc()))
             error = {"label": "err.CERT_FUSION_CA_ERROR_%s_%s", "params": OrderedDict([(Http.error_url, ""),
-                                                                                      ("txt.TRUESTEDCACERTIFICATE", "trustedcacertificate")])}
+                                                                                      ("txt.TRUSTEDCACERTIFICATE", "trustedcacertificate")])}
             error_queue.put(json.dumps(error))
 
         except CertificateExceptionNameMatch as cert_exception:
@@ -322,7 +322,7 @@ def run(command_name, parameters, rest_cdb_adaptor, callback, error_queue):  # p
             DEV_LOGGER.error('Detail="Management Connector XCommand failed with CertificateExceptionInvalidCert error: %s, stacktrace=%s' %
                              (cert_exception, traceback.format_exc()))
             error = {"label": "err.CERT_CONNECTION_ERROR_%s_%s", "params": OrderedDict([(Http.error_url, ""),
-                                                                                        ("txt.TRUESTEDCACERTIFICATE", "trustedcacertificate")])}
+                                                                                        ("txt.TRUSTEDCACERTIFICATE", "trustedcacertificate")])}
             error_queue.put(json.dumps(error))
 
         except urllib2.URLError, url_error:

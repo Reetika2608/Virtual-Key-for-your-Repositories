@@ -285,20 +285,27 @@ msgstr "60060"
 msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.severity"
 msgstr "error"
 
+
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.title"
 msgstr "[Hybrid services] Upgrade failed because certificate was not valid"
 
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.description"
-msgstr "%s"
+msgstr "Could not download %s because the certificate from %s was not validated. You may be configured for manual certificate management."
 
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.solution"
-msgstr "Check the [[PRODUCT]]'s trusted CA list for the CA that signed the received certificate."
+msgstr "Check the [[PRODUCT]] %s list for the CA that signed the received certificate. If in manual certificate management mode, go to %s to get an up-to-date list of current certificates to install and to ensure your existing certs are still valid. If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.id"
 msgstr "60056"
 
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.severity"
 msgstr "error"
+
+msgid "link.SUPPORTED_CERT_LIST"
+msgstr "https://collaborationhelp.cisco.com/article/0q4utq"
+
+msgid "link.TRUSTEDCACERTIFICATE"
+msgstr "trustedcacertificate"
 
 msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.title"
 msgstr "[Hybrid services] Upgrade prevented by user choice"
@@ -629,7 +636,7 @@ msgstr "Ping"
 msgid "txt.NTP"
 msgstr "NTP server"
 
-msgid "txt.TRUESTEDCACERTIFICATE"
+msgid "txt.TRUSTEDCACERTIFICATE"
 msgstr "trusted CA certificates"
 
 msgid "err.ROLLBACK_ERROR_NO_CURRENT_VERSION_%s"

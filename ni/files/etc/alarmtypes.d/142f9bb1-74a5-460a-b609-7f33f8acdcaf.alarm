@@ -1,4 +1,7 @@
 {
-        "solution_links": "trustedcacertificate"
+        "solution_links": [
+            "link.TRUSTEDCACERTIFICATE", "trustedcacertificate",
+            "link.SUPPORTED_CERT_LIST", "https://collaborationhelp.cisco.com/article/0q4utq"
+        ]
 }
 
