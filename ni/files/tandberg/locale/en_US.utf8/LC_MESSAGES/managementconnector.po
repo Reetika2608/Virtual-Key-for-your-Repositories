@@ -285,7 +285,6 @@ msgstr "60060"
 msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.severity"
 msgstr "error"
 
-
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.title"
 msgstr "[Hybrid services] Upgrade failed because certificate was not valid"
 
