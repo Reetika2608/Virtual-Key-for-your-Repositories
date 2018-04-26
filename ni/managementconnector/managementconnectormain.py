@@ -5,7 +5,11 @@
 """ This module starts ManagementConnector """
 
 # Initialise logging framework before all other application imports
-import ni.utils.logging.setup
+try:
+    import ni.utils.logging.setup as logging_setup
+except (ImportError, IOError):
+    import ni.cmgmtlog.setup as logging_setup
+
 
 # Append all required paths to the syspath for library imports.
 from ni.managementconnector.platform.libraryutils import LibraryUtils
@@ -15,7 +19,7 @@ LibraryUtils.append_library_path()
 from ni.managementconnector.applicationrunner import ApplicationRunner
 from ni.managementconnector.managementconnector import ManagementConnector
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-ni.utils.logging.setup.initialise_logging("managementconnector")
+logging_setup.initialise_logging("managementconnector")
 
 #Initialise logging application handle for hybridservices
 from ni.managementconnector.platform.hybridlogsetup import initialise_logging_hybrid_services

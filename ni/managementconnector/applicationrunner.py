@@ -11,7 +11,10 @@ import sys
 
 # Local application / library specific imports
 
-import ni.utils.logging.setup
+try:
+    import ni.utils.logging.setup as logging_setup
+except (ImportError, IOError):
+    import ni.cmgmtlog.setup as logging_setup
 
 import ni.utils.application.pidfile
 
@@ -73,7 +76,7 @@ class ApplicationRunner:
         self.logger.info('Detail="FMC_Lifecycle ApplicationRunner on_shutdown called" Application="%s" Pid="%d"' %
                          (self.name, os.getpid()))
         self.application.stop()
-        ni.utils.logging.setup.stop_monitoring_log_configuration_file()
+        logging_setup.stop_monitoring_log_configuration_file()
         self.pid_file.delete()
         self.started_pid_file.delete()
         self.logger.info('Detail="FMC_Lifecycle ApplicationRunner on_shutdown complete"')
