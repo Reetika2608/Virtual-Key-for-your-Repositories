@@ -12,7 +12,7 @@ ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 try:
     from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
 except ImportError:
-    DEV_LOGGER.error('Detail="Running unittest/locally? Could not import ClusterDatabaseRestClient, importing ClusterSyncDBClient"')
+    DEV_LOGGER.info('Detail="Running unittest/locally? Could not import ClusterDatabaseRestClient, importing ClusterSyncDBClient"')
     from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
     from ni.clients.clusterdb.clusterdb_sync_client import CDBDownException
 
@@ -54,7 +54,7 @@ class DatabaseHandler(ClusterDatabaseRestClient):
             self.send_post(cdb_url, {"value": json.dumps(content)})
             DEV_LOGGER.debug('Detail="__DatabaseHandler::write_static: path=%s, cdb_url: %s Content: %s"' % (path, cdb_url, content))
         except CDBDownException:
-            DEV_LOGGER.debug('Detail="CDB is not running"')
+            DEV_LOGGER.error('Detail="CDB is not running"')
 
     # -------------------------------------------------------------------------
 
