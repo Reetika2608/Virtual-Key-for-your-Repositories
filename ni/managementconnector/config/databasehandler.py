@@ -12,7 +12,7 @@ ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 try:
     from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
 except ImportError:
-    DEV_LOGGER.info('Detail="Running unittest/locally? Could not import ClusterDatabaseRestClient, importing ClusterSyncDBClient"')
+    DEV_LOGGER.error('Detail="Running unittest/locally? Could not import ClusterDatabaseRestClient, importing ClusterSyncDBClient"')
     from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
     from ni.clients.clusterdb.clusterdb_sync_client import CDBDownException
 
