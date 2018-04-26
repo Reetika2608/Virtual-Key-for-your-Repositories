@@ -1,0 +1,197 @@
+import logging
+import os.path
+import sys
+
+logger = logging.getLogger('build.managementconnector_plugin')
+m = module('managementconnector_plugin')
+m.source('./ni/files/tandberg/locale/en_US.utf8/LC_MESSAGES/managementconnector.po')
+m.on_target('swpkg.lst')
+
+m.set_build_env('PYCHK_SETTINGS', ",".join( [
+    "--disable=C0301",  # Ignore "Line too long" warnings
+    ]))
+
+contents = [
+
+#    ("(empty)",                                 "ni/"),
+    ("(empty)",                                 "ni/managementconnector/"),
+    ("(empty)",                                 "ni/managementconnector/config/"),
+    ("(empty)",                                 "ni/managementconnector/cloud/"),
+    ("(empty)",                                 "ni/managementconnector/lifecycle/"),
+    ("(empty)",                                 "ni/managementconnector/service/"),
+    ("(empty)",                                 "ni/managementconnector/platform/"),
+    ("(empty)",                                 "ni/managementconnector/events/"),
+
+    ("ni/managementconnector/cloud/atlas.py",      "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/cloud/metrics.py",      "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/config/config.py",                  "ni/managementconnector/config/"),
+    ("ni/managementconnector/config/certhandler.py",                  "ni/managementconnector/config/"),
+    ("ni/managementconnector/config/databasehandler.py",                  "ni/managementconnector/config/"),
+    ("ni/managementconnector/config/jsonhandler.py",                  "ni/managementconnector/config/"),
+    ("ni/managementconnector/managementconnector.py",      "ni/managementconnector/"),
+    ("ni/managementconnector/managementconnectormain.py",  "ni/managementconnector/"),
+    ("ni/managementconnector/config/managementconnectorproperties.py",  "ni/managementconnector/config/"),
+    ("ni/managementconnector/platform/hybridrequesthandler.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/platform/system.py",                   "ni/managementconnector/platform/"),
+    ("ni/managementconnector/platform/http.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/service/service.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/service/crashmonitor.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/platform/serviceutils.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/platform/libraryutils.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/platform/logarchiver.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/platform/corearchiver.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/service/servicemanager.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/service/servicemetrics.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/service/servicedependency.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/service/connectorservice.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/service/eventsender.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/service/eventdampener.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/cloud/oauth.py", "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/platform/alarms.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/service/manifest.py", "ni/managementconnector/service/"),
+    ("ni/managementconnector/deploy.py", "ni/managementconnector/"),
+    ("ni/managementconnector/deploythread.py", "ni/managementconnector/"),
+    ("ni/managementconnector/deployrunner.py", "ni/managementconnector/"),
+    ("ni/managementconnector/platform/certnamematch.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/cloud/schema.py", "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/cloud/atlaslogger.py", "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/cloud/wdm.py", "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/cloud/mercury.py", "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/cloud/features.py", "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/cloud/u2c.py", "ni/managementconnector/cloud/"),
+    ("ni/managementconnector/cloud/remotedispatcher.py", "ni/managementconnector/cloud/"),
+
+    ("ni/managementconnector/lifecycle/lifecycleutils.py", "ni/managementconnector/lifecycle/"),
+    ("ni/managementconnector/lifecycle/mercuryrunner.py", "ni/managementconnector/lifecycle/"),
+    ("ni/managementconnector/lifecycle/mercurythread.py", "ni/managementconnector/lifecycle/"),
+    ("ni/managementconnector/lifecycle/machineaccountrunner.py", "ni/managementconnector/lifecycle/"),
+    ("ni/managementconnector/lifecycle/machineaccountthread.py", "ni/managementconnector/lifecycle/"),
+    ("ni/managementconnector/lifecycle/threadrunner.py", "ni/managementconnector/lifecycle/"),
+    ("ni/managementconnector/lifecycle/featurethread.py", "ni/managementconnector/lifecycle/"),
+    ("ni/managementconnector/lifecycle/u2cthread.py", "ni/managementconnector/lifecycle/"),
+    ("ni/managementconnector/lifecycle/watchdog.py", "ni/managementconnector/lifecycle/"),
+
+    ("ni/managementconnector/platform/hybridlogsetup.py",  "ni/managementconnector/platform/"),
+    ("ni/managementconnector/platform/managementconnectorlogplugin.py", "ni/utils/logging/plugins/"),
+
+    ("ni/managementconnector/events/logpushevent.py", "ni/managementconnector/events/"),
+    ("ni/managementconnector/events/upgradeevent.py", "ni/managementconnector/events/"),
+
+    ("(empty)",                                 "ni/cafedynamic/"),
+    ("ni/cafedynamic/__init__.py",                     "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafemanager.py",                  "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafedatabase.py",                 "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafeconvenience.py",              "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafecomponentconfig.py",          "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafefilewriter.py",               "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafestatusmanager.py",            "ni/cafedynamic/"),
+    ("ni/managementconnector/config/cafeproperties.py",               "ni/managementconnector/config/"),
+    ("ni/managementconnector/applicationrunner.py",                 "ni/managementconnector/"),
+
+    ("ni/cafedynamic/cafecommandhandlerworker.py",   "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafecommandadapterworker.py",   "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafexstatusworker.py",          "ni/cafedynamic/"),
+    ("ni/cafedynamic/cafexutil.py",                 "ni/cafedynamic/"),
+
+#    ("(empty)",                                 "/tandberg/persistent/fusion/manifests/"),
+
+#    ("(empty)",                                 "ni/tests/"),
+    ("(empty)",                                 "ni/tests/managementconnector/"),
+    ("(empty)",                                 "ni/unittests/cafedynamic/"),
+
+    ("ni/test/managementconnector/test_atlas.py",                          "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_metrics.py",                        "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_json_handler.py",                   "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_http.py",                           "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_system.py",                         "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_alarms.py",                         "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_managementconnector.py",            "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_deploy.py",                         "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_deploy_mock.py",                    "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_xstatus.py",                        "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_xcommand.py",                       "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_oauth.py",                          "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_service.py",                        "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_serviceutils.py",                   "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_xcommand.py",                       "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_databasehandler.py",                "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_hybrid_syslog.py",                  "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_certhandler.py",                    "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_machineaccountthread.py",           "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_mercurythread.py",                  "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_mercury.py",                        "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_features.py",                       "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_remotedispatcher.py",               "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_watchdog.py",                       "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_logarchiver.py",                    "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_corearchiver.py",                   "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_crashmonitor.py",                   "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_eventsender.py",                    "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_u2c.py",                            "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_eventdampener.py",                  "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_hybridrequesthandler.py",           "ni/tests/managementconnector/"),
+    ("ni/test/cafedynamic/test_cafemanager.py",            "ni/unittests/cafedynamic/"),
+    ("ni/test/cafedynamic/test_cafestatusmanager.py",      "ni/unittests/cafedynamic/"),
+    ("ni/test/cafedynamic/test_cafeconvenience.py",        "ni/unittests/cafedynamic/"),
+    ("ni/test/cafedynamic/test_cafefilewriter.py",         "ni/unittests/cafedynamic/"),
+    ("ni/test/cafedynamic/test_cafecomponentconfig.py",    "ni/unittests/cafedynamic/"),
+    ("ni/test/cafedynamic/mockcafedatabase.py",            "ni/unittests/cafedynamic/"),
+    ("ni/test/cafedynamic/mockcafemanager.py",             "ni/unittests/cafedynamic/"),
+]
+
+m.python_source(contents,
+    exclude_pylint=[
+        "ni/test/managementconnector/test_alarms.py",
+        "ni/test/managementconnector/test_atlas.py",
+        "ni/test/managementconnector/test_metrics.py",
+        "ni/test/managementconnector/test_json_handler.py",
+        "ni/test/managementconnector/test_system.py",
+        "ni/test/managementconnector/test_http.py",
+        "ni/test/managementconnector/test_managementconnector.py",
+        "ni/test/managementconnector/test_deploy.py",
+        "ni/test/managementconnector/test_deploy_mock.py",
+        "ni/test/managementconnector/test_xstatus.py",
+        "ni/test/managementconnector/test_xcommand.py",
+        "ni/test/managementconnector/test_oauth.py",
+        "ni/test/managementconnector/test_service.py",
+        "ni/test/managementconnector/test_serviceutils.py",
+        "ni/test/managementconnector/test_xcommand.py",
+        "ni/test/managementconnector/test_databasehandler.py",
+        "ni/test/managementconnector/test_hybrid_syslog.py",
+        "ni/test/managementconnector/test_certhandler.py",
+        "ni/test/managementconnector/test_machineaccountthread.py",
+        "ni/test/managementconnector/test_mercury.py",
+        "ni/test/managementconnector/test_mercurythread.py",
+        "ni/test/managementconnector/test_remotedispatcher.py",
+        "ni/test/managementconnector/test_crashmonitor.py",
+        "ni/test/managementconnector/test_u2c.py",
+        "ni/test/managementconnector/test_watchdog.py",
+        "ni/test/managementconnector/test_logarchiver.py",
+        "ni/test/managementconnector/test_eventdampener.py",
+        "ni/test/cafedynamic/test_cafemanager.py",
+        "ni/test/cafedynamic/test_cafestatusmanager.py",
+        "ni/test/cafedynamic/test_cafeconvenience.py",
+        "ni/test/cafedynamic/test_cafefilewriter.py",
+        "ni/test/cafedynamic/test_cafecomponentconfig.py",
+        "ni/test/cafedynamic/mockcafedatabase.py",
+        "ni/test/cafedynamic/mockcafemanager.py",
+        "ni/managementconnector/cloud/schema.py",
+    ]
+)
+
+def assert_module_paths(content):
+    """ 
+        This function is used to asserts all FMC module paths contain 
+        a reference to 'managementconnector' or 'cafedynamic' to prevent 
+        import issues in long standing running code i.e managementframework 
+        - xstatus.
+    """
+    for source, destination in content:
+        filename = os.path.basename(source)
+        if "managementconnector" in filename or "managementconnector" in destination or "cafedynamic" in filename or "cafedynamic" in destination:
+            continue
+
+        logger.error(" Neither required patterns found in: %s or %s", filename, destination)
+        sys.exit(1)
+
+assert_module_paths(contents)

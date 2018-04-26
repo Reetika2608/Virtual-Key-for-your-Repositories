@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<subsitecollection>
+    <subsites insertAtMountPoint="additional_applications">
+        <site visible_unless="non_fusion">
+            <pagealias>
+                <link>fusionregistration</link>
+            </pagealias>
+            <menu>
+                <title>ttl.CLOUD_FUSION</title>
+            </menu>
+            <subsites>
+                <site visible_unless="expressway">
+                    <page>
+                        <title>ttl.FUSION_SERVICES</title>
+                        <link>fusionregistration</link>
+                    </page>
+                    <menu>
+                        <title>ttl.FUSION_SERVICES</title>
+                    </menu>
+                </site>
+                <site visible_unless="expressway">
+                    <page>
+                        <title>ttl.FUSION_PROXY</title>
+                        <link>fusionproxy</link>
+                    </page>
+                    <menu>
+                        <title>ttl.FUSION_PROXY</title>
+                    </menu>
+                </site>
+                <site hidden_unless="fused">
+                    <page>
+                        <title>ttl.HYBRID_SERIVCES_SEND_LOG</title>
+                        <link>hybridsendlog</link>
+                    </page>
+                    <menu>
+                        <title>ttl.HYBRID_LOGGING</title>
+                    </menu>
+                </site>
+                <mountpoint id="fusion"/> 
+            </subsites>
+        </site>
+        <site visible_unless="control">
+            <page>
+                <title>ttl.FUSION_CERT_TOOL</title>
+                <link>fusioncerts</link>
+            </page>
+            <menu>
+                <title>menu.FUSION_CERT_TOOL</title>
+            </menu>
+        </site>
+    </subsites>
+    <subsites insertAtMountPoint="803">
+        <site visible_unless="non_fusion">
+            <page>
+                <title>ttl.HYBRID_SERIVCES_LOG_LEVELS</title>
+                <link>hybridservicesloglevels</link>
+            </page>
+            <menu>
+                <title>ttl.HYBRID_SERIVCES_LOG_LEVELS</title>
+            </menu>
+        </site>
+    </subsites>
+</subsitecollection>

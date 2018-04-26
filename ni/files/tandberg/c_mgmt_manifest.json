@@ -1,0 +1,14 @@
+{
+    "alarms":
+    {
+        "start": "60050",
+        "end": "60099",
+        "suppress": ["60050","60051","60070","15004","15010","15011","15019"],
+        "external": ["15004", "15010", "15011", "15019"]
+    },
+    "cgroupLimits":
+    {
+        "cpuPriorityPercentage": "10",
+        "memoryPercentageLimit": "10"     
+    }
+}
