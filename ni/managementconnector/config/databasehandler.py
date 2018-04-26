@@ -12,8 +12,9 @@ ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 try:
     from ni.clusterdatabase.restclient import ClusterDatabaseRestClient
 except ImportError:
-    DEV_LOGGER.info('Detail="Running unittests? Could not import ClusterDatabaseRestClient, importing ClusterSyncDBClient"')
+    DEV_LOGGER.info('Detail="Running unittest/locally? Could not import ClusterDatabaseRestClient, importing ClusterSyncDBClient"')
     from ni.clients.clusterdb.clusterdb_sync_client import ClusterSyncDBClient as ClusterDatabaseRestClient
+    from ni.clients.clusterdb.clusterdb_sync_client import CDBDownException
 
 class DatabaseHandler(ClusterDatabaseRestClient):
     """
@@ -49,8 +50,11 @@ class DatabaseHandler(ClusterDatabaseRestClient):
     def write_static(self, path, content):
         """ Writes to the blob configuration database table """
         cdb_url = ManagementConnectorProperties.STATIC_MGMT_CDB_PATH + path
-        self.send_post(cdb_url, {"value": json.dumps(content)})
-        DEV_LOGGER.debug('Detail="__DatabaseHandler::write_static: path=%s, cdb_url: %s Content: %s"' % (path, cdb_url, content))
+        try:
+            self.send_post(cdb_url, {"value": json.dumps(content)})
+            DEV_LOGGER.debug('Detail="__DatabaseHandler::write_static: path=%s, cdb_url: %s Content: %s"' % (path, cdb_url, content))
+        except CDBDownException:
+            DEV_LOGGER.error('Detail="CDB is not running"')
 
     # -------------------------------------------------------------------------
 
