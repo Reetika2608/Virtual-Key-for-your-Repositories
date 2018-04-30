@@ -122,7 +122,7 @@
     {
         "idpHost" :  $!setvar("idpHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_idpHost_u2c"]')!$<!--(if len(idpHost))-->$!idpHost[0]['value']!$<!--(else)-->"https://idbroker.webex.com"<!--(end)-->,
         "atlasUrlPrefix" :  $!setvar("atlasUrlPrefix", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_fmsUrl"]')!$<!--(if len(atlasUrlPrefix))-->$!atlasUrlPrefix[0]['value']!$<!--(else)-->"https://hercules-a.wbx2.com"<!--(end)-->,
-        "atlasAdminFusionPortal" :  $!setvar("atlasAdminFusionPortal", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_atlas_portal_u2c"]')!$<!--(if len(atlasAdminFusionPortal))-->$!atlasAdminFusionPortal[0]['value']!$<!--(else)-->"https://admin.ciscospark.com"<!--(end)-->,
+        "atlasAdminFusionPortal" :  $!setvar("atlasAdminFusionPortal", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_atlas_portal_u2c"]')!$<!--(if len(atlasAdminFusionPortal))-->$!atlasAdminFusionPortal[0]['value']!$<!--(else)-->"https://admin.webex.com"<!--(end)-->,
         "clientId": "C0cd283dc5b7d8bd5929a825324c74b4d2755d14cf52eb4b256f9a63bec15fce8",
         "clientSecret": "914f9161b50bf3eb3ec02920672387b5d2d118034f4828b3811dc9e53feaea60",
         "idpPingUrl": "https://idbroker.webex.com/idb/HealthCheck.jsp",
