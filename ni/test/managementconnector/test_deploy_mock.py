@@ -22,7 +22,7 @@ from ni.managementconnector.cloud.atlas import Atlas
 from ni.managementconnector.cloud.mercury import Mercury
 from ni.managementconnector.config.config import Config
 from ni.managementconnector.service.service import Service, DownloadTLPAccessException, DownloadServerUnavailableException, \
-    EnableException, DisableException, InstallException
+    EnableException, DisableException, InstallException, ServiceCertificateExceptionInvalidCert
 
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
@@ -980,6 +980,43 @@ class DeployTestCase(unittest.TestCase):
         deploy._process_stopped_alarm(failed_connectors, "test", "%s failed")
         mock_alarm.raise_alarm.assert_called_with("test", ["Calendar Connector failed\nCall Connector failed\n"])
 
+
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
+    @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
+    @mock.patch('ni.managementconnector.config.config')
+    @mock.patch('ni.managementconnector.deploy.OAuth')
+    @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
+    @mock.patch('ni.managementconnector.deploy.ServiceUtils')
+    @mock.patch('ni.managementconnector.service.service.ServiceUtils')
+    def test_tlp_upgrade_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config,
+                                mock_get_package_version, mock_get_system_mem, mock_is_package_installed):
+
+        DEV_LOGGER.info("***TEST*** test_tlp_upgrade_alarm")
+
+        deploy = Deploy(mock_config)
+        deploy._service_manager.purge_deleted_connectors = mock.MagicMock(name='method')
+        deploy._service_manager._alarms = mock_alarm
+
+        mock_service_name = "mock_service"
+
+        service = Service(mock_service_name, mock_config, mock_oauth)
+        mocked_download_method = mock.Mock(
+            side_effect=ServiceCertificateExceptionInvalidCert({"message": "problem with certs", "reason": "reason"}))
+        service._download = mocked_download_method
+
+        deploy._service_manager.add(service)
+
+        connectors_config = [{'connector_type': mock_service_name,
+                              'version': "version",
+                              'display_name': 'xyz_display_name',
+                              'name': mock_service_name, 'url': 'http://www.bad_address.com', 'enabled': 'false'
+                              }]
+
+        deploy._service_manager.upgrade_worker(connectors_config)
+
+        description_text = ['Could not download connector xyz_display_name from http://www.bad_address.com\n']
+        mock_alarm.raise_alarm.assert_called_with('142f9bb1-74a5-460a-b609-7f33f8acdcaf', description_text)
 
 
 if __name__ == "__main__":
