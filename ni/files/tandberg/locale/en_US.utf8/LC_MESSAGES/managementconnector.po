@@ -675,7 +675,7 @@ msgid "err.CERT_FUSION_CA_ERROR_%s_%s"
 msgstr "Could not register with the Cisco Collaboration Cloud because the certificate from %s was not validated against the trusted CA list. This list includes root CA certificates added by Cisco Cloud. Check the %s for the root CA that signed the received certificate"
 
 msgid "err.DOWNLOAD_CERT_ERROR_%s_%s"
-msgstr "Could not download %s because the certificate from %s was not validated."
+msgstr "Could not download %s because the certificate from %s was not validated. You may be configured for manual certificate management."
 
 msgid "err.DOWNLOAD_CERT_NAME_ERROR_%s_%s"
 msgstr "Could not download %s because the hostname in the HTTP request did not match any CN or SAN attribute in the certificate from %s."

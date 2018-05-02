@@ -1015,7 +1015,7 @@ class DeployTestCase(unittest.TestCase):
 
         deploy._service_manager.upgrade_worker(connectors_config)
 
-        description_text = ['Could not download connector xyz_display_name from http://www.bad_address.com\n']
+        description_text = ['Could not download xyz_display_name because the certificate from http://www.bad_address.com was not validated. You may be configured for manual certificate management.\n']
         mock_alarm.raise_alarm.assert_called_with('142f9bb1-74a5-460a-b609-7f33f8acdcaf', description_text)
 
 
