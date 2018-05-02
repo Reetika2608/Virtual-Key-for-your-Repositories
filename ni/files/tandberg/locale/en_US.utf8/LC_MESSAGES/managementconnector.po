@@ -292,7 +292,7 @@ msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.description"
 msgstr "Could not download %s because the certificate from %s was not validated. You may be configured for manual certificate management."
 
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.solution"
-msgstr "Check the [[PRODUCT]] %s list for the CA that signed the received certificate. If in manual certificate management mode, go to %s to get an up-to-date list of current certificates to install and to ensure your existing certs are still valid. If the error remains, go to admin.ciscospark.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "Check the [[PRODUCT]] %s list for the CA that signed the received certificate. If in manual certificate management mode, go to %s to get an up-to-date list of current certificates to install and to ensure your existing certs are still valid. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.id"
 msgstr "60056"
