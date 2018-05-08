@@ -8,6 +8,7 @@ import logging
 import time
 from urllib2 import URLError
 from urllib2 import HTTPError
+from distutils.version import StrictVersion
 
 # Local application / library specific imports
 from ni.managementconnector.config.databasehandler import DatabaseHandler, register_default_loggers
@@ -207,8 +208,6 @@ class Service(object):
             tmp_path, downloaded_file_size, download_duration = self._download()
 
             ServiceUtils.cache_service_cdb_schema(self._rest_client, self._name)
-
-            self._handle_legacy_uninstall()
 
             install_duration = self._install(tmp_path)
 
@@ -568,30 +567,6 @@ class Service(object):
 
     # -------------------------------------------------------------------------
 
-    def _handle_legacy_uninstall(self):
-        """
-            Checks if an explicit uninstall is required for legacy connectors.
-            This is scaffolding code to support legacy connectors and should be!
-            removed when versions are no longer in production, including stashed tlps.
-        """
-
-        if self._name in ManagementConnectorProperties.LEGACY_UNINSTALL_CUTOFF:
-            installed_version = CafeXUtils.get_package_version(self._name)
-            if installed_version:
-                legacy_cutoff = ManagementConnectorProperties.LEGACY_UNINSTALL_CUTOFF[self._name]
-
-                difference = ServiceUtils.version_number_compare(installed_version, legacy_cutoff)
-
-                # If the installed version is older, explicit uninstall is required.
-                if difference < 0:
-                    DEV_LOGGER.info('Detail="FMC_Lifecycle _handle_legacy_uninstall: explicit uninstall for {} as {} is older than {}"'
-                                    .format(self._name, installed_version, legacy_cutoff))
-                    self.uninstall(upgrade=True)
-                else:
-                    DEV_LOGGER.debug('Detail="FMC_Lifecycle _handle_legacy_uninstall: explicit uninstall not required"')
-
-    # -------------------------------------------------------------------------
-
     def disable(self, retries=DISABLE_RETRIES):
         ''' disable '''
         DEV_LOGGER.info('Detail="FMC_Lifecycle _disable: disable service: name=%s"' % (self._name))
@@ -672,9 +647,16 @@ class Service(object):
 
     def update_allowed(self, version):
         """ Check if version has changed and ensures a backup restore is not in progress """
+        if not StrictVersion.version_re.match(version):
+            version_format_correct = False
+            DEV_LOGGER.error('Detail="update_allowed: invalid version number: %s. Versions must adhere to specified format in the developer guide"'
+                             % (version))
+        else:
+            version_format_correct = True
+
         requires_refresh = self.requires_refresh(version)
         restore_occurring = CafeXUtils.is_backup_restore_occurring(DEV_LOGGER)
-        allowed = requires_refresh and not restore_occurring
+        allowed = requires_refresh and not restore_occurring and version_format_correct
 
         if allowed:
             DEV_LOGGER.debug('Detail="update_allowed: %s requires refresh: %s and restore occurring: %s"'

@@ -214,8 +214,6 @@ class ManagementConnectorProperties(object):
 
     CDB_CLEAN_TIMEOUT = 30
 
-    # Connectors older than ones specified below require an explicit uninstall
-    LEGACY_UNINSTALL_CUTOFF = {"c_cal": "8.6-1.0.2217", "c_ucmc": "8.6-1.0.1560"}
 
     # -------------------------------------------------------------------------
     # Configuration Paths

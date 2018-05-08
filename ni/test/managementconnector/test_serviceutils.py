@@ -339,25 +339,6 @@ class ServiceUtilsTest(unittest.TestCase):
             self.assertEquals(x, y, "Actual: %s did not match Expected: %s... Scenario: %d" % (x, y, i))
             i = i + 1
 
-    def test_connector_version_compare(self):
-        """
-            assert compare("8.6-1.0.318454", "8.6-1.0.318968") < 0
-            assert compare("8.6-1.0.318968", "8.6-1.0.318968") == 0
-            assert compare("8.6-1.0.318999", "8.6-1.0.318968") > 0
-        """
-        # Test Revision
-        self.assertEquals(-1, ServiceUtils.version_number_compare("8.6-1.0.318454", "8.6-1.0.318968"))
-        self.assertEquals(0, ServiceUtils.version_number_compare("8.6-1.0.318968", "8.6-1.0.318968"))
-        self.assertEquals(1, ServiceUtils.version_number_compare("8.6-1.0.318999", "8.6-1.0.318968"))
-
-        # Test Minor
-        self.assertEquals(-1, ServiceUtils.version_number_compare("8.6-1.0.318968", "8.6-1.1.318968"))
-        self.assertEquals(1, ServiceUtils.version_number_compare("8.6-1.1.318968", "8.6-1.0.318968"))
-
-        # Test Major
-        self.assertEquals(-1, ServiceUtils.version_number_compare("8.6-1.0.318968", "8.6-2.0.318968"))
-        self.assertEquals(1, ServiceUtils.version_number_compare("8.6-2.0.318968", "8.6-1.0.318968"))
-
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.service.service.Service.get_suppressed_alarms')

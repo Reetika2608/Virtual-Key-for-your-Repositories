@@ -244,7 +244,6 @@ class ServiceTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.service.ManagementConnectorProperties.EXPRESSWAY_VERSION')
     @mock.patch('ni.managementconnector.service.service.EventSender')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
-    @mock.patch('ni.managementconnector.service.service.Service._handle_legacy_uninstall',)
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
     @mock.patch('ni.managementconnector.config.config.Config.read')
     @mock.patch('ni.managementconnector.service.service.Service._download')
@@ -252,7 +251,7 @@ class ServiceTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.service.Service.uninstall')
     @mock.patch('ni.managementconnector.service.service.Service.disable')
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
-    def test_configure_prevent_connector(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_config, mock_serviceutils, mock_leg, mock_oath, mock_sender, mock_platform, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers):
+    def test_configure_prevent_connector(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_config, mock_serviceutils, mock_oath, mock_sender, mock_platform, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers):
         service = Service('c_xyz', Config(), mock_oath)
 
         mock_cafeutils.get_package_version.return_value = '2.0'
@@ -266,6 +265,10 @@ class ServiceTest(unittest.TestCase):
         mock_serviceutils.is_supported_extension.return_value = True
 
         upgrade_disabled_from_fms = False
+
+        # Connector upgrade prevented
+        service.configure("some_url", "2.invalidName1.1", upgrade_disabled_from_fms)
+        self.assertFalse(mock_install.called, "Install should not have been called.")
 
         # Connector upgrade prevented
         service.configure("some_url", "2.0", upgrade_disabled_from_fms)

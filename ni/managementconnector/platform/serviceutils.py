@@ -6,7 +6,6 @@ import os
 import shutil
 import time
 import datetime
-from distutils.version import StrictVersion
 import ni.utils.i18n
 
 from ni.cafedynamic.cafexutil import CafeXUtils
@@ -561,30 +560,6 @@ class ServiceUtils(object):
                     for path in exclude_paths[table]:
                         if path in path_value_pairs:
                             del path_value_pairs[path]
-
-    # -------------------------------------------------------------------------
-
-    @staticmethod
-    def version_number_compare(version1, version2):
-        """
-            Compare connector version v1 against v2:
-            Param Format:   8.6-1.0.123456
-            Return Values:
-                If v1 equals v2 returns:    0
-                If v1 is older returns:     -1
-                If v1 is newer returns:     1
-        """
-
-        def normalize(ver):
-            """ Strips Expressway version from connector version """
-            # Strip Expressway Version and split
-            start = ver.find("-")+1
-            ver = ver[start:]
-            return ver
-
-        internal_compare = lambda x, y: StrictVersion(x).__cmp__(y)
-
-        return internal_compare(normalize(version1), normalize(version2))
 
     # -------------------------------------------------------------------------
 
