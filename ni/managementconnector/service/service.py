@@ -647,9 +647,10 @@ class Service(object):
     # -------------------------------------------------------------------------
 
     def is_version_valid(self, version):
-        """ Check if version is of format: {name}_{Major.Minor.Maintenance}-{Major.Minor.Rev} or {Major.Minor.Rev}.
+        """ Check if version is of format declared in Cafe Developer Guide
+             eg. {name}_{Major.Minor.Maintenance}-{Major.Minor.Rev} or {Major.Minor.Rev}.
             If in first format, split the connector version into sections.
-             Then run StrictVersion on each section.
+            Run StrictVersion on each section.
              eg. 8.9-1.0.321342, 8.10-568
         """
         version_format_correct = False
@@ -673,7 +674,7 @@ class Service(object):
 
         if not version_format_correct:
             DEV_LOGGER.error('Detail="update_allowed: invalid version naming format!: %s.'
-                             'Versions must adhere to specified format in the cafe developer guide"' % version)
+                             'Versions must adhere to specified format in the Cafe Developer Guide"' % version)
 
         return version_format_correct
 
