@@ -9,6 +9,7 @@ import time
 from urllib2 import URLError
 from urllib2 import HTTPError
 from distutils.version import StrictVersion
+import re
 
 # Local application / library specific imports
 from ni.managementconnector.config.databasehandler import DatabaseHandler, register_default_loggers
@@ -645,15 +646,42 @@ class Service(object):
 
     # -------------------------------------------------------------------------
 
+    def is_version_valid(self, version):
+        """ Check if version is of format: {name}_{Major.Minor.Maintenance}-{Major.Minor.Rev} or {Major.Minor.Rev}.
+            If in first format, split the connector version into sections.
+             Then run StrictVersion on each section.
+             eg. 8.9-1.0.321342, 8.10-568
+        """
+        version_format_correct = False
+        # Check for connector name
+        if "_" in version:
+            version_data = re.split('_', version)
+            # connector_name = version_data[0]
+            version = version_data[1]
+        # Check for vcs & app version
+        if "-" in version:
+            version_data1 = re.split('-', version)
+            vcs_version = version_data1[0]
+            app_version = version_data1[1]
+            if StrictVersion.version_re.match(vcs_version) and StrictVersion.version_re.match(app_version):
+                version_format_correct = True
+            # 'hello' connector does not follow StrictVersion rules and therefore is an exemption
+            if self._name == "hello":
+                version_format_correct = True
+        else:
+            version_format_correct = StrictVersion.version_re.match(version)
+
+        if not version_format_correct:
+            DEV_LOGGER.error('Detail="update_allowed: invalid version naming format!: %s.'
+                             'Versions must adhere to specified format in the cafe developer guide"' % version)
+
+        return version_format_correct
+
+    # -------------------------------------------------------------------------
+
     def update_allowed(self, version):
         """ Check if version has changed and ensures a backup restore is not in progress """
-        if not StrictVersion.version_re.match(version):
-            version_format_correct = False
-            DEV_LOGGER.error('Detail="update_allowed: invalid version number: %s. Versions must adhere to specified format in the developer guide"'
-                             % (version))
-        else:
-            version_format_correct = True
-
+        version_format_correct = self.is_version_valid(version)
         requires_refresh = self.requires_refresh(version)
         restore_occurring = CafeXUtils.is_backup_restore_occurring(DEV_LOGGER)
         allowed = requires_refresh and not restore_occurring and version_format_correct
