@@ -648,33 +648,26 @@ class Service(object):
 
     def is_version_valid(self, version):
         """ Check if version is of format declared in Cafe Developer Guide
-             eg. {name}_{Major.Minor.Maintenance}-{Major.Minor.Rev} or {Major.Minor.Rev}.
-            If in first format, split the connector version into sections.
-            Run StrictVersion on each section.
-             eg. 8.9-1.0.321342 or 8.9-1.10
+             eg. {name}_{Major.Minor.Maintenance}-{Major.Minor.Rev} or {Major.Minor.Rev}
+                 8.9-1.0.321342 or 8.9-1.10
         """
         version_format_correct = False
         # Check for connector name
         if "_" in version:
             version_data = re.split('_', version)
-            # connector_name = version_data[0]
             version = version_data[1]
         # Check for vcs & app version
         if "-" in version:
-            version_data1 = re.split('-', version)
-            vcs_version = version_data1[0]
-            app_version = version_data1[1]
+            version_app_vcs_data = re.split('-', version)
+            vcs_version = version_app_vcs_data[0]
+            app_version = version_app_vcs_data[1]
             if StrictVersion.version_re.match(vcs_version) and StrictVersion.version_re.match(app_version):
-                version_format_correct = True
-            # 'hello' connector does not follow StrictVersion rules and therefore is an exemption
-            if self._name == "hello":
                 version_format_correct = True
         else:
             version_format_correct = StrictVersion.version_re.match(version)
 
         if not version_format_correct:
-            DEV_LOGGER.error('Detail="update_allowed: invalid version naming format!: %s.'
-                             'Versions must adhere to specified format in the Cafe Developer Guide"' % version)
+            DEV_LOGGER.error('Detail="update_allowed: invalid version naming format: %s.' % version)
 
         return version_format_correct
 
