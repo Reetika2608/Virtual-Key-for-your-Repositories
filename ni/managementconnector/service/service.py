@@ -646,7 +646,8 @@ class Service(object):
 
     # -------------------------------------------------------------------------
 
-    def is_version_valid(self, version):
+    @staticmethod
+    def is_version_valid(version):
         """ Check if version is of format declared in Cafe Developer Guide
              eg. {name}_{Major.Minor.Maintenance}-{Major.Minor.Rev} or {Major.Minor.Rev}
                  8.9-1.0.321342 or 8.9-1.10

@@ -266,8 +266,16 @@ class ServiceTest(unittest.TestCase):
 
         upgrade_disabled_from_fms = False
 
-        # Connector upgrade prevented
+        # Connector upgrade prevented, invalid name variation 1
         service.configure("some_url", "2.invalidName123.11", upgrade_disabled_from_fms)
+        self.assertFalse(mock_install.called, "Install should not have been called.")
+
+        # Connector upgrade prevented, invalid name variation 2
+        service.configure("some_url", "connectorName_12345-1.0.0", upgrade_disabled_from_fms)
+        self.assertFalse(mock_install.called, "Install should not have been called.")
+
+        # Connector upgrade prevented, invalid name variation 3
+        service.configure("some_url", "1.0-123", upgrade_disabled_from_fms)
         self.assertFalse(mock_install.called, "Install should not have been called.")
 
         # Connector upgrade prevented
