@@ -651,7 +651,7 @@ class Service(object):
              eg. {name}_{Major.Minor.Maintenance}-{Major.Minor.Rev} or {Major.Minor.Rev}.
             If in first format, split the connector version into sections.
             Run StrictVersion on each section.
-             eg. 8.9-1.0.321342, 8.10-568
+             eg. 8.9-1.0.321342 or 8.9-1.10
         """
         version_format_correct = False
         # Check for connector name
