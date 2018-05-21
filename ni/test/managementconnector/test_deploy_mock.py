@@ -1008,7 +1008,7 @@ class DeployTestCase(unittest.TestCase):
         deploy._service_manager.add(service)
 
         connectors_config = [{'connector_type': mock_service_name,
-                              'version': "1.2.3",  # "version" is invalid
+                              'version': "1.2.3",
                               'display_name': 'xyz_display_name',
                               'name': mock_service_name, 'url': 'http://www.bad_address.com', 'enabled': 'false'
                               }]
