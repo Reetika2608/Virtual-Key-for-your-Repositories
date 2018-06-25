@@ -86,6 +86,7 @@ class ServiceMetrics(object):
         except (IOError, OSError) as file_err:
             DEV_LOGGER.error('Detail="update_service_metrics:Error reading from file: errno=%s, strerror=%s."' %
                              (file_err.errno, file_err.strerror))
+            memory_usage_in_bytes = 0
 
         self._percent_system_memory = 100 * float(memory_usage_in_bytes) / float(self._total_system_memory)
 
