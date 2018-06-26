@@ -17,7 +17,7 @@ class LogArchiverTest(unittest.TestCase):
         """ User Story: US16645: Add Push Log Command """
         log_request_id = "12345"
         mock_read_json_file.return_value = None
-        expected_log_entry = (True, {"logsearchId": log_request_id, "status": "starting"}, False)
+        expected_log_entry = (True, {"logsearchId": log_request_id, "status": "starting"})
         log_entry = LogArchiver.validate_request(mock_config, log_request_id)
         self.assertEquals(log_entry, expected_log_entry)
 
@@ -27,7 +27,7 @@ class LogArchiverTest(unittest.TestCase):
         """ User Story: US16645: Add Push Log Command """
         log_request_id = "12345"        
         mock_read_json_file.return_value = {"logsearchId": log_request_id}
-        expected_log_entry = (False, {"logsearchId": log_request_id, "status": "log_uuid_unchanged"}, False)
+        expected_log_entry = (False, {"logsearchId": log_request_id, "status": "log_uuid_unchanged"})
         log_entry = LogArchiver.validate_request(mock_config, log_request_id)
         self.assertEquals(log_entry, expected_log_entry)
 
@@ -38,7 +38,7 @@ class LogArchiverTest(unittest.TestCase):
         log_request_id = ""
         mock_read_json_file.return_value = None
         mock_config.read.return_value = None
-        expected_log_entry = (False, {"logsearchId": log_request_id, "status": "no_log_uuid"}, True)
+        expected_log_entry = (False, {"logsearchId": log_request_id, "status": "no_log_uuid"})
         log_entry = LogArchiver.validate_request(mock_config, log_request_id)
         self.assertEquals(log_entry, expected_log_entry)
 
@@ -49,7 +49,7 @@ class LogArchiverTest(unittest.TestCase):
         """ User Story: US16645: Add Push Log Command """
         log_request_id = ""
         log_entry = {"logsearchId": log_request_id, "status" : "no_log_uuid"}
-        mock_validate_request.return_value = False, log_entry, True
+        mock_validate_request.return_value = False, log_entry
         push_log_response = LogArchiver.push_logs(mock_config, mock_atlas_logger, log_request_id)
         self.assertEquals(log_entry, push_log_response)
 
@@ -69,7 +69,7 @@ class LogArchiverTest(unittest.TestCase):
         """ User Story: US16645: Add Push Log Command """
         log_request_id = "12345"
         log_entry = {"logsearchId": log_request_id, "status" : "starting"}
-        mock_validate_request.return_value = True, log_entry, False
+        mock_validate_request.return_value = True, log_entry
         mock_build_archive.return_value = [0, "command output", "log_file_name", 0]
         mock_get_size.return_value = 0
         mock_time.return_value = 1234
@@ -115,7 +115,7 @@ class LogArchiverTest(unittest.TestCase):
         """ User Story: US17337: Metrics: Key Events: FMC log push metrics """
         log_request_id = "12345"
         log_entry = {"logsearchId": log_request_id, "status": "starting"}
-        mock_validate_request.return_value = True, log_entry, False
+        mock_validate_request.return_value = True, log_entry
         mock_build_archive.return_value = [0, "command output", "log_file_name", 0]
         mock_time.return_value = 1234
         mock_get_size.return_value = 3
@@ -155,7 +155,7 @@ class LogArchiverTest(unittest.TestCase):
         """ User Story: US17337: Metrics: Key Events: FMC log push metrics """
         log_request_id = "12345"
         log_entry = {"logsearchId": log_request_id, "status": "starting"}
-        mock_validate_request.return_value = True, log_entry, False
+        mock_validate_request.return_value = True, log_entry
         mock_build_archive.return_value = [2, "failure output", "log_file_name", 0]
         mock_time.return_value = 1234
 
@@ -309,7 +309,7 @@ class LogArchiverTest(unittest.TestCase):
         mock_build_archive.return_value = [0, "command output", "log_file_name", 0]
         mock_get_size.return_value = 3
         mock_atlas_logger.post_log.return_value = [0, 54321]
-        mock_validate_request.return_value = True, log_entry, False
+        mock_validate_request.return_value = True, log_entry
         mock_get_oauth = mock.Mock()
         mock_atlas_logger.get_oauth.return_value = mock_get_oauth
 
@@ -320,7 +320,7 @@ class LogArchiverTest(unittest.TestCase):
 
         mock_write_json_file.assert_called_with(ManagementConnectorProperties.LAST_KNOWN_LOG_ID, log_entry)
 
-        mock_build_archive.assert_called_with(quantity, serial_number, include_config=False)
+        mock_build_archive.assert_called_with(quantity, serial_number)
 
         mock_rm_archive.assert_called_with("log_file_name")
 
@@ -349,7 +349,7 @@ class LogArchiverTest(unittest.TestCase):
         mock_atlas_logger.post_log.return_value = [0, 54321]
         mock_get_oauth = mock.Mock()
         mock_atlas_logger.get_oauth.return_value = mock_get_oauth
-        mock_validate_request.return_value = True, log_entry, True
+        mock_validate_request.return_value = True, log_entry
 
         LogArchiver.push_logs(mock_config, mock_atlas_logger, log_request_id)
         log_entry = {"logsearchId": "12345", "status": "complete"}
@@ -358,32 +358,11 @@ class LogArchiverTest(unittest.TestCase):
 
         mock_write_json_file.assert_called_with(ManagementConnectorProperties.LAST_KNOWN_LOG_ID, log_entry)
 
-        mock_build_archive.assert_called_with(quantity, serial_number, include_config=True)
+        mock_build_archive.assert_called_with(quantity, serial_number)
 
         mock_rm_archive.assert_called_with("log_file_name")
         mock_rm_config.assert_called_with()
 
-    @mock.patch("ni.managementconnector.config.jsonhandler.read_json_file")
-    @mock.patch("ni.managementconnector.config.config.Config")
-    def test_validate_request_with_no_log_request_id_not_passed_returns_admin_initiated_true(self, mock_config, mock_read_json_file):
-        """ User Story: US25210: Add Connector JSON (config) files to the Send Log Output """
-        log_request_id = ""
-        mock_read_json_file.return_value = None
-        mock_config.read.return_value = None
-        expected_is_admin_initiated = True
-        is_admin_initiated = LogArchiver.validate_request(mock_config, log_request_id)
-        self.assertEquals(is_admin_initiated[2], expected_is_admin_initiated)
-
-    @mock.patch("ni.managementconnector.config.jsonhandler.read_json_file")
-    @mock.patch("ni.managementconnector.config.config.Config")
-    def test_validate_request_with_a_log_request_id_passed_returns_admin_initiated_false(self, mock_config, mock_read_json_file):
-        """ User Story: US25210: Add Connector JSON (config) files to the Send Log Output """
-        log_request_id = "12345"
-        mock_read_json_file.return_value = None
-        mock_config.read.return_value = None
-        expected_is_admin_initiated = False
-        is_admin_initiated = LogArchiver.validate_request(mock_config, log_request_id)
-        self.assertEquals(is_admin_initiated[2], expected_is_admin_initiated)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

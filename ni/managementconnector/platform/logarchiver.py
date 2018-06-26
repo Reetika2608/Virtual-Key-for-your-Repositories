@@ -51,7 +51,7 @@ class LogArchiver(object):
     def push_logs(config, atlas_logger, log_request_id=''):
         """Build and push logs"""
         with LogArchiver.lock:
-            is_valid, log_entry, is_admin_initiated = LogArchiver.validate_request(config, log_request_id)
+            is_valid, log_entry = LogArchiver.validate_request(config, log_request_id)
             if is_valid:
                 DEV_LOGGER.debug('Detail="push_logs: Start archiving logs"')
                 jsonhandler.write_json_file(ManagementConnectorProperties.LAST_KNOWN_LOG_ID, log_entry)
@@ -61,7 +61,7 @@ class LogArchiver(object):
                 quantity = int(conf_quantity) if conf_quantity \
                     else ManagementConnectorProperties.LOGGING_QUANTITY_DEFAULT
                 serial_number = config.read(ManagementConnectorProperties.SERIAL_NUMBER)
-                log_archive_res = LogArchiver.build_archive(quantity, serial_number, include_config=is_admin_initiated)
+                log_archive_res = LogArchiver.build_archive(quantity, serial_number)
                 DEV_LOGGER.info('Detail="push_logs: Archive results %s"' % log_archive_res)
 
                 # Return code 0 is fully successful. 1 is successful but logs have rolled underneath during
@@ -143,11 +143,9 @@ class LogArchiver(object):
     @staticmethod
     def validate_request(config, log_request_id):
         """ Validate a log push request """
-        is_admin_initiated = False
         if not log_request_id:
             DEV_LOGGER.debug('Detail="push_logs: Retrieve the log request id from config"')
             log_request_details = config.read(ManagementConnectorProperties.LOGGING_IDENTIFIER)
-            is_admin_initiated = True
             if log_request_details:
                 log_request_id = log_request_details['uuid']
 
@@ -173,10 +171,10 @@ class LogArchiver(object):
         else:
             is_valid = True
 
-        return is_valid, log_entry, is_admin_initiated
+        return is_valid, log_entry
 
     @staticmethod
-    def build_archive(quantity, serial_number, include_config=None):
+    def build_archive(quantity, serial_number):
         """ Build an Archive with the hybrid service logs """
 
         cmd_response = 0
@@ -190,8 +188,7 @@ class LogArchiver(object):
 
         LogArchiver.gather_status_files()
 
-        if include_config:
-            LogArchiver.gather_config_files()
+        LogArchiver.gather_config_files()
 
         matching_files = first_x_files + glob.glob(PACKAGED_LOGS) + glob.glob(HYBRID_SERVICES_LOG_DIR + "*.json")
 

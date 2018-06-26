@@ -382,7 +382,7 @@ class RemoteDispatcherTest(unittest.TestCase):
     @mock.patch("ni.managementconnector.platform.logarchiver.LogArchiver.rm_archive")
     @mock.patch("ni.managementconnector.platform.logarchiver.LogArchiver.rm_config_files")
     @mock.patch('ni.managementconnector.platform.logarchiver.LogArchiver.gather_config_files')
-    def test_config_not_sent_rd_logs(self, mock_gather_config, mock_rm_config, mock_rm_archive, mock_logname,
+    def test_config_sent_rd_logs(self, mock_gather_config, mock_rm_config, mock_rm_archive, mock_logname,
                                         mock_gstatus, mock_time, mock_event, mock_atlas, mock_json, mock_config,
                                         mock_sub, mock_getmtime, mock_size, mock_exists, mock_base, mock_glob):
         """ User Story: US25211 RemoteDispatcher should not include JSON File """
@@ -393,7 +393,7 @@ class RemoteDispatcherTest(unittest.TestCase):
         RemoteDispatcher.config = config_mock
         RemoteDispatcher.oauth = mock.Mock()
         command_output, status = RemoteDispatcher.process_push_logs('12345')
-        self.assertFalse(mock_gather_config.called)
+        self.assertTrue(mock_gather_config.called)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
