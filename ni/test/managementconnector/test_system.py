@@ -96,16 +96,16 @@ class ManagementConnectorTest(unittest.TestCase):
 
         DEV_LOGGER.debug('***TEST*** test_unsupported_version_status')
 
-        mock_cafeutils.get_package_version.return_value = "8.9-1.0.321282"
-        mock_get_expressway_version.return_value = "8.9"
+        mock_cafeutils.get_package_version.return_value = "8.10-1.0.321344"
+        mock_get_expressway_version.return_value = "8.10"
         self.assertTrue(System.get_platform_supported_status())
 
-        mock_cafeutils.get_package_version.return_value = "8.9-1.0.321282"
-        mock_get_expressway_version.return_value = "8.8"
+        mock_cafeutils.get_package_version.return_value = "8.10-1.0.321344"
+        mock_get_expressway_version.return_value = "8.9"
         self.assertFalse(System.get_platform_supported_status())
 
-        mock_cafeutils.get_package_version.return_value = "8.9-1.0.321282"
-        mock_get_expressway_version.return_value = "8.10"
+        mock_cafeutils.get_package_version.return_value = "8.10-1.0.321344"
+        mock_get_expressway_version.return_value = "8.11"
         self.assertTrue(System.get_platform_supported_status())
 
     @mock.patch('ni.managementconnector.platform.system.CafeXUtils')
@@ -118,16 +118,16 @@ class ManagementConnectorTest(unittest.TestCase):
 
         DEV_LOGGER.debug('***TEST*** test_penultimate_unsupported_version_status')
 
-        mock_cafeutils.get_package_version.return_value = "8.9-1.0.321282"
-        mock_get_expressway_version.return_value = "8.9"
+        mock_cafeutils.get_package_version.return_value = "8.10-1.0.321344"
+        mock_get_expressway_version.return_value = "8.10"
         self.assertTrue(System.is_penultimate_version())
 
-        mock_cafeutils.get_package_version.return_value = "8.9-1.0.321282"
-        mock_get_expressway_version.return_value = "8.8"
+        mock_cafeutils.get_package_version.return_value = "8.10-1.0.321344"
+        mock_get_expressway_version.return_value = "8.9"
         self.assertFalse(System.is_penultimate_version())
 
-        mock_cafeutils.get_package_version.return_value = "8.9-1.0.321282"
-        mock_get_expressway_version.return_value = "8.10"
+        mock_cafeutils.get_package_version.return_value = "8.10-1.0.321344"
+        mock_get_expressway_version.return_value = "8.11"
         self.assertFalse(System.is_penultimate_version())
 
     @mock.patch('__builtin__.open', create=True)
