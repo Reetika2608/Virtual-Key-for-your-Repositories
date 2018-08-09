@@ -262,6 +262,8 @@ class MercuryTest(unittest.TestCase):
         self.assertIsNone(mercury._ws, "Websocket still alive, expected None")
 
 
+    @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.get_remotedispatcher_url')
+    @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.get_mercury_config')
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.jsonhandler.delete_file')
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.Http.post')
     @mock.patch('ni.managementconnector.cloud.wdm.DeviceManager.refresh_with_wdm')
@@ -270,7 +272,7 @@ class MercuryTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.cloud.mercury.Metrics.send_mercury_metrics')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
     @mock.patch('ni.managementconnector.config.config.Config')
-    def test_remote_dispatcher_exception_when_running(self, mock_config, mock_oauth, mock_metrics, mock_socket, mock_time, mock_wdm_refactor, mock_post, mock_delete_config):
+    def test_remote_dispatcher_exception_when_running(self, mock_config, mock_oauth, mock_metrics, mock_socket, mock_time, mock_wdm_refactor, mock_post, mock_delete_config, mock_get_merc_config, mock_get_url):
         """
         User Story: Remote Dispatcher: Improve Mercury Connection Resiliency
         Notes:
@@ -280,9 +282,12 @@ class MercuryTest(unittest.TestCase):
 
         mock_time.return_value = time_refreshed
         mock_config.read.side_effect = config_read
-
         mock_wdm_refactor.return_value = {"last_refreshed": time_refreshed}
-        mock_post.side_effect = Exception()
+
+        # Extra mocks required to hit the Exception on the RD http post
+        mock_get_merc_config.return_value = {"route": "some_route"}
+        mock_get_url.return_value = "some_url"
+        mock_post.side_effect = Exception("Some problem doing an RD register, should clean up the RD file")
 
         mercury = Mercury(mock_config, mock_oauth)
         mercury._running = True
