@@ -40,6 +40,7 @@ contents = [
     ("ni/managementconnector/platform/libraryutils.py", "ni/managementconnector/platform/"),
     ("ni/managementconnector/platform/logarchiver.py", "ni/managementconnector/platform/"),
     ("ni/managementconnector/platform/corearchiver.py", "ni/managementconnector/platform/"),
+    ("ni/managementconnector/platform/connectivitycheck.py", "ni/managementconnector/platform/"),
     ("ni/managementconnector/service/servicemanager.py", "ni/managementconnector/service/"),
     ("ni/managementconnector/service/servicemetrics.py", "ni/managementconnector/service/"),
     ("ni/managementconnector/service/servicedependency.py", "ni/managementconnector/service/"),

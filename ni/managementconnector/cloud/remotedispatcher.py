@@ -18,6 +18,7 @@ from ni.managementconnector.cloud import schema
 from ni.managementconnector.platform.logarchiver import LogArchiver
 from ni.managementconnector.platform.corearchiver import CoreArchiver
 from ni.managementconnector.cloud.atlaslogger import AtlasLogger
+from ni.managementconnector.platform.connectivitycheck import ConnectivityCheck
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
@@ -174,6 +175,9 @@ class RemoteDispatcher(object):
                 command_output, status = RemoteDispatcher.process_push_logs(params[0] if params else None)
             elif action == 'core_dump':
                 command_output, status = RemoteDispatcher.process_core_dump(params[0] if params else None)
+            elif action == 'check_connection':
+                command_output, status = RemoteDispatcher.process_connectivity_check(params[0] if params else None)
+                DEV_LOGGER.error('Detail="MK status %s, output %s"' % (status, str(command_output)))
             else:
                 DEV_LOGGER.error('Detail="FMC_Websocket handle_command not handling unrecognized command: %s"', action)
                 status = "unrecognized_command"
@@ -209,6 +213,19 @@ class RemoteDispatcher(object):
                 status = 'complete'
         else:
             command_output[ManagementConnectorProperties.SERVICE_NAME]['searchId'] = 'Not provided'
+        return command_output, status
+
+    @staticmethod
+    def process_connectivity_check(url):
+        """ Check if we can connect ot a given URL """
+        status = "error"
+        command_output = {ManagementConnectorProperties.SERVICE_NAME: {}}
+        if url:
+            command_output[ManagementConnectorProperties.SERVICE_NAME] = ConnectivityCheck.check_connectivity_to_url(
+                RemoteDispatcher.oauth, RemoteDispatcher.config, url)
+            status = "complete"
+        else:
+            command_output[ManagementConnectorProperties.SERVICE_NAME]["url"] = "Not provided"
         return command_output, status
 
     @staticmethod
