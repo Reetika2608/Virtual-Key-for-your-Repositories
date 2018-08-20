@@ -100,10 +100,12 @@ class RemoteDispatcherTest(unittest.TestCase):
 
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.verify_signature')
     @mock.patch('os.system')
+    @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.process_connectivity_check')
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.process_push_logs')
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.process_ping')
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.send_result_to_remotedispatcher')
-    def test_handling_command(self, mock_send_result, mock_process_ping, mock_process_push_logs, mock_os_system, _):
+    def test_handling_command(self, mock_send_result, mock_process_ping, mock_process_push_logs,
+                              mock_process_connectivity_check, mock_os_system, _):
         """ User Story: US13960 Implement FMC and RemoteDispatcher interaction (Register/Ping)"""
         DEV_LOGGER.info("***TEST*** test_handling_command")
 
@@ -155,6 +157,13 @@ class RemoteDispatcherTest(unittest.TestCase):
         self.command['data']['command']['action'] = 'invalid_action'
         RemoteDispatcher.handle_command(self.command)
         mock_send_result.assert_called_with('unrecognized_command', self.command['data']['command']['commandId'], {})
+
+        # test a connectivity check command
+        mock_process_connectivity_check.return_value = {}, 'complete'
+        self.command['data']['command']['action'] = 'check_connection'
+        c_mgmt_command['data']['command']['parameters'] = ['https://www.123.abc']
+        RemoteDispatcher.handle_command(self.command)
+        mock_process_connectivity_check.assert_called_with('https://www.123.abc')
 
         # Clean-up optional params
         del(self.command['data']['command']['parameters'])
@@ -365,6 +374,44 @@ class RemoteDispatcherTest(unittest.TestCase):
         command_output, status = RemoteDispatcher.process_core_dump(None)
         self.assertEquals(status, 'error')
         self.assertEquals(command_output['c_mgmt'], {'searchId': 'Not provided'})
+
+    @mock.patch('ni.managementconnector.platform.connectivitycheck.ConnectivityCheck.check_connectivity_to_url')
+    def test_processing_connectivity_check(self, mock_connectivity_check):
+        """ User Story: SPARK-31235 RD: New Command to Test Connectivity """
+        url = 'https://www.123.abc'
+        #GET passed, ping passed
+        mock_connectivity_check.return_value = {'pingResult': 'passed', 'getResult': 'passed', 'url': url}
+        RemoteDispatcher.oauth = mock.Mock()
+        command_output, status = RemoteDispatcher.process_connectivity_check(url)
+        self.assertEquals(status, 'complete')
+        self.assertEquals(command_output['c_mgmt'], {'pingResult': 'passed', 'getResult': 'passed', 'url': url})
+
+        #GET passed, ping failed
+        mock_connectivity_check.resest_mock()
+        mock_connectivity_check.return_value = {'pingResult': 'failed', 'getResult': 'passed', 'url': url}
+        command_output, status = RemoteDispatcher.process_connectivity_check(url)
+        self.assertEquals(status, 'complete')
+        self.assertEquals(command_output['c_mgmt'], {'pingResult': 'failed', 'getResult': 'passed', 'url': url})
+
+        #GET not_found, ping passed
+        mock_connectivity_check.resest_mock()
+        mock_connectivity_check.return_value = {'pingResult': 'passed', 'getResult': 'not_found', 'url': url}
+        command_output, status = RemoteDispatcher.process_connectivity_check(url)
+        self.assertEquals(status, 'complete')
+        self.assertEquals(command_output['c_mgmt'], {'pingResult': 'passed', 'getResult': 'not_found', 'url': url})
+
+        #GET cert_error, ping failed
+        mock_connectivity_check.resest_mock()
+        mock_connectivity_check.return_value = {'pingResult': 'failed', 'getResult': 'not_found', 'url': url}
+        command_output, status = RemoteDispatcher.process_connectivity_check(url)
+        self.assertEquals(status, 'complete')
+        self.assertEquals(command_output['c_mgmt'], {'pingResult': 'failed', 'getResult': 'not_found', 'url': url})
+
+    def test_processing_connectivity_check_without_url(self):
+        """ User Story: SPARK-31235 RD: New Command to Test Connectivity """
+        command_output, status = RemoteDispatcher.process_connectivity_check(None)
+        self.assertEquals(status, 'error')
+        self.assertEquals(command_output['c_mgmt'], {'url': 'Not provided'})
 
     @mock.patch('glob.glob')
     @mock.patch('os.path.basename')

@@ -131,6 +131,7 @@ contents = [
     ("ni/test/managementconnector/test_u2c.py",                            "ni/tests/managementconnector/"),
     ("ni/test/managementconnector/test_eventdampener.py",                  "ni/tests/managementconnector/"),
     ("ni/test/managementconnector/test_hybridrequesthandler.py",           "ni/tests/managementconnector/"),
+    ("ni/test/managementconnector/test_connectivitycheck.py",              "ni/tests/managementconnector/"),
     ("ni/test/cafedynamic/test_cafemanager.py",            "ni/unittests/cafedynamic/"),
     ("ni/test/cafedynamic/test_cafestatusmanager.py",      "ni/unittests/cafedynamic/"),
     ("ni/test/cafedynamic/test_cafeconvenience.py",        "ni/unittests/cafedynamic/"),
