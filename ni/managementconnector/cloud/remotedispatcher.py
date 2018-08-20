@@ -177,7 +177,6 @@ class RemoteDispatcher(object):
                 command_output, status = RemoteDispatcher.process_core_dump(params[0] if params else None)
             elif action == 'check_connection':
                 command_output, status = RemoteDispatcher.process_connectivity_check(params[0] if params else None)
-                DEV_LOGGER.error('Detail="MK status %s, output %s"' % (status, str(command_output)))
             else:
                 DEV_LOGGER.error('Detail="FMC_Websocket handle_command not handling unrecognized command: %s"', action)
                 status = "unrecognized_command"

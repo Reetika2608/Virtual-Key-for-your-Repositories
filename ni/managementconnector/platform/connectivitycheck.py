@@ -21,7 +21,7 @@ class ConnectivityCheck(object):
         output["pingResult"] = ConnectivityCheck.ping_test(url)
         output["getResult"] = ConnectivityCheck.get_test(url)
         output["url"] = url
-        DEV_LOGGER.info('Detail=Check connectivity to %s for serial %s' % (url, serial_number))
+        DEV_LOGGER.info('Detail=Check connectivity to %s for serial %s"', url, serial_number)
         EventSender.post_simple(oauth,
                          config,
                          EventSender.CONNECTION_CHECK,
@@ -36,27 +36,27 @@ class ConnectivityCheck(object):
         https_url = url
         if not url.startswith("https://"):
             https_url = "https://" + url
-        DEV_LOGGER.info('Detail="Check connectivity testing GET %s"' % url)
+        DEV_LOGGER.info('Detail="Check connectivity testing GET %s"', url)
         headers = dict()
         headers['Content-Type'] = 'application/json'
         try:
             Http.get(https_url, headers)
             status = "passed"
         except urllib2.HTTPError as http_error:
-            DEV_LOGGER.error('Detail="Check connectivity response, http failure: %s, reason: %s' %
-                             (http_error, http_error.reason))
+            DEV_LOGGER.error('Detail="Check connectivity response, http failure: %s, reason: %s"',
+                             http_error, http_error.reason)
             status = "http_error"
         except CertificateExceptionFusionCA as cert_exception:
-            DEV_LOGGER.error('Detail="Check connectivity response, cert failure(1): %s' % cert_exception)
+            DEV_LOGGER.error('Detail="Check connectivity response, cert failure(1): %s"', cert_exception)
             status = "cert_error"
         except CertificateExceptionNameMatch as cert_exception:
-            DEV_LOGGER.error('Detail="Check connectivity response, cert failure(2): %s' % cert_exception)
+            DEV_LOGGER.error('Detail="Check connectivity response, cert failure(2): %s"', cert_exception)
             status = "cert_error"
         except CertificateExceptionInvalidCert as cert_exception:
-            DEV_LOGGER.error('Detail="Check connectivity response, cert failure(3): %s' % cert_exception)
+            DEV_LOGGER.error('Detail="Check connectivity response, cert failure(3): %s"', cert_exception)
             status = "cert_error"
         except urllib2.URLError, url_error:
-            DEV_LOGGER.error('Detail="Check connectivity response, http failure(2): %s' % url_error)
+            DEV_LOGGER.error('Detail="Check connectivity response, http failure(2): %s"', url_error)
             status = "not_found"
         return status
 
@@ -68,6 +68,7 @@ class ConnectivityCheck(object):
             bare_addr = bare_addr.replace("https://", "")
         if "/" in bare_addr:
             bare_addr = bare_addr.split("/")[0]
+        DEV_LOGGER.info('Detail="Check connectivity testing PING %s"', bare_addr)
         ping_response = subprocess.call(["/bin/ping", "-c1", "-w2", bare_addr], stdout=subprocess.PIPE)
         if ping_response == 0:
             return "passed"
