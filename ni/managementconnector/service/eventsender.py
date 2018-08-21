@@ -114,4 +114,4 @@ class EventSender(object):
 
             return Http.post(atlas_url_prefix + event_url, oauth.get_header(), json.dumps(event))
         except Exception as ex:  # pylint: disable=W0703
-            DEV_LOGGER.error('Detail="Failed to post crash data: %s"' % ex)
+            DEV_LOGGER.error('Detail="Failed to post event data: %s"' % ex)

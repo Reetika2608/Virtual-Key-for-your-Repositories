@@ -42,22 +42,25 @@ def config_read(path):
 class EventSenderTest(unittest.TestCase):
     """ EventSenderTest """
 
+    @mock.patch('ni.managementconnector.platform.serviceutils.ServiceUtils.get_release_channel')
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("ni.managementconnector.service.eventsender.Http.post")
-    def test_sending_event(self, mock_post, mock_get_package_version):
+    def test_sending_event(self, mock_post, mock_get_package_version, mock_get_release_channel):
         """ User Story: US15777: Metrics: Pass Connector Crash Info to new Events API """
         oauth = mock.Mock()
         config = mock.Mock()
         config.read.side_effect = config_read
         mock_get_package_version.return_value = "1.2.3"
+        mock_get_release_channel.return_value = "stable"
 
         # header.read.return_value = "dummy_config"
         EventSender.post(oauth, config, EventSender.CRASH)
         self.assertTrue(mock_post.called, "Http post is not called.")
 
+    @mock.patch('ni.managementconnector.platform.serviceutils.ServiceUtils.get_release_channel')
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("ni.managementconnector.service.eventsender.Http.post")
-    def test_upgrade_event_sent(self, mock_post, mock_get_package_version):
+    def test_upgrade_event_sent(self, mock_post, mock_get_package_version, mock_get_release_channel):
         """
             User Story: US22967: FMC: Introduce back off logic in event sending
             if FMC can't download/install a connector
@@ -66,6 +69,7 @@ class EventSenderTest(unittest.TestCase):
         config = mock.Mock()
         config.read.side_effect = config_read
         mock_get_package_version.return_value = "1.2.3"
+        mock_get_release_channel.return_value = "stable"
 
         dampener = EventDampener()
 
@@ -97,9 +101,10 @@ class EventSenderTest(unittest.TestCase):
 
         dampener.reset_counters()
 
+    @mock.patch('ni.managementconnector.platform.serviceutils.ServiceUtils.get_release_channel')
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("ni.managementconnector.service.eventsender.Http.post")
-    def test_upgrade_event_not_sent(self, mock_post, mock_get_package_version):
+    def test_upgrade_event_not_sent(self, mock_post, mock_get_package_version, mock_get_release_channel):
         """
             User Story: US22967: FMC: Introduce back off logic in event sending
             if FMC can't download/install a connector
@@ -111,6 +116,7 @@ class EventSenderTest(unittest.TestCase):
         config = mock.Mock()
         config.read.side_effect = config_read
         mock_get_package_version.return_value = "1.2.3"
+        mock_get_release_channel.return_value = ""
 
         timestamp = int(time.time())
         service = config.read(ManagementConnectorProperties.SERVICE_NAME)
@@ -189,6 +195,18 @@ class EventSenderTest(unittest.TestCase):
         self.assertEqual(mock_post.call_count, 1)
 
         dampener.reset_counters()
+
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
+    @mock.patch("ni.managementconnector.service.eventsender.Http.post")
+    def test_post_simple(self, mock_post, mock_get_package_version):
+        """ User Story: SPARK-31235 - New Command to Test Connectivity """
+        oauth = mock.Mock()
+        config = mock.Mock()
+        config.read.side_effect = config_read
+        mock_get_package_version.return_value = "1.2.3"
+
+        EventSender.post_simple(oauth, config, EventSender.CONNECTION_CHECK)
+        self.assertTrue(mock_post.called, "Http post is not called.")
 
 
 if __name__ == "__main__":
