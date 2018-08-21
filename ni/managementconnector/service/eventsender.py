@@ -96,22 +96,6 @@ class EventSender(object):
         event_url = event_url % (event['orgId'], event['connectorId'])
         try:
             DEV_LOGGER.debug('Detail="Sending event: {}"'.format(event))
-
-            if event_type == EventSender.UPGRADE:
-                if ManagementConnectorProperties.EVENT_FAILURE in str(detailed_info):
-                    if not dampener.is_failure_event_permitted():
-                        # If event is not permitted, return
-                        return
-                    else:
-                        # If a failure-case upgrade event is permitted to send, the attempt number is added to
-                        # detailed_info as a field called "value", which allows us to filter on no. of attempts
-                        if "fields" in str(detailed_info) and isinstance(detailed_info, dict):
-                            detailed_info["fields"]["value"] = dampener.get_total_failures()
-                            event["details"]["detailed_info"] = json.dumps(detailed_info)
-                else:
-                    if ManagementConnectorProperties.EVENT_SUCCESS in str(detailed_info):
-                        dampener.reset_counters()
-
             return Http.post(atlas_url_prefix + event_url, oauth.get_header(), json.dumps(event))
         except Exception as ex:  # pylint: disable=W0703
             DEV_LOGGER.error('Detail="Failed to post event data: %s"' % ex)

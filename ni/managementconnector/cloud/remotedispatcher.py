@@ -216,7 +216,7 @@ class RemoteDispatcher(object):
 
     @staticmethod
     def process_connectivity_check(url):
-        """ Check if we can connect ot a given URL """
+        """ Check if we can connect to a given URL """
         status = "error"
         command_output = {ManagementConnectorProperties.SERVICE_NAME: {}}
         if url:
