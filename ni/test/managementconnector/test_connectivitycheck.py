@@ -1,9 +1,13 @@
+"""
+    Test ConnectivityCheck
+"""
+# Ignore "Redefinition of type" warnings        pylint: disable=R0204
 import unittest
 import subprocess
-import logging
-import mock
 import io
+import logging
 import urllib2
+import mock
 
 from ni.managementconnector.platform.http import CertificateExceptionFusionCA
 from ni.managementconnector.platform.connectivitycheck import ConnectivityCheck
@@ -80,14 +84,13 @@ class ConnectivityCheckTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.eventsender.EventSender.post_simple')
     @mock.patch('ni.managementconnector.platform.connectivitycheck.ConnectivityCheck.get_test')
     @mock.patch('ni.managementconnector.platform.connectivitycheck.ConnectivityCheck.ping_test')
-    def test_check_connectivity_to_url(self, mock_ping, mock_get, mock_event):
+    def test_check_connectivity_to_url(self, mock_ping, mock_get, _):
         """ User Story: SPARK-31235 RD: New Command to Test Connectivity """
         oauth = mock.MagicMock()
         config = mock.MagicMock()
         url = 'https://www.123.abc'
         mock_ping.return_value = 'passed'
         mock_get.return_value = 'passed'
-        output = {}
         config.read.return_value = '12345'
         res = ConnectivityCheck.check_connectivity_to_url(oauth, config, url)
         mock_ping.assert_called_with(url)
