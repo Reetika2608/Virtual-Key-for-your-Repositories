@@ -58,6 +58,9 @@ class ConnectivityCheck(object):
         except urllib2.URLError, url_error:
             DEV_LOGGER.error('Detail="Check connectivity response, http failure(2): %s"', url_error)
             status = "not_found"
+        except Exception as exception: # pylint: disable=W0703
+            DEV_LOGGER.error('Detail="Check connectivity response, exception: %s"', exception)
+            status = "exception"
         return status
 
     @staticmethod
