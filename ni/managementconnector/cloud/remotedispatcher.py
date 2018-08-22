@@ -220,9 +220,12 @@ class RemoteDispatcher(object):
         status = "error"
         command_output = {ManagementConnectorProperties.SERVICE_NAME: {}}
         if url:
-            command_output[ManagementConnectorProperties.SERVICE_NAME] = ConnectivityCheck.check_connectivity_to_url(
-                RemoteDispatcher.oauth, RemoteDispatcher.config, url)
-            status = "complete"
+            if url.startswith("http://"):
+                command_output[ManagementConnectorProperties.SERVICE_NAME]["url"] = "HTTP not supported"
+            else:
+                command_output[ManagementConnectorProperties.SERVICE_NAME] = ConnectivityCheck.check_connectivity_to_url(
+                    RemoteDispatcher.oauth, RemoteDispatcher.config, url)
+                status = "complete"
         else:
             command_output[ManagementConnectorProperties.SERVICE_NAME]["url"] = "Not provided"
         return command_output, status

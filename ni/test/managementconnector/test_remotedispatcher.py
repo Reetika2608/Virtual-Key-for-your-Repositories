@@ -413,6 +413,12 @@ class RemoteDispatcherTest(unittest.TestCase):
         self.assertEquals(status, 'error')
         self.assertEquals(command_output['c_mgmt'], {'url': 'Not provided'})
 
+    def test_processing_connectivity_check_with_http_url(self):
+        """ User Story: SPARK-31235 RD: New Command to Test Connectivity """
+        command_output, status = RemoteDispatcher.process_connectivity_check('http://www.123.abc')
+        self.assertEquals(status, 'error')
+        self.assertEquals(command_output['c_mgmt'], {'url': 'HTTP not supported'})
+
     @mock.patch('glob.glob')
     @mock.patch('os.path.basename')
     @mock.patch('os.path.exists')
