@@ -49,24 +49,27 @@ def config_read(path):
 class EventSenderTest(unittest.TestCase):
     """ EventSenderTest """
 
+    @mock.patch('ni.managementconnector.platform.serviceutils.ServiceUtils.get_release_channel')
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("ni.managementconnector.service.eventsender.Http.post")
-    def test_sending_event(self, mock_post, mock_get_package_version):
+    def test_sending_event(self, mock_post, mock_get_package_version, mock_get_release_channel):
         """ User Story: US15777: Metrics: Pass Connector Crash Info to new Events API """
         oauth = mock.Mock()
         config = mock.Mock()
         config.read.side_effect = config_read
         mock_get_package_version.return_value = "1.2.3"
+        mock_get_release_channel.return_value = "stable"
 
         # header.read.return_value = "dummy_config"
         EventSender.post(oauth, config, EventSender.CRASH)
         self.assertTrue(mock_post.called, "Http post is not called.")
 
+    @mock.patch('ni.managementconnector.platform.serviceutils.ServiceUtils.get_release_channel')
     @mock.patch("ni.managementconnector.config.jsonhandler.read_json_file")
     @mock.patch("ni.managementconnector.config.jsonhandler.write_json_file")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("ni.managementconnector.service.eventsender.Http.post")
-    def test_upgrade_event_sent(self, mock_post, mock_get_package_version, mock_write, mock_read):
+    def test_upgrade_event_sent(self, mock_post, mock_get_package_version, mock_write, mock_read, mock_get_release_channel):
         """
             SPARK-1983: Make fms-connector-upgrades dashboard useable
             Upgrade success event sent when not previously sent
@@ -76,6 +79,7 @@ class EventSenderTest(unittest.TestCase):
         config.read.side_effect = config_read
         mock_get_package_version.return_value = "1.2.3"
         mock_read.return_value = {"c_mgmt": "12345", "c_ucmc": "12345"}
+        mock_get_release_channel.return_value = "stable"
 
         dampener = EventDampener()
 
@@ -104,15 +108,15 @@ class EventSenderTest(unittest.TestCase):
                          dampener=dampener)
 
         self.assertTrue(mock_post.called, "Http post is not called.")
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_failures.json",
+        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json",
                                       {"c_mgmt": "12345", "c_ucmc": "1.2.3"})
 
-
+    @mock.patch('ni.managementconnector.platform.serviceutils.ServiceUtils.get_release_channel')
     @mock.patch("ni.managementconnector.config.jsonhandler.read_json_file")
     @mock.patch("ni.managementconnector.config.jsonhandler.write_json_file")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("ni.managementconnector.service.eventsender.Http.post")
-    def test_upgrade_event_not_sent_when_invoked_multiple_times(self, mock_post, mock_get_package_version, mock_write, mock_read):
+    def test_upgrade_event_not_sent_when_invoked_multiple_times(self, mock_post, mock_get_package_version, mock_write, mock_read, mock_get_release_channel):
         """
             SPARK-1983: Make fms-connector-upgrades dashboard useable
             failure not allowed to be sent if sent before, calling three times
@@ -126,6 +130,7 @@ class EventSenderTest(unittest.TestCase):
         version = "1.2.3"
         mock_get_package_version.return_value = version
         mock_read.return_value = {}  # Nothing sent previously
+        mock_get_release_channel.return_value = ""
 
         timestamp = int(time.time())
         service = config.read(ManagementConnectorProperties.SERVICE_NAME)
@@ -182,7 +187,7 @@ class EventSenderTest(unittest.TestCase):
         }
 
         mock_post.assert_called_with(atlas_url_prefix + event_url, oauth.get_header(), json.dumps(event))
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_failures.json", {"c_ucmc": "1.2.3"})
+        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_ucmc": "1.2.3"})
 
         # Second event - should not be called
         EventSender.post(oauth,
@@ -279,7 +284,7 @@ class EventSenderTest(unittest.TestCase):
         }
 
         mock_post.assert_called_with(atlas_url_prefix + event_url, oauth.get_header(), json.dumps(event))
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_failures.json", {"c_ucmc": "1.2.3"})
+        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_ucmc": "1.2.3"})
 
         # Second event - should not be called
         EventSender.post(oauth,
@@ -357,6 +362,18 @@ class EventSenderTest(unittest.TestCase):
         actual_type, actual_version = EventSender.get_connector_type_and_version(None)
         self.assertEqual(None, actual_type)
         self.assertEqual(None, actual_version)
+
+    @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
+    @mock.patch("ni.managementconnector.service.eventsender.Http.post")
+    def test_post_simple(self, mock_post, mock_get_package_version):
+        """ User Story: SPARK-31235 - New Command to Test Connectivity """
+        oauth = mock.Mock()
+        config = mock.Mock()
+        config.read.side_effect = config_read
+        mock_get_package_version.return_value = "1.2.3"
+
+        EventSender.post_simple(oauth, config, EventSender.CONNECTION_CHECK)
+        self.assertTrue(mock_post.called, "Http post is not called.")
 
 
 if __name__ == "__main__":

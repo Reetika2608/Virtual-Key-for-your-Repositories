@@ -38,7 +38,7 @@ class EventDampenerTest(unittest.TestCase):
         self.assertFalse(dampener.has_upgrade_event_been_sent("c_mgmt", "8.10-1.0.12347"),
                          msg="There should not have been an event sent")
         self.assertEqual(dampener._upgrade_event_attempts, {"c_mgmt": "8.10-1.0.12347"})
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_failures.json", {"c_mgmt": "8.10-1.0.12347"})
+        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_mgmt": "8.10-1.0.12347"})
 
     @mock.patch("ni.managementconnector.config.jsonhandler.read_json_file")
     @mock.patch("ni.managementconnector.config.jsonhandler.write_json_file")
@@ -57,7 +57,7 @@ class EventDampenerTest(unittest.TestCase):
         self.assertFalse(dampener.has_upgrade_event_been_sent("c_mgmt", "8.10-1.0.12347"),
                          msg="There should not have been an event sent")
         self.assertEqual(dampener._upgrade_event_attempts, {"c_mgmt": "8.10-1.0.12347"})
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_failures.json", {"c_mgmt": "8.10-1.0.12347"})
+        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_mgmt": "8.10-1.0.12347"})
 
     @mock.patch("ni.managementconnector.config.jsonhandler.read_json_file")
     @mock.patch("ni.managementconnector.config.jsonhandler.write_json_file")
@@ -76,7 +76,7 @@ class EventDampenerTest(unittest.TestCase):
         self.assertFalse(dampener.has_upgrade_event_been_sent("c_mgmt", "8.10-1.0.12347"),
                          msg="There should not have been an event sent")
         self.assertEqual(dampener._upgrade_event_attempts, {"c_mgmt": "8.10-1.0.12347", "c_ucmc": "12345"})
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_failures.json", {"c_mgmt": "8.10-1.0.12347", "c_ucmc": "12345"})
+        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_mgmt": "8.10-1.0.12347", "c_ucmc": "12345"})
 
 
     @mock.patch("ni.managementconnector.config.jsonhandler.read_json_file")
