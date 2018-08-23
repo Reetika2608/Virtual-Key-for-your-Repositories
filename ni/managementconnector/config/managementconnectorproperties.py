@@ -152,6 +152,8 @@ class ManagementConnectorProperties(object):
 
     STATUS_FILE = GENERIC_STATUS_FILE % SERVICE_NAME
 
+    UPGRADE_EVENTS_FILE = '/var/run/%s/upgrade_events.json' % SERVICE_NAME
+
     WHITEBOX_STATUS = {"state": "operational", "initialized": "true"}
 
     INSTALLING_STATUS_FILE = '/var/run/%s/installing_status.json' % SERVICE_NAME

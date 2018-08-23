@@ -125,6 +125,7 @@ class DeployTestCase(unittest.TestCase):
         self.assertEquals(connectors_config[2]['version'], '8.6-1.0.337')
         self.assertFalse(mock_alarm.is_raised("a2a259b5-93a6-4a1a-b03d-36ac0987e6db"))
 
+    @mock.patch("ni.managementconnector.service.eventsender.EventSender")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
@@ -133,7 +134,8 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
-    def test_tlp_download_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config, mock_get_package_version, mock_get_system_mem, mock_is_package_installed):
+    def test_tlp_download_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config,
+                                mock_get_package_version, mock_get_system_mem, mock_is_package_installed, mock_sender):
 
         DEV_LOGGER.info("***TEST*** test_tlp_raised_alarm")
 
@@ -163,6 +165,7 @@ class DeployTestCase(unittest.TestCase):
         description_text = ['Could not download connector xyz_display_name from http://www.bad_address.com\n']
         mock_alarm.raise_alarm.assert_called_with('3d541e1e-1e9c-4b30-a07d-e93f8445b13e', mock.ANY)
 
+    @mock.patch("ni.managementconnector.service.eventsender.EventSender")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
@@ -171,7 +174,8 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
-    def test_install_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config, mock_get_package_version, mock_get_system_mem, mock_is_package_installed):
+    def test_install_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config,
+                           mock_get_package_version, mock_get_system_mem, mock_is_package_installed, mock_sender):
 
         DEV_LOGGER.info("***TEST*** test_install_alarm")
 
@@ -203,6 +207,7 @@ class DeployTestCase(unittest.TestCase):
         description_text = ['Could not install connector xyz_display_name (version), downloaded from http://www.bad_address.com\n']
         mock_alarm.raise_alarm.assert_called_with('76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2', mock.ANY)
 
+    @mock.patch("ni.managementconnector.service.eventsender.EventSender")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
@@ -211,8 +216,9 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
-
-    def test_download_server_unavailable_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config, mock_get_package_version, mock_get_system_mem, mock_is_package_installed):
+    def test_download_server_unavailable_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth,
+                                               mock_config, mock_get_package_version, mock_get_system_mem,
+                                               mock_is_package_installed, mock_sender):
 
         DEV_LOGGER.info("***TEST*** test_download_server_unavailable_alarm")
 
@@ -980,7 +986,7 @@ class DeployTestCase(unittest.TestCase):
         deploy._process_stopped_alarm(failed_connectors, "test", "%s failed")
         mock_alarm.raise_alarm.assert_called_with("test", ["Calendar Connector failed\nCall Connector failed\n"])
 
-
+    @mock.patch("ni.managementconnector.service.eventsender.EventSender")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
@@ -990,7 +996,7 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.deploy.ServiceUtils')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
     def test_tlp_upgrade_alarm(self, mock_service_utils, mock_deploy_utils, mock_alarm, mock_oauth, mock_config,
-                                mock_get_package_version, mock_get_system_mem, mock_is_package_installed):
+                                mock_get_package_version, mock_get_system_mem, mock_is_package_installed, mock_sender):
 
         DEV_LOGGER.info("***TEST*** test_tlp_upgrade_alarm")
 

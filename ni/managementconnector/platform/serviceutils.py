@@ -34,6 +34,15 @@ class ServiceUtils(object):
     # -------------------------------------------------------------------------
 
     @staticmethod
+    def remove_upgrade_events_file():
+        """ Remove upgrade events sent file """
+        DEV_LOGGER.info('Detail="remove_upgrade_events_file: Removing upgrade events file: {}"'
+                        .format(ManagementConnectorProperties.UPGRADE_EVENTS_FILE))
+        jsonhandler.delete_file(ManagementConnectorProperties.UPGRADE_EVENTS_FILE)
+
+    # -------------------------------------------------------------------------
+
+    @staticmethod
     def set_installing_state(name, version, state):
         """ Set the installing state of the service """
         DEV_LOGGER.info('Detail="set_installing_state: name: %s, version: %s, state: %s"' % (name, version, state))

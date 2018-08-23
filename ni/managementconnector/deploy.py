@@ -240,6 +240,9 @@ class Deploy(object):
             # Clear away and Mgmt Connector Alarms
             self._alarms.clear_alarms(excluded_alarms)
             self._delete_backup_tlps()
+
+            # Cleanup old event files on un-register
+            ServiceUtils.remove_upgrade_events_file()
         finally:
             # Blow away Cafe Blob, This will be replicated across the cluster and remove cache
             self._config.delete_blob()
