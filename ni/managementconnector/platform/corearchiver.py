@@ -109,7 +109,7 @@ class CoreArchiver(object):
         # Need to give time for copy script to execute
         if core_file_paths:
             i = 0
-            while i < 10:
+            while i < 30:
                 if os.path.isfile(CORE_DUMP_STORAGE + core_file_paths[-1].split('/')[-1]) and \
                         getpwuid(os.stat(CORE_DUMP_STORAGE + core_file_paths[-1].split('/')[-1]).st_uid).pw_name == "_c_mgmt":
                     break
