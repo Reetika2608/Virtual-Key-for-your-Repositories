@@ -75,7 +75,7 @@ def get_status(rest_cdb_adaptor, i18n_token_translator):
 
     DEV_LOGGER.debug('Detail="entitled_connectors="%s" ' % entitled_connectors)
 
-    return _get_status(entitled_connectors, Config(), ServiceManifest)
+    return _get_status(entitled_connectors, Config(inotify=False), ServiceManifest)
 
 
 def _get_status(entitled_connectors, _config, manifest_class):
