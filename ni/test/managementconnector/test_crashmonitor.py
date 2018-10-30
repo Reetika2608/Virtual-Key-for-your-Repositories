@@ -101,7 +101,7 @@ class CrashMonitorTest(unittest.TestCase):
         #  Mock Config Object has no platform alarms
         self.config_mock.read.side_effect = config_no_platform_alarms_read
         mock_json.get_last_modified_timestamp.return_value = get_test_time(0)
-        CrashMonitor.crash_check(self.header, self.config_mock)
+        CrashMonitor().crash_check(self.header, self.config_mock)
         self.assertFalse(mock_post.called, 'Event post is called.')
 
     @mock.patch('ni.managementconnector.service.crashmonitor.jsonhandler')
@@ -111,7 +111,7 @@ class CrashMonitorTest(unittest.TestCase):
         #  Mock Config  Object has platform alarms, but none that match keywords
         self.config_mock.read.side_effect = config_no_platform_crash_read
         mock_json.get_last_modified_timestamp.return_value = get_test_time(0)
-        CrashMonitor.crash_check(self.header, self.config_mock)
+        CrashMonitor().crash_check(self.header, self.config_mock)
         self.assertFalse(mock_post.called, 'Event post is called.')
 
     @mock.patch('ni.managementconnector.service.crashmonitor.jsonhandler')
@@ -121,7 +121,7 @@ class CrashMonitorTest(unittest.TestCase):
         #  Mock Config Object has platform alarms, but they happened before last heartbeat
         self.config_mock.read.side_effect = config_old_crash_read
         mock_json.get_last_modified_timestamp.return_value = get_test_time(60)
-        CrashMonitor.crash_check(self.header, self.config_mock)
+        CrashMonitor().crash_check(self.header, self.config_mock)
         self.assertFalse(mock_post.called, 'Event post is called.')
 
     @mock.patch('ni.managementconnector.service.crashmonitor.jsonhandler')
@@ -131,7 +131,7 @@ class CrashMonitorTest(unittest.TestCase):
         #  Mock Config Object has platform alarms, but they happened since last heartbeat
         self.config_mock.read.side_effect = config_new_crash_read
         mock_json.get_last_modified_timestamp.return_value = get_test_time(60)
-        CrashMonitor.crash_check(self.header, self.config_mock)
+        CrashMonitor().crash_check(self.header, self.config_mock)
         self.assertTrue(mock_post.called, 'Event post is not called.')
 
     @mock.patch('ni.managementconnector.service.crashmonitor.jsonhandler')
@@ -141,7 +141,7 @@ class CrashMonitorTest(unittest.TestCase):
         # Mock Config Object has calendar connector alarm that happened since last heartbeat
         self.config_mock.read.side_effect = config_java_crash_read
         mock_json.get_last_modified_timestamp.return_value = get_test_time(60)
-        CrashMonitor.crash_check(self.header, self.config_mock)
+        CrashMonitor().crash_check(self.header, self.config_mock)
         self.assertTrue(mock_post.called, 'Event post is not called.')
 
     @mock.patch('ni.managementconnector.service.crashmonitor.jsonhandler')
@@ -151,8 +151,20 @@ class CrashMonitorTest(unittest.TestCase):
         # Mock Config Object ensure entitled service names are used as keywords for non overrides
         self.config_mock.read.side_effect = config_default_crash_read
         mock_json.get_last_modified_timestamp.return_value = get_test_time(60)
-        CrashMonitor.crash_check(self.header, self.config_mock)
+        CrashMonitor().crash_check(self.header, self.config_mock)
         self.assertTrue(mock_post.called, 'Event post is not called.')
+
+    @mock.patch('ni.managementconnector.service.crashmonitor.jsonhandler')
+    @mock.patch('ni.managementconnector.service.eventsender.EventSender.post')
+    def test_last_crash_check_time_is_updated(self, mock_post, mock_json):
+        # Mock Config Object ensure entitled service names are used as keywords for non overrides
+        self.config_mock.read.side_effect = config_default_crash_read
+        mock_json.get_last_modified_timestamp.return_value = get_test_time(60)
+        crash_monitor = CrashMonitor()
+        old_time = crash_monitor._last_crash_check
+        crash_monitor.crash_check(self.header, self.config_mock)
+        new_time = crash_monitor._last_crash_check
+        self.assertTrue(new_time > old_time, 'Last crash check time was not updated.')
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

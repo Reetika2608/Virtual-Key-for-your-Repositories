@@ -1,5 +1,7 @@
 """ Crash Monitor """
 
+import time
+
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from ni.managementconnector.config import jsonhandler
 from ni.managementconnector.service.eventsender import EventSender
@@ -14,21 +16,21 @@ class CrashMonitor(object):
     """
 
     # -------------------------------------------------------------------------
+    def __init__(self):
+        self._last_crash_check = jsonhandler.get_last_modified_timestamp(
+                ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % ManagementConnectorProperties.SERVICE_NAME)
 
-    @staticmethod
-    def crash_check(oauth, config):
+    def crash_check(self, oauth, config):
         """ Check for any crashes """
 
         alarm_list = config.read(ManagementConnectorProperties.PLATFORM_ALARMS_RAISED)
         DEV_LOGGER.debug('Detail="check_crashes: alarm_list: %s' % alarm_list)
 
         if alarm_list:
-            last_heart_beat = jsonhandler.get_last_modified_timestamp(
-                ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % ManagementConnectorProperties.SERVICE_NAME)
-            if last_heart_beat:
-                alarm_list = [alarm for alarm in alarm_list if int(alarm['last_reported']) >= last_heart_beat]
-                for alarm in alarm_list:
-                    CrashMonitor.process_platform_alarm(oauth, alarm, config)
+            alarm_list = [alarm for alarm in alarm_list if int(alarm['last_reported']) >= self._last_crash_check]
+            self._last_crash_check = time.time()
+            for alarm in alarm_list:
+                CrashMonitor.process_platform_alarm(oauth, alarm, config)
 
     # -------------------------------------------------------------------------
 

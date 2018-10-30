@@ -61,6 +61,7 @@ class Deploy(object):
         self._oauth = OAuth(self._config)
 
         self._service_manager = ServiceManager(self._config, self._oauth)
+        self._crash_monitor = CrashMonitor()
 
         # Atlas
         self._atlas = Atlas(self._config)
@@ -274,7 +275,7 @@ class Deploy(object):
                 DEV_LOGGER.debug('Detail="Leaving  _do_register_config_status as defuse in progress"')
                 return
 
-            CrashMonitor.crash_check(self._oauth, self._config)
+            self._crash_monitor.crash_check(self._oauth, self._config)
 
             if not self.is_undeploy_in_progress():
                 self._metrics.send_metrics(self._oauth.get_header(),
