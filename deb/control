@@ -1,0 +1,7 @@
+Package: c_mgmt
+Version: 8.10-1.0.321351
+Maintainer: Cisco
+Architecture: all
+Section: component
+Description: Management Connector
+ c_mgmt package

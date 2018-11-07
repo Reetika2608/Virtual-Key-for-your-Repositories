@@ -1,0 +1,29 @@
+#!/bin/sh
+[ -f "/etc/functions" ] && . "/etc/functions"
+
+function reload_logging_plugin()
+{
+    NOTIFICATION_FILE_PATH='/tmp/management/notifications/pluginconfiguration'
+    echo "" > ${NOTIFICATION_FILE_PATH}
+    sleep 1
+    rm -rf ${NOTIFICATION_FILE_PATH}
+}
+
+#Anything after this point will not get run during a vcs upgrade scenario.
+if upgrade_in_progress; then
+    exit 0
+fi
+
+# Remove pyc files, and entire c_mgmt opt directory if it still exists.
+if [ "${1}" == "upgrade" ]; then
+    # Find and delete all xcommand and xstatus pyc files to ensure updates are picked up.
+    # pyc files sometimes got created, during upgrade scenarios.
+    # Must exclude the library directory.
+    find -P /opt/c_mgmt/xcommand/ /opt/c_mgmt/xstatus/ -name *.pyc | xargs rm -f
+else
+    if [ -d /opt/c_mgmt ]; then
+        rm -rf /opt/c_mgmt/
+    fi
+    # Cleanup logging plugins
+    reload_logging_plugin
+fi

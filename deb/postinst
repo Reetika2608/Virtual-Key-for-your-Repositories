@@ -1,0 +1,90 @@
+#!/bin/bash
+[ -f "/etc/functions" ] && . "/etc/functions"
+
+function register_alarms()
+{
+    /sbin/alarm register ba883968-4b5a-4f83-9e71-50c7d7621b44 --id 60050 --severity error --solution-links '["txt.DNS", "dns", "txt.PROXY", "fusionproxy", "txt.PING", "ping"]'
+    /sbin/alarm register cbbf0813-09cb-4e23-9182-f3996d24cc9e --id 60051 --severity error --solution-links '"fusionregistration"'
+    /sbin/alarm register b6417be9-0c57-4254-8392-896b61983ca4 --id 60052 --severity error --solution-links '["txt.DNS", "dns", "txt.PROXY", "fusionproxy", "txt.PING", "ping"]'
+    /sbin/alarm register 3d541e1e-1e9c-4b30-a07d-e93f8445b13e --id 60053 --severity error
+    /sbin/alarm register 76a2fbce-97bb-4761-9fab-8ffd4b0ab9a2 --id 60054 --severity error
+    /sbin/alarm register 598ea3b8-00f9-4674-a90a-919668fec916 --id 60055 --severity error --solution-links '"trustedcacertificate"'
+    /sbin/alarm register 142f9bb1-74a5-460a-b609-7f33f8acdcaf --id 60056 --severity error --solution-links '["link.TRUSTEDCACERTIFICATE", "trustedcacertificate", "link.SUPPORTED_CERT_LIST", "https://collaborationhelp.cisco.com/article/0q4utq"]'
+    /sbin/alarm register 1e9c9c3d-9b35-467c-af1c-90d6947ababb --id 60057 --severity error
+    /sbin/alarm register 635afce6-0ae8-4b84-90f5-837a2234002b --id 60058 --severity error --solution-links '"trustedcacertificate"'
+    /sbin/alarm register 802e15e0-31cf-4356-8b99-b07d364553f9 --id 60059 --severity error
+    /sbin/alarm register 995ec68e-4c6a-4b16-a615-fdd6b6fe4b43 --id 60060 --severity error --solution-links '["txt.TRUSTEDCACERTIFICATE", "trustedcacertificate", "txt.NTP", "time"]'
+    /sbin/alarm register a2a259b5-93a6-4a1a-b03d-36ac0987e6db --id 60061 --severity alert --solution-links '"fusionregistration"'
+    /sbin/alarm register 77857c20-94b4-4145-8298-cad741e905fb --id 60062 --severity error
+    /sbin/alarm register 77ad9990-4850-4191-9bc2-51d0912daef3 --id 60063 --severity error
+    /sbin/alarm register 47fd43b0-755a-463f-9899-63f589a2d882 --id 60064 --severity alert --solution-links '"fusionregistration"'
+    /sbin/alarm register 52299415-2719-45d5-bcf7-720b48929ae3 --id 60065 --severity error
+    /sbin/alarm register bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd --id 60066 --severity error
+    /sbin/alarm register 233f0c18-9c8f-41ba-8800-93937540afe8 --id 60067 --severity error --solution-links '["err.SSL_ERROR_LINK", "fusionregistration"]'
+    /sbin/alarm register b31d5f2c-d183-4559-97e2-d9da9572af26 --id 60068 --severity error
+    /sbin/alarm register a144127e-57a5-11e5-8ccb-3417ebbf769a --id 60069 --severity alert --solution-links '["txt.DEREGISTER_MSG", "fusionregistration"]'
+    /sbin/alarm register 29417128-4e59-4ae2-802e-77135c6a7fc9 --id 60070 --severity error
+    /sbin/alarm register dc463c51-d111-4cc5-9eba-9e09292183b0 --id 60071 --severity error
+    /sbin/alarm register 3e544328-598e-11e6-8b77-86f30ca893d3 --id 60072 --severity alert --solution-links '["link.PRODUCT_DOWNLOAD", "https://collaborationhelp.cisco.com/article/en-us/ruyceab"]'
+    /sbin/alarm register 38d69632-5fd8-4b44-94d7-a517b8329eb8 --id 60073 --severity alert --solution-links '["link.PRODUCT_DOWNLOAD", "https://collaborationhelp.cisco.com/article/en-us/ruyceab"]'
+}
+
+function onboard_ui()
+{
+    /etc/init.d/combine restart
+    /bin/resetcerts.sh gracefully_restart_apache        
+}
+
+function wait_for_user_and_package()
+{
+    sleep 1
+    i=0
+    while [ $i -lt 12 ]
+    do
+        sleep 1
+        if [ $i -eq 11 ]; then
+            echo 'user _c_mgmt or package does not exist, exiting'
+            exit 1
+        elif [ $( dpkg -l | grep -c c_mgmt ) -eq 0 ] ; then
+            echo 'package c_mgmt does not exist, retry'
+        elif ! id -u _c_mgmt  > /dev/null 2>&1 ; then
+            echo 'user _c_mgmt  does not exist, retry'
+        else
+            echo 'found user _c_mgmt and package c_mgmt, continue'
+            break
+        fi
+        i=`expr $i + 1`
+    done
+}
+
+function copy_passwd_file()
+{
+    STAGING_DIR='/tandberg/'
+    BASE_FILE='c_mgmt.passwd'
+    PASSWD_DIR='/tandberg/etc/passwd.d/'
+    VERSION=$(echo $(cat /info/product_info.xml) | sed "s;.*<version>.*<major>\([^<]*\)</major>.*<minor>\([^<]*\)</minor>.*;\1.\2;")
+
+    if [ -f ${STAGING_DIR}${VERSION}${BASE_FILE} ] ; then
+        mv ${STAGING_DIR}${VERSION}${BASE_FILE} ${PASSWD_DIR}${BASE_FILE}
+    fi
+    rm -f ${STAGING_DIR}*${BASE_FILE}
+}
+
+function reload_logging_plugin()
+{
+    NOTIFICATION_FILE_PATH='/tmp/management/notifications/pluginconfiguration'
+    echo "" > ${NOTIFICATION_FILE_PATH}
+    sleep 1
+    rm -rf ${NOTIFICATION_FILE_PATH}
+}
+
+#Anything after this point will not get run during a vcs upgrade scenario.
+if upgrade_in_progress; then
+    exit 0
+fi
+copy_passwd_file
+wait_for_user_and_package
+register_alarms
+reload_logging_plugin
+onboard_ui
+/etc/init.d/c_mgmt restart
