@@ -19,11 +19,8 @@ class CleanCommand(Command):
 
     def run(self):
         cmd_list = dict(
-            DS_Store="find . -name .DS_Store -print0 | xargs -0 rm -f;",
             pyc="find . -name '*.pyc' -exec rm -rf {} \;",
-            egg_info="find . -name 'management_connector.*egg-info' -type  d  -print | xargs rm -rf {};",
-            _build_dir="rm -rf deb/_build/",
-            build_dir="rm -rf build/;"
+            build_dirs="rm -vrf build/ debian/_build/ debian/data/ ./*.egg-info",
         )
         for key, cmd in cmd_list.items():
             os.system(cmd)
