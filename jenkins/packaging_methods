@@ -1,0 +1,37 @@
+#!/bin/bash
+
+clean_working_directory(){
+    echo "Stage: clean_working_directory: Cleaning un-wanted build files and directories"
+    python setup.py clean
+}
+
+install_python_component(){
+    echo "Stage: install_python_component: Compiling and installing python package"
+    # Force install into debian directory, overwiritng any existing files
+    python setup.py install --force --root=deb/data/ -O0 --compile --install-layout=deb
+}
+
+sanitize_debian_package(){
+    echo "Stage: sanitize_debian_package: Removing unwanted files from package"
+    # Delete egg info directory from debian pacakge
+    find deb/data/ -name "management_connector.*.egg-info" -type  d  -print | xargs rm -rf {}
+    find deb/data/ -name "management_connector.*.pth" -type  d  -print | xargs rm -rf {}
+}
+
+package_debian(){
+    # Build a debian from a debian-bnary, control, and data tars.
+    echo "Stage: package_debian: Building the control, data tars and debian package"
+    [ ! -d deb/_build/ ] && mkdir -p deb/_build/
+
+    pushd deb/control > /dev/null
+    tar czp --owner=root --group=root -f ../_build/control.tar.gz .
+    popd > /dev/null
+
+    pushd deb/data > /dev/null
+    tar czp --owner=root --group=root -f ../_build/data.tar.gz .
+    popd > /dev/null
+
+    pushd deb/_build/ > /dev/null
+    ar -r c_mgmt.deb ../debian-binary control.tar.gz data.tar.gz
+    popd > /dev/null
+}

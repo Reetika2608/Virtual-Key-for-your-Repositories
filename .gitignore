@@ -1,0 +1,14 @@
+.idea
+
+# Egg files
+*.egg-info*
+
+# python tmp build directory
+build/
+_build/
+
+# Staging directory for Debian content
+debian/data
+
+# Runtime files
+*.pyc

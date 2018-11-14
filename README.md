@@ -8,6 +8,12 @@
 * Run ./install_dependecies.sh
 * In PyCharm, select woodlib/python/managementconnector/ni/test/managementconnector and Run/Debug the tests 
 
+
+### Building FMC
+* To Build a c_mgmt.deb run the following script, this will clean the working director, compile and install FMC,
+and package all required elements for the c_mgmt debian
+    * `./build.sh`
+
 ### Security
 * Threat Model ID: [21796](https://wwwin-tb.cisco.com/www/threatBuilder.html?id=21796)
 * Threat Model Doc: [EDCS-1496496](https://docs.cisco.com/share/page/site/nextgen-edcs/document-details?nodeRef=workspace://SpacesStore/f12dde6e-2b99-4f02-9634-399d7f2858d9)
