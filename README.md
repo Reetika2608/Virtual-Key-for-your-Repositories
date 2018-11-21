@@ -8,6 +8,9 @@
 * Run ./install_dependecies.sh
 * In PyCharm, select woodlib/python/managementconnector/ni/test/managementconnector and Run/Debug the tests 
 
+### Cleaning your current working directory
+Running the following command will delete all staging/build directories, pyc files, debians etc.
+* ```python setup.py clean```
 
 ### Building FMC
 * To Build a c_mgmt.deb run the following script, this will clean the working director, compile and install FMC,

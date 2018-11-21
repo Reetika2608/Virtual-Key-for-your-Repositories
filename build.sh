@@ -6,4 +6,9 @@
 clean_working_directory
 install_python_component
 sanitize_debian_package
+include_files
+remove_init_py_files
+convert_po_to_mo
+generate_symlinks
+dublicate_and_symlink_transform
 package_debian

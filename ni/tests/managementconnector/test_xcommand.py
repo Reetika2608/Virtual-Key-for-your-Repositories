@@ -11,7 +11,7 @@ try:
     sys.path.append("/opt/c_mgmt/xcommand/")
     import c_mgmt
 except ImportError:
-    import ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand as c_mgmt
+    import ni.files.opt.c_mgmt.xcommand.c_mgmt as c_mgmt
 
 class ErrorQueue():
     def __init__(self):
@@ -54,10 +54,10 @@ class CMgmtXCommandTest(unittest.TestCase):
                         with mock.patch('c_mgmt.OAuth') as mock_oauth:
                             mc_init()
         except ImportError:
-            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.U2C'):
-                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.Http'):
-                    with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.Config'):
-                        with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.OAuth') as mock_oauth:
+            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.U2C'):
+                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.Http'):
+                    with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.Config'):
+                        with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.OAuth') as mock_oauth:
                             mc_init()
 
     def test_mc_precheck(self):
@@ -72,8 +72,8 @@ class CMgmtXCommandTest(unittest.TestCase):
                 with mock.patch('c_mgmt.Config'):
                     mc_precheck()
         except ImportError:
-            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.Http'):
-                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.Config'):
+            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.Http'):
+                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.Config'):
                     mc_precheck()
 
     def test_mc_teardown(self):
@@ -89,8 +89,8 @@ class CMgmtXCommandTest(unittest.TestCase):
                 with mock.patch('c_mgmt.Config'):
                     mc_teardown()
         except ImportError:
-            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.time.sleep'):
-                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.Config'):
+            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.time.sleep'):
+                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.Config'):
                     mc_teardown()
 
     def test_mc_rollback(self):
@@ -107,8 +107,8 @@ class CMgmtXCommandTest(unittest.TestCase):
                 with mock.patch('c_mgmt.Config'):
                     mc_rollback()
         except ImportError:
-            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.time.sleep'):
-                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.Config'):
+            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.time.sleep'):
+                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.Config'):
                     mc_rollback()
 
 
@@ -126,8 +126,8 @@ class CMgmtXCommandTest(unittest.TestCase):
                 with mock.patch('c_mgmt.Config'):
                     mc_control()
         except ImportError:
-            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.time.sleep'):
-                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.Config'):
+            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.time.sleep'):
+                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.Config'):
                     mc_control()
 
     @mock.patch('os.system')
@@ -149,9 +149,9 @@ class CMgmtXCommandTest(unittest.TestCase):
                     with mock.patch('c_mgmt.Http'):
                         init_register()
         except ImportError:
-            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.OAuth'):
-                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.U2C'):
-                    with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt_xcommand.Http'):
+            with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.OAuth'):
+                with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.U2C'):
+                    with mock.patch('ni.files.opt.c_mgmt.xcommand.c_mgmt.Http'):
                         init_register()
 
 

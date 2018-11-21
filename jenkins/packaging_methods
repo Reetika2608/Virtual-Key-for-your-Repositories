@@ -1,26 +1,100 @@
 #!/bin/bash
 
 clean_working_directory(){
-    echo "Stage: clean_working_directory: Cleaning un-wanted build files and directories"
+    echo "clean_working_directory: Cleaning un-wanted build files and directories"
     python setup.py clean
 }
 
 install_python_component(){
-    echo "Stage: install_python_component: Compiling and installing python package"
+    echo "install_python_component: Compiling and installing python package"
     # Force install into debian directory, overwiritng any existing files
     python setup.py install --force --root=debian/data/ -O0 --compile --install-layout=deb
 }
 
+dublicate_and_symlink_transform(){
+    TRANSFORM_DIR=debian/data/tandberg/upgrade/cdbtransforms.d
+    TRANSFORM_FILE=$TRANSFORM_DIR/cmgmt_transform.py
+    POSTINTSTALL_DIR=debian/data/tandberg/etc/postinstall-scripts.d
+    [ ! -d $POSTINTSTALL_DIR ] && echo "Creating ${POSTINTSTALL_DIR}" && mkdir -p $POSTINTSTALL_DIR
+    [ -f $TRANSFORM_FILE ] && echo "Found and copying cmgmt_transform.py" && cp $TRANSFORM_FILE $POSTINTSTALL_DIR/cmgmt-transform
+    [ -f $TRANSFORM_FILE $POSTINTSTALL_DIR/cmgmt-transform ] && chmod 0755 $POSTINTSTALL_DIR/cmgmt-transform
+
+    # Create a symlink in postinstall.current.d, call 80-cmgmt-transform,
+    # and have it point at ../postinstall-script/80-cmgmt-transform
+    [ ! -d debian/data/tandberg/etc/postinstall.current.d ] && echo "Creating debian/data/tandberg/etc/postinstall.current.d" && mkdir -p debian/data/tandberg/etc/postinstall.current.d
+    pushd debian/data/tandberg/etc/postinstall.current.d
+    ln -s ../postinstall-scripts.d/cmgmt-transform 80-cmgmt-transform
+    popd
+}
+
 sanitize_debian_package(){
-    echo "Stage: sanitize_debian_package: Removing unwanted files from package"
+    echo "sanitize_debian_package: Removing unwanted files from package"
     # Delete egg info directory from debian pacakge
     find debian/data/ -name "management_connector*egg-info" -type d -print | xargs rm -rf {}
     find debian/data/ -name "management_connector*.pth" -print | xargs rm -rf {}
+
+    # Don't bundle any py files that have been byte-compiled
+    find debian/data/share/python/ -name '*.py' -exec rm -rf {} \;
+
+}
+
+remove_init_py_files(){
+    # Remove unwanted __init__.py files from debian package,
+    # these files are added and own by the ash/expressway platform
+    INIT_FILES="debian/data/__init__.py
+                debian/data/share/python/site-packages/ni/tests/__init__.pyc
+                debian/data/share/python/site-packages/ni/unittests/__init__.pyc
+                debian/data/share/python/site-packages/ni/utils/__init__.pyc
+                debian/data/share/python/site-packages/ni/utils/logging/__init__.pyc
+                debian/data/share/python/site-packages/ni/utils/logging/plugins/__init__.pyc
+                debian/data/opt/__init__.py
+                debian/data/opt/c_mgmt/__init__.py
+                debian/data/opt/c_mgmt/xcommand/__init__.py
+                debian/data/opt/c_mgmt/xstatus/__init__.py"
+
+    for file in $INIT_FILES
+    do
+        [ -f $file ] && echo "Found and removing: ${file}" && rm $file
+    done
+}
+
+include_files(){
+    # Copy everything under files into the debian data
+    cp -r files/* debian/data/
+}
+
+convert_po_to_mo(){
+    msgfmt ./debian/data/tandberg/locale/en_US.utf8/LC_MESSAGES/managementconnector.po -o ./debian/data/tandberg/locale/en_US.utf8/LC_MESSAGES/managementconnector.mo
+    rm ./debian/data/tandberg/locale/en_US.utf8/LC_MESSAGES/managementconnector.po
+}
+
+generate_symlinks(){
+    pushd debian/data/etc/init.d/
+    ln -s c_mgmt S80c_mgmt
+    popd
+
+    RC2_DIR=debian/data/etc/rc2.d/
+    [ ! -d $RC2_DIR ] && mkdir -p $RC2_DIR
+    pushd $RC2_DIR
+    ln -s ../init.d/c_mgmt S80c_mgmt
+    popd
+
+    TANDBERG_ETC_DIR=/tandberg/persistent/fusion/config/
+    pushd debian/data/opt/c_mgmt/etc/
+    ln -s $TANDBERG_ETC_DIR config
+    popd
+
+    OPT_BIN=/share/python/site-packages/ni/managementconnector
+    OPT_TEST=/share/python/site-packages/ni/tests/managementconnector
+    pushd debian/data/opt/c_mgmt/
+    ln -s $OPT_BIN bin
+    ln -s $OPT_TEST test
+    popd
 }
 
 package_debian(){
     # Build a debian from a debian-bnary, control, and data tars.
-    echo "Stage: package_debian: Building the control, data tars and debian package"
+    echo "package_debian: Building the control, data tars and debian package"
     [ ! -d debian/_build/ ] && mkdir -p debian/_build/
 
     pushd debian/control > /dev/null
@@ -34,4 +108,10 @@ package_debian(){
     pushd debian/_build/ > /dev/null
     ar -r c_mgmt.deb ../debian-binary control.tar.gz data.tar.gz
     popd > /dev/null
+
+    if [ -f debian/_build/c_mgmt.deb ]; then
+        echo "package_debian: debian/_build/c_mgmt.deb created."
+    else
+        echo "package_debian: c_mgmt failed to be created"
+    fi
 }
