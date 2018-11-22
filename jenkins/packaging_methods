@@ -1,5 +1,13 @@
 #!/bin/bash
 
+PYTHON=python
+TOOLCHAIN_PYTHON=/tandberg/system/toolchain/x86_64_gcc-7.3.0_glibc-2.28_i686-host-linux-gnu-5/bin/python
+
+if [ -f $TOOLCHAIN_PYTHON  ]; then
+    # Use the local toolchain python if it's available
+    PYTHON=$TOOLCHAIN_PYTHON
+fi
+
 clean_working_directory(){
     echo "clean_working_directory: Cleaning un-wanted build files and directories"
     python setup.py clean
@@ -8,7 +16,7 @@ clean_working_directory(){
 install_python_component(){
     echo "install_python_component: Compiling and installing python package"
     # Force install into debian directory, overwiritng any existing files
-    python setup.py install --force --root=debian/data/ -O0 --compile --install-layout=deb
+    $PYTHON setup.py install --force --root=debian/data/ -O0 --compile
 }
 
 dublicate_and_symlink_transform(){
@@ -17,7 +25,7 @@ dublicate_and_symlink_transform(){
     POSTINTSTALL_DIR=debian/data/tandberg/etc/postinstall-scripts.d
     [ ! -d $POSTINTSTALL_DIR ] && echo "Creating ${POSTINTSTALL_DIR}" && mkdir -p $POSTINTSTALL_DIR
     [ -f $TRANSFORM_FILE ] && echo "Found and copying cmgmt_transform.py" && cp $TRANSFORM_FILE $POSTINTSTALL_DIR/cmgmt-transform
-    [ -f $TRANSFORM_FILE $POSTINTSTALL_DIR/cmgmt-transform ] && chmod 0755 $POSTINTSTALL_DIR/cmgmt-transform
+    [ -f $POSTINTSTALL_DIR/cmgmt-transform ] && chmod 0755 $POSTINTSTALL_DIR/cmgmt-transform
 
     # Create a symlink in postinstall.current.d, call 80-cmgmt-transform,
     # and have it point at ../postinstall-script/80-cmgmt-transform
@@ -30,12 +38,13 @@ dublicate_and_symlink_transform(){
 sanitize_debian_package(){
     echo "sanitize_debian_package: Removing unwanted files from package"
     # Delete egg info directory from debian pacakge
-    find debian/data/ -name "management_connector*egg-info" -type d -print | xargs rm -rf {}
-    find debian/data/ -name "management_connector*.pth" -print | xargs rm -rf {}
+    if [ -d debian/data/ ]; then
+        find debian/data/ -name "management_connector*egg-info" -type d -print | xargs rm -rf {}
+        find debian/data/ -name "management_connector*.pth" -print | xargs rm -rf {}
 
-    # Don't bundle any py files that have been byte-compiled
-    find debian/data/share/python/ -name '*.py' -exec rm -rf {} \;
-
+        # Don't bundle any py files that have been byte-compiled
+        find debian/data/share/python/ -name '*.py' -exec rm -rf {} \;
+    fi
 }
 
 remove_init_py_files(){
@@ -90,6 +99,10 @@ generate_symlinks(){
     ln -s $OPT_BIN bin
     ln -s $OPT_TEST test
     popd
+}
+
+install_external_dependencies(){
+    pip install websocket-client==0.37.0 --target=debian/data/opt/c_mgmt/lib/websocket_client/ --no-dependencies
 }
 
 package_debian(){
