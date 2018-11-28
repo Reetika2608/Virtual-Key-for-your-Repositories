@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Source the universal methods
-[ -f jenkins/packaging_methods ] && . "jenkins/packaging_methods"
+[[ -f jenkins/packaging_methods ]] && . "jenkins/packaging_methods"
 
 clean_working_directory
 install_python_component
