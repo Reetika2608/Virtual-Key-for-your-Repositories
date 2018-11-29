@@ -19,20 +19,28 @@ install_python_component(){
     ${PYTHON} setup.py install --force --root=debian/data/ -O0 --compile
 }
 
-dublicate_and_symlink_transform(){
+duplicate_and_symlink_transform(){
     TRANSFORM_DIR=debian/data/tandberg/upgrade/cdbtransforms.d
     TRANSFORM_FILE=${TRANSFORM_DIR}/cmgmt_transform.py
     POSTINTSTALL_DIR=debian/data/tandberg/etc/postinstall-scripts.d
     [[ ! -d ${POSTINTSTALL_DIR} ]] && echo "Creating ${POSTINTSTALL_DIR}" && mkdir -p ${POSTINTSTALL_DIR}
     [[ -f ${TRANSFORM_FILE} ]] && echo "Found and copying cmgmt_transform.py" && cp ${TRANSFORM_FILE} ${POSTINTSTALL_DIR}/cmgmt-transform
-    [[ -f ${POSTINTSTALL_DIR}/cmgmt-transform ]] && chmod 0755 ${POSTINTSTALL_DIR}/cmgmt-transform
+
+    if [[ -f ${POSTINTSTALL_DIR}/cmgmt-transform ]]; then
+        chmod 0755 ${POSTINTSTALL_DIR}/cmgmt-transform
+    else
+        echo "Transform Creation failure: ${POSTINTSTALL_DIR}/cmgmt-transform not created" && exit 1
+    fi
 
     # Create a symlink in postinstall.current.d, call 80-cmgmt-transform,
     # and have it point at ../postinstall-script/80-cmgmt-transform
-    [[ ! -d debian/data/tandberg/etc/postinstall.current.d ]] && echo "Creating debian/data/tandberg/etc/postinstall.current.d" && mkdir -p debian/data/tandberg/etc/postinstall.current.d
-    pushd debian/data/tandberg/etc/postinstall.current.d
+    POSTINSTALL_CURRENT=debian/data/tandberg/etc/postinstall.current.d
+    [[ ! -d ${POSTINSTALL_CURRENT} ]] && echo "Creating ${POSTINSTALL_CURRENT}" && mkdir -p ${POSTINSTALL_CURRENT}
+    pushd ${POSTINSTALL_CURRENT} > /dev/null
     ln -s ../postinstall-scripts.d/cmgmt-transform 80-cmgmt-transform
-    popd
+    popd > /dev/null
+
+    [[ -L ${POSTINSTALL_CURRENT}80-cmgmt-transform ]] && echo "Link Failure: ${POSTINSTALL_CURRENT}80-cmgmt-transform symlink not created" && exit 1
 }
 
 sanitize_debian_package(){
@@ -61,7 +69,7 @@ remove_init_py_files(){
                 debian/data/opt/c_mgmt/xcommand/__init__.py
                 debian/data/opt/c_mgmt/xstatus/__init__.py"
 
-    for file in $INIT_FILES
+    for file in ${INIT_FILES}
     do
         [[ -f ${file} ]] && echo "Found and removing: ${file}" && rm ${file}
     done
@@ -79,31 +87,45 @@ convert_po_to_mo(){
 }
 
 generate_symlinks(){
-    pushd debian/data/etc/init.d/
+    INITD_DIR=debian/data/etc/init.d/
+    pushd ${INITD_DIR} > /dev/null
     ln -s c_mgmt S80c_mgmt
-    popd
+    popd > /dev/null
+
+    [[ ! -L ${INITD_DIR}S80c_mgmt ]] && echo "Link Failure: ${INITD_DIR}S80c_mgmt symlink not created" && exit 1
 
     RC2_DIR=debian/data/etc/rc2.d/
-    [[ ! -d $RC2_DIR ]] && mkdir -p $RC2_DIR
-    pushd ${RC2_DIR}
+    [[ ! -d ${RC2_DIR} ]] && mkdir -p ${RC2_DIR}
+    pushd ${RC2_DIR} > /dev/null
     ln -s ../init.d/c_mgmt S80c_mgmt
-    popd
+    popd > /dev/null
+
+    [[ ! -L ${RC2_DIR}S80c_mgmt ]] && echo "Link Failure: ${RC2_DIR}S80c_mgmt symlink not created" && exit 1
 
     TANDBERG_ETC_DIR=/tandberg/persistent/fusion/config/
-    pushd debian/data/opt/c_mgmt/etc/
+    ETC_DIR=debian/data/opt/c_mgmt/etc/
+    pushd ${ETC_DIR} > /dev/null
     ln -s ${TANDBERG_ETC_DIR} config
-    popd
+    popd > /dev/null
+
+    [[ ! -L ${ETC_DIR}config ]] && echo "Link Failure: ${ETC_DIR}config symlink not created" && exit 1
 
     OPT_BIN=/share/python/site-packages/ni/managementconnector
     OPT_TEST=/share/python/site-packages/ni/tests/managementconnector
-    pushd debian/data/opt/c_mgmt/
+    OPT_CMGMT_DIR=debian/data/opt/c_mgmt/
+    pushd ${OPT_CMGMT_DIR} > /dev/null
     ln -s ${OPT_BIN} bin
     ln -s ${OPT_TEST} test
-    popd
+    popd > /dev/null
+
+    [[ ! -L ${OPT_CMGMT_DIR}bin ]] && echo "Link Failure: ${OPT_CMGMT_DIR}bin symlink not created" && exit 1
+    [[ ! -L ${OPT_CMGMT_DIR}test ]] && echo "Link Failure: ${OPT_CMGMT_DIR}test symlink not created" && exit 1
 }
 
 install_external_dependencies(){
-    pip install websocket-client==0.37.0 --target=debian/data/opt/c_mgmt/lib/websocket_client/ --no-dependencies
+    WEBSOCKET_DIR=debian/data/opt/c_mgmt/lib/websocket_client/
+    pip install websocket-client==0.37.0 --target=${WEBSOCKET_DIR} --no-dependencies
+    [[ ! -d ${WEBSOCKET_DIR}websocket/ ]] && echo "External Dependencies Failure: ${WEBSOCKET_DIR}websocket/ install failure" && exit 1
 }
 
 package_debian(){
@@ -115,17 +137,24 @@ package_debian(){
     tar czp --owner=root --group=root -f ../_build/control.tar.gz .
     popd > /dev/null
 
+    CONTROL_TAR=debian/_build/control.tar.gz
+    [[ ! -f ${CONTROL_TAR} ]] && echo "Archive Failure: ${CONTROL_TAR} not created" && exit 1
+
     pushd debian/data > /dev/null
     tar czp --owner=root --group=root -f ../_build/data.tar.gz .
     popd > /dev/null
+
+    DATA_TAR=debian/_build/data.tar.gz
+    [[ ! -f ${DATA_TAR} ]] && echo "Archive Failure: ${DATA_TAR} not created" && exit 1
 
     pushd debian/_build/ > /dev/null
     ar -r c_mgmt.deb ../debian-binary control.tar.gz data.tar.gz
     popd > /dev/null
 
-    if [[ -f debian/_build/c_mgmt.deb ]]; then
-        echo "package_debian: debian/_build/c_mgmt.deb created."
+    C_MGMT_DEB=debian/_build/c_mgmt.deb
+    if [[ -f ${C_MGMT_DEB} ]]; then
+        echo "package_debian: ${C_MGMT_DEB} created."
     else
-        echo "package_debian: c_mgmt failed to be created" && exit 1
+        echo "Archive Failure: $C_MGMT_DEB not created" && exit 1
     fi
 }
