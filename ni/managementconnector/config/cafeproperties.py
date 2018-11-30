@@ -5,23 +5,12 @@
 # Standard library imports
 import logging
 import re
-import xml.etree.ElementTree as ET
 
 # Local application / library specific imports
 # none
 
 
 # =============================================================================
-
-def get_expressway_version():
-    """ Gets the Expressway Major.Minor Version from product info xml file """
-    root = ET.parse("/info/product_info.xml")
-    major = root.findtext('version/major')
-    minor = root.findtext('version/minor')
-    version = "{}.{}".format(major, minor)
-
-    return version
-
 
 class CAFEProperties(object):
     """
@@ -30,8 +19,6 @@ class CAFEProperties(object):
     # -------------------------------------------------------------------------
     # Loggers
     # -------------------------------------------------------------------------
-
-    EXPRESSWAY_VERSION = get_expressway_version()
 
     HYBRID_LOGGER_NAME = 'hybridservices.cafedynamic'
     DEV_LOGGER_NAME = 'developer.cafe.cafedynamic'
@@ -49,11 +36,7 @@ class CAFEProperties(object):
         """
             Return CAFE developer logger
         """
-        version = CAFEProperties.EXPRESSWAY_VERSION
         module = CAFEProperties.LOGGER_NAMES['default']
-
-        if version in CAFEProperties.LOGGER_NAMES:
-            module = CAFEProperties.LOGGER_NAMES[version]
 
         return logging.getLogger(module)
 
@@ -64,11 +47,7 @@ class CAFEProperties(object):
         """
             Return CAFE developer logger
         """
-        version = CAFEProperties.EXPRESSWAY_VERSION
         module = CAFEProperties.LOGGERS_STATUS['default']
-
-        if version in CAFEProperties.LOGGERS_STATUS:
-            module = CAFEProperties.LOGGERS_STATUS['version']
 
         return logging.getLogger(module)
 

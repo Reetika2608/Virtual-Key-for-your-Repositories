@@ -5,6 +5,8 @@ import json
 import unittest
 import mock
 
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
 from ni.managementconnector.cloud.atlas import Atlas
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from ni.managementconnector.platform import http
@@ -19,6 +21,7 @@ PROVISIONING = {"connectors": "some_connectors", "heartbeat": 30}
 def get_version(name):
     return 'test_version'
 
+
 def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
     ''' used for mock test intercept'''
     DEV_LOGGER.info("Mocked Post:" )
@@ -27,6 +30,7 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
     rtn['provisioning'] = PROVISIONING
 
     return rtn
+
 
 def config_read(path):
     """ config class mock """
@@ -58,12 +62,15 @@ def config_read(path):
     else:
         DEV_LOGGER.debug("ConfigMock: Unexpected path passed: %s" % path)
 
-class AtlasTest(unittest.TestCase):
+
+class AtlasTest(fake_filesystem_unittest.TestCase):
     """ Management Connector Atlas Test Class """
 
     def setUp(self):
         """ Management Connector Atlas setUp """
         # Create an Atlas Class
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
         _config = mock.MagicMock()
         _config.read.side_effect = config_read
         self.atlas = Atlas(_config)

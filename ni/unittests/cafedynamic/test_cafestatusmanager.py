@@ -6,8 +6,6 @@ import logging
 import json
 import shutil
 
-import ni.unittests.mock._platform
-
 # Local application / library specific imports
 from ni.cafedynamic.cafestatusmanager import CAFEStatusManager
 from ni.managementconnector.config.cafeproperties import CAFEProperties

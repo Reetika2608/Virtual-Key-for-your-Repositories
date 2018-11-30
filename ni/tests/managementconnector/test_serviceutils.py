@@ -3,6 +3,9 @@
 import unittest
 import mock
 
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
+
 from ni.managementconnector.service.service import Service
 from ni.managementconnector.platform.serviceutils import ServiceUtils
 from ni.managementconnector.config.config import Config
@@ -48,8 +51,13 @@ def get_tlp_filepath(directory, name):
     return ret_val
 
 
-class ServiceUtilsTest(unittest.TestCase):
+class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
     ''' ServiceUtils Test Class '''
+
+    def setUp(self):
+        """ Service test setUp """
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
 
     @mock.patch('ni.managementconnector.platform.serviceutils.jsonhandler')
     @mock.patch('ni.managementconnector.platform.serviceutils.CafeXUtils')

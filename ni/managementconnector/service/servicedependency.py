@@ -7,6 +7,7 @@ from ni.cafedynamic.cafexutil import CafeXUtils
 from ni.managementconnector.service.service import Service
 from ni.managementconnector.platform.serviceutils import ServiceUtils
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from ni.managementconnector.config.versionchecker import get_expressway_full_version
 
 from ni.managementconnector.service.eventsender import EventSender
 from ni.managementconnector.events.upgradeevent import UpgradeEvent
@@ -25,6 +26,7 @@ class ServiceDependency(Service):
         ''' Dependency __init__'''
         DEV_LOGGER.debug('Detail="Initialising ServiceDependency object for %s"' % name)
         Service.__init__(self, name, config, oauth)
+        self._expressway_full_version = get_expressway_full_version()
 
     # -------------------------------------------------------------------------
 
@@ -63,7 +65,7 @@ class ServiceDependency(Service):
                         downloaded_file_size,
                         url,
                         version,
-                        ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION,
+                        self._expressway_full_version,
                         None,
                         None)
 

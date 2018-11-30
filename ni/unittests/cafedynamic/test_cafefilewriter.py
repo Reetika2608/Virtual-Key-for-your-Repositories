@@ -7,7 +7,6 @@ import pyratemp
 import os
 import pwd
 
-import ni.unittests.mock._platform
 # Local application / library specific imports
 from ni.cafedynamic.cafefilewriter import CAFEFileWriter
 from ni.managementconnector.config.cafeproperties import CAFEProperties

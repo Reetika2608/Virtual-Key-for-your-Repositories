@@ -2,7 +2,8 @@ import unittest
 import sys
 import logging
 import mock
-
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
 sys.path.append("/opt/c_mgmt/bin/")
 
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
@@ -12,8 +13,13 @@ from ni.managementconnector.config.config import Config
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
 
-class ServiceTest(unittest.TestCase):
+class ServiceTest(fake_filesystem_unittest.TestCase):
     """ Service Test Class """
+
+    def setUp(self):
+        """ Service test setUp """
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
 
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
@@ -40,7 +46,6 @@ class ServiceTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.service.ServiceUtils.cache_service_cdb_schema')
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch('ni.managementconnector.service.service.ServiceUtils.is_supported_extension')
-    @mock.patch('ni.managementconnector.service.service.ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION')
     @mock.patch('ni.managementconnector.service.service.time')
     @mock.patch('ni.managementconnector.service.service.EventSender.post')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
@@ -49,7 +54,7 @@ class ServiceTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.service.Service.uninstall')
     @mock.patch('ni.managementconnector.service.service.Service.disable')
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
-    def test_configure(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_oauth, mock_sender, mock_time, mock_platform, mock_serviceutils, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers):
+    def test_configure(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_oauth, mock_sender, mock_time, mock_serviceutils, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers):
         config = Config(False)
         service = Service('c_xyz', config, mock_oauth)
 
@@ -74,7 +79,7 @@ class ServiceTest(unittest.TestCase):
         self.assertTrue(mock_cafeutils.is_backup_restore_occurring.called, "Backup occurring should have been called.")
 
         details = {"fields": {"downloadDuration": 12345, "fileSize": 54321, "url": "some_url", "installDuration": 98765,
-                              "platformVersion": mock_platform, "connectorVersion": "3.0"},
+                              "platformVersion": "X12.6PreAlpha0", "connectorVersion": "3.0"},
                    "measurementName": 'connectorUpgradeEvent', "tags": {"state": 'success', "connectorType": "c_xyz"}}
         mock_sender.assert_called_with(mock_oauth, config, "connectorUpgrade", "c_mgmt", 1, details)
 
@@ -241,7 +246,6 @@ class ServiceTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.service.register_default_loggers')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils.cache_service_cdb_schema')
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
-    @mock.patch('ni.managementconnector.service.service.ManagementConnectorProperties.EXPRESSWAY_VERSION')
     @mock.patch('ni.managementconnector.service.service.EventSender')
     @mock.patch('ni.managementconnector.cloud.oauth.OAuth')
     @mock.patch('ni.managementconnector.service.service.ServiceUtils')
@@ -251,7 +255,7 @@ class ServiceTest(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.service.Service.uninstall')
     @mock.patch('ni.managementconnector.service.service.Service.disable')
     @mock.patch('ni.managementconnector.service.service.CafeXUtils')
-    def test_configure_prevent_connector(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_config, mock_serviceutils, mock_oath, mock_sender, mock_platform, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers):
+    def test_configure_prevent_connector(self, mock_cafeutils, mock_disable, mock_uninstall, mock_install, mock_download, mock_config, mock_serviceutils, mock_oath, mock_sender, mock_get_system_mem, mock_cache_service_cdb_schema, mock_register_default_loggers):
         service = Service('c_xyz', Config(), mock_oath)
 
         mock_cafeutils.get_package_version.return_value = '2.0'

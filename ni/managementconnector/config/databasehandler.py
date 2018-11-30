@@ -219,24 +219,22 @@ def register_default_loggers(loggers):
     """ Register default database entry for Hybrid Services Logger """
 
     # Check Feature Support - database table existence
-    version = ManagementConnectorProperties.EXPRESSWAY_VERSION
-    if version != "8.6" and version != "8.7":
-        database_handler = DatabaseHandler()
-        sanitised_loggers = list()
+    database_handler = DatabaseHandler()
+    sanitised_loggers = list()
 
-        logger_db = ManagementConnectorProperties.LOGGER_DB_PATH
-        logger_records = database_handler.get_records(logger_db)
+    logger_db = ManagementConnectorProperties.LOGGER_DB_PATH
+    logger_records = database_handler.get_records(logger_db)
 
-        if logger_records:
-            for record in logger_records:
-                sanitised_loggers.append(record['name'])
+    if logger_records:
+        for record in logger_records:
+            sanitised_loggers.append(record['name'])
 
-        # Init Loggers in database
-        for logger in loggers:
-            if sanitised_loggers:
-                if logger not in sanitised_loggers:
-                    # Append new loggers to Hybrid Services
-                    database_handler.write("{}/name/{}".format(logger_db, logger), {"name": logger})
-            else:
-                # Default FMC and Cafe Loggers for first time.
+    # Init Loggers in database
+    for logger in loggers:
+        if sanitised_loggers:
+            if logger not in sanitised_loggers:
+                # Append new loggers to Hybrid Services
                 database_handler.write("{}/name/{}".format(logger_db, logger), {"name": logger})
+        else:
+            # Default FMC and Cafe Loggers for first time.
+            database_handler.write("{}/name/{}".format(logger_db, logger), {"name": logger})

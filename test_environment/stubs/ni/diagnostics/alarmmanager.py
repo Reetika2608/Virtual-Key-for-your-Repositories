@@ -1,0 +1,2 @@
+class AlarmManager(object):
+    pass

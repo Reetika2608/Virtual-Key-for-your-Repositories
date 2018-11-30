@@ -2,7 +2,8 @@
 import sys
 import mock
 
-from xml.etree.ElementTree import ElementTree
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
 import unittest
 import logging
 sys.path.append("/opt/c_mgmt/bin/")
@@ -11,7 +12,7 @@ sys.path.append("/opt/c_mgmt/xstatus/")
 try:
     import c_mgmt
 except ImportError:
-    import ni.files.opt.c_mgmt.xstatus.c_mgmt as c_mgmt
+    import files.opt.c_mgmt.xstatus.c_mgmt as c_mgmt
 
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
@@ -67,10 +68,12 @@ class MockServiceManifest():
         return ["60051","15004"]
 
 
-class XStatusTest(unittest.TestCase):
+class XStatusTest(fake_filesystem_unittest.TestCase):
     """ XStatus  Test Class """
 
     def setUp(self):
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
         # reload c_mgmt as xstatus and xcommand share the same module name
         sys.path.insert(0, "/opt/c_mgmt/xstatus/")
         reload(c_mgmt)
@@ -108,7 +111,7 @@ class XStatusTest(unittest.TestCase):
             with mock.patch('c_mgmt.Service.get_status'):
                 alarms()
         except ImportError:
-            with mock.patch('ni.files.opt.c_mgmt.xstatus.c_mgmt.Service.get_status'):
+            with mock.patch('files.opt.c_mgmt.xstatus.c_mgmt.Service.get_status'):
                 alarms()
 
 if __name__ == "__main__":

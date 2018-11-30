@@ -17,6 +17,7 @@ from ni.cafedynamic.cafexutil import CafeXUtils
 from ni.managementconnector.platform.http import Http, CertificateExceptionFusionCA, CertificateExceptionNameMatch, CertificateExceptionInvalidCert, InvalidProtocolException
 from ni.managementconnector.service.manifest import ServiceManifest
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from ni.managementconnector.config.versionchecker import get_expressway_full_version
 from ni.managementconnector.service.servicemetrics import ServiceMetrics
 from ni.managementconnector.platform.serviceutils import ServiceUtils
 
@@ -135,6 +136,7 @@ class Service(object):
 
         self._service_metrics = ServiceMetrics(self._name, ManifestClass)
         self._cached = None
+        self._expressway_full_version = get_expressway_full_version()
 
     # -------------------------------------------------------------------------
 
@@ -224,7 +226,7 @@ class Service(object):
                     downloaded_file_size,
                     url,
                     version,
-                    ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION,
+                    self._expressway_full_version,
                     None,
                     None)
 

@@ -7,7 +7,6 @@ import shutil
 import time
 import json
 
-import ni.unittests.mock._platform
 # Local application / library specific imports
 from ni.managementconnector.config.cafeproperties import CAFEProperties
 from ni.unittests.cafedynamic.mockcafemanager import MockCAFEManager

@@ -1,0 +1,2 @@
+class PyratempFileWriter(object):
+    pass

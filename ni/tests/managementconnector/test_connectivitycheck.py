@@ -16,6 +16,7 @@ from ni.managementconnector.config.managementconnectorproperties import Manageme
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
+
 class ConnectivityCheckTest(unittest.TestCase):
     """ConnectivityCheck unit tests"""
 

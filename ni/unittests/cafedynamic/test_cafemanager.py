@@ -5,7 +5,6 @@ import os
 import logging
 import shutil
 
-import ni.unittests.mock._platform
 # Local application / library specific imports
 from ni.unittests.cafedynamic.mockcafemanager import MockCAFEManager
 from ni.managementconnector.config.cafeproperties import CAFEProperties

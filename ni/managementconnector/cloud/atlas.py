@@ -5,6 +5,7 @@ import json
 from ni.managementconnector.platform.http import Http
 from ni.managementconnector.platform.system import System
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from ni.managementconnector.config.versionchecker import get_expressway_full_version
 from ni.managementconnector.platform.serviceutils import ServiceUtils
 from ni.managementconnector.cloud import schema
 from ni.managementconnector.config import jsonhandler
@@ -31,6 +32,7 @@ class Atlas(object):
         """ Atlas __init__  """
 
         self._config = config_handler
+        self._full_version = get_expressway_full_version()
 
     @staticmethod
     def parse_dependency_config(register_response):
@@ -135,7 +137,6 @@ class Atlas(object):
         ip_v4 = self._config.read(ManagementConnectorProperties.IPV4_ADDRESS)
         ip_v6 = self._config.read(ManagementConnectorProperties.IPV6_ADDRESS)
         domain_name = self._config.read(ManagementConnectorProperties.DOMAINNAME)
-        platform_version = ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION
         host_name = self._config.read(ManagementConnectorProperties.HOSTNAME)
         heartbeat_contents = jsonhandler.read_json_file(ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % device_type)
         sys_mem = System.get_system_mem()
@@ -195,7 +196,7 @@ class Atlas(object):
                      "connector_type":  device_type,
                      "version": version,
                      "platform": "expressway",
-                     "platform_version": platform_version,
+                     "platform_version": self._full_version,
                      "status": status,
                      "hostHardware": host_hardware}
 

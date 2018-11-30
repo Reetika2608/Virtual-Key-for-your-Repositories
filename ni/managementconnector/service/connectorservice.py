@@ -8,6 +8,7 @@ from ni.managementconnector.service.service import Service
 from ni.cafedynamic.cafexutil import CafeXUtils
 from ni.managementconnector.platform.serviceutils import ServiceUtils
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from ni.managementconnector.config.versionchecker import get_expressway_full_version
 
 from ni.managementconnector.service.eventsender import EventSender
 from ni.managementconnector.events.upgradeevent import UpgradeEvent
@@ -27,6 +28,7 @@ class ConnectorService(Service):
 
         # Remove any installing information associated with the Mgmt Connector
         ServiceUtils.remove_installing_state(name)
+        self._expressway_full_version = get_expressway_full_version()
 
     # -------------------------------------------------------------------------
 
@@ -68,7 +70,7 @@ class ConnectorService(Service):
                         downloaded_file_size,
                         url,
                         version,
-                        ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION,
+                        self._expressway_full_version,
                         None,
                         None)
 

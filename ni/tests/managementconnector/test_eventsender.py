@@ -34,8 +34,6 @@ def config_read(path):
         return "org%sid%s"
     elif path == ManagementConnectorProperties.ATLAS_URL_PREFIX:
         return "atlas_url"
-    elif path == ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION:
-        return "X8.11PreAlpha10"
     elif path == ManagementConnectorProperties.EVENT_SUCCESS:
         return "success"
     elif path == ManagementConnectorProperties.EVENT_FAILURE:
@@ -84,7 +82,6 @@ class EventSenderTest(unittest.TestCase):
         dampener = EventDampener()
 
         service = config.read(ManagementConnectorProperties.SERVICE_NAME)
-        platform_version = config.read(ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION)
         event_success = config.read(ManagementConnectorProperties.EVENT_SUCCESS)
 
         upgrade_event = UpgradeEvent(
@@ -95,7 +92,7 @@ class EventSenderTest(unittest.TestCase):
             "downloaded_file_size",
             "url",
             "1.2.3",
-            platform_version,
+            "X12.0",
             None,
             None)
 
@@ -135,7 +132,7 @@ class EventSenderTest(unittest.TestCase):
         timestamp = int(time.time())
         service = config.read(ManagementConnectorProperties.SERVICE_NAME)
         service_version = ServiceUtils.get_version(service) or 'None'
-        platform_version = config.read(ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION)
+        platform_version = "X8.11PreAlpha10"
         serial = config.read(ManagementConnectorProperties.SERIAL_NUMBER)
         org_id = config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
         atlas_url_prefix = config.read(ManagementConnectorProperties.ATLAS_URL_PREFIX)
@@ -232,7 +229,7 @@ class EventSenderTest(unittest.TestCase):
         timestamp = int(time.time())
         service = config.read(ManagementConnectorProperties.SERVICE_NAME)
         service_version = ServiceUtils.get_version(service) or 'None'
-        platform_version = config.read(ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION)
+        platform_version = "X8.11PreAlpha10"
         serial = config.read(ManagementConnectorProperties.SERIAL_NUMBER)
         org_id = config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
         atlas_url_prefix = config.read(ManagementConnectorProperties.ATLAS_URL_PREFIX)
@@ -346,7 +343,7 @@ class EventSenderTest(unittest.TestCase):
             None,
             "https://someurl",
             expected_version,
-            ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION,
+            "X8.11PreAlpha10",
             None,
             None)
 

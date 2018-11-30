@@ -16,7 +16,8 @@ class LibraryUtils(object):
         """ Append all required libraries to the sys path for library imports """
         lib_path = ManagementConnectorProperties.LIBRARY_PATH
 
-        for lib in os.listdir(lib_path):
-            full_path = os.path.join(lib_path, lib)
-            if os.path.isdir(full_path):
-                sys.path.append(full_path)
+        if os.path.isdir(lib_path):
+            for lib in os.listdir(lib_path):
+                full_path = os.path.join(lib_path, lib)
+                if os.path.isdir(full_path):
+                    sys.path.append(full_path)

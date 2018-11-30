@@ -10,6 +10,8 @@ import sys
 import unittest
 import time
 
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
 from urllib2 import HTTPError
 
 sys.path.append("/opt/c_mgmt/bin/")
@@ -48,8 +50,13 @@ def config_read(path):
         return {"organization_id" : "organization_id"}
 
 
-class MercuryTest(unittest.TestCase):
+class MercuryTest(fake_filesystem_unittest.TestCase):
     """ Unit test class for Mercury """
+
+    def setUp(self):
+        """ Mercury Test setUp """
+        self.setUpPyfakefs()
+        self.fs.create_file('/var/run/c_mgmt/c_mgmt.mercury', contents="{\"device_url\": \"device_url\"}")
 
     @mock.patch('ni.managementconnector.cloud.remotedispatcher.RemoteDispatcher.register')
     @mock.patch('ni.managementconnector.cloud.wdm.time.time')
@@ -179,7 +186,7 @@ class MercuryTest(unittest.TestCase):
 
         mock_config.read.side_effect = config_read
 
-        mock_proxy.return_value =  {
+        mock_proxy.return_value = {
                 'address': 'address',
                 'port': 'port',
                 'username': 'user_name',

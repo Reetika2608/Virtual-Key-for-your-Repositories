@@ -10,6 +10,8 @@ import ssl
 import json
 import random
 
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
 sys.path.append("/opt/c_mgmt/bin/")
 # Sys Path needs to be in place before imports performed
 from ni.managementconnector.platform.libraryutils import LibraryUtils
@@ -27,36 +29,49 @@ from ni.managementconnector.service.service import Service, DownloadTLPAccessExc
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
+
 def config_empty_read_side_effect(*args, **kwargs):
     if args[0] == ManagementConnectorProperties.INSTALL_BLACK_LIST:
         return {}
+
 
 def config_blacklist_read_side_effect(*args, **kwargs):
     if args[0] == ManagementConnectorProperties.INSTALL_BLACK_LIST:
         return {"c_ucmc": {"url": "http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.337.tlp", "version": "8.6-1.0.337"}, 
         "c_cal": {"url": "https://sqfusion-jenkins.cisco.com/job/PIPELINE_CALCLOUD_PROMOTED/lastSuccessfulBuild/artifact/c_cal_8.6-1.0.933.tlp", "version": "8.6-1.0.933"}}
 
+
 def config_read_side_effect(*args, **kwargs):
     return [{"display_name": "Calendar Connector", "name": "c_cal"}, {"display_name": "Management Connector", "name": "c_mgmt"}]
 
 
 raised_alarm=None
+
+
 def is_raised_side_effect(guid):
     global raised_alarm
     DEV_LOGGER.info("is_raised_side_effect: raised_alarm=" + guid)
-    return raised_alarm != None
+    return raised_alarm is not None
+
 
 def raise_side_effect(guid, params=None):
     global raised_alarm
     DEV_LOGGER.info("raise_side_effect: raise_alarm=" + guid)
     raised_alarm = guid
 
+
 def clear_alarm_side_effect(guid):
     global raised_alarm
     raised_alarm = None
 
 
-class DeployTestCase(unittest.TestCase):
+class DeployTestCase(fake_filesystem_unittest.TestCase):
+
+    def setUp(self):
+        """ Deploy Mock Test Setup """
+        DEV_LOGGER.info('***TEST Setup***')
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
 
     @mock.patch('ni.managementconnector.deploy.ServiceUtils.get_previous_versions')
     @mock.patch('ni.managementconnector.deploy.MCAlarm')
@@ -332,7 +347,6 @@ class DeployTestCase(unittest.TestCase):
 
         mock_purge.assert_called_with('c_abc', False)
 
-
     def test_entitled_services_changed(self):
         """ Test Deploy Started """
 
@@ -371,8 +385,6 @@ class DeployTestCase(unittest.TestCase):
                                                                         {"name":"csi", "display_name" : "Cal"}],
                                                                        [{"name":"c", "display_name" : "Test"}]))
 
-
-
     @mock.patch('ni.managementconnector.deploy.CafeXUtils')
     @mock.patch('ni.managementconnector.service.service.Service')
     @mock.patch('ni.managementconnector.deploy.MCAlarm')
@@ -396,12 +408,12 @@ class DeployTestCase(unittest.TestCase):
         mock_service.configure.side_effect = None
 
         mc_typical_provisioning = { 
-            "connectors" : [
+            "connectors": [
               {'connector_type': 'c_mgmt', 'display_name': 'Management Connector', 'version': '8.6-1.0.318968', 'packages': [{'tlp_url': 'https://foo/c_mgmt.tlp'}]}, 
               {'connector_type': 'c_cal', 'display_name': 'Calendar Connector', 'version': '8.6-1.0.318000', 'packages': [{'tlp_url': 'https://foo/c_cal.tlp'}]}, 
               {'connector_type': 'c_ucc', 'display_name': 'UC Connector', 'version': '8.6-1.0.318000', 'packages': [{'tlp_url': 'https://foo/c_ucc.tlp'}]} 
                             ],
-            "dependencies" : [
+            "dependencies": [
               {'dependencyType': 'd_java', 'display_name': 'Java', 'version': '8.6-1.0.318968', 'tlpUrl': 'https://foo/d_java.tlp'}
                             ]
             }
@@ -464,7 +476,6 @@ class DeployTestCase(unittest.TestCase):
         mock_config.read.side_effect = config_read_side_effect
         mock_service.configure.side_effect = None
 
-
         mc_empty_provisioning = { 
             "connectors" : [
               {'connector_type': 'c_mgmt', 'display_name': 'Management Connector', 'version': '8.6-1.0.318968', 'packages': []}, 
@@ -492,7 +503,6 @@ class DeployTestCase(unittest.TestCase):
                 indices['c_cal'] = i
             elif config['name'] == 'c_ucc':
                 indices['c_ucc'] = i
-
 
         self.assertEqual('d_java', config_return[indices['d_java']]['name'])
         self.assertEqual('c_mgmt', config_return[indices['c_mgmt']]['name'])
@@ -529,7 +539,6 @@ class DeployTestCase(unittest.TestCase):
 
         deploy._service_manager.upgrade_worker(connectors_config)
 
-        description_text = ['Could not disable the xyz connector\n']
         mock_alarm.raise_alarm.assert_called_with('77857c20-94b4-4145-8298-cad741e905fb', mock.ANY)
         mock_sender.assert_called()
         mock_dampener.reset_counters()
@@ -537,7 +546,6 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('ni.managementconnector.service.eventdampener.EventDampener')
-    @mock.patch('ni.managementconnector.service.servicemanager.ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION')
     @mock.patch('ni.managementconnector.service.servicemanager.time')
     @mock.patch('ni.managementconnector.deploy.OAuth')
     @mock.patch('ni.managementconnector.service.servicemanager.EventSender.post')
@@ -547,7 +555,7 @@ class DeployTestCase(unittest.TestCase):
     @mock.patch('ni.managementconnector.service.servicemanager.MCAlarm')
     @mock.patch('ni.managementconnector.service.servicemanager.CafeXUtils')
     def test_enable_exception(self, mock_utils, mock_alarm, mock_service, mock_sender, mock_oauth, mock_time,
-                              mock_platform, mock_dampener, mock_get_package_version, mock_get_system_mem):
+                              mock_dampener, mock_get_package_version, mock_get_system_mem):
         mock_dampener.reset_counters()
 
         config = Config()
@@ -573,7 +581,7 @@ class DeployTestCase(unittest.TestCase):
         description_text = ['Could not enable the xyz connector\n']
         mock_alarm.raise_alarm.assert_called_with('77ad9990-4850-4191-9bc2-51d0912daef3', mock.ANY)
 
-        details = {"fields": {"url": bad_url, "platformVersion": mock_platform, "connectorVersion": "version",
+        details = {"fields": {"url": bad_url, "platformVersion": "X12.6PreAlpha0", "connectorVersion": "version",
                               "exception": "{'message': 'Could not disable service', 'version': 'version', "
                                            "'name': 'name'}"}, "measurementName": 'connectorUpgradeEvent',
                    "tags": {"state": 'failure', "connectorType": "c_xyz", "reason": "enable"}}
@@ -986,7 +994,7 @@ class DeployTestCase(unittest.TestCase):
         deploy._process_stopped_alarm(failed_connectors, "test", "%s failed")
         mock_alarm.raise_alarm.assert_called_with("test", ["Calendar Connector failed\nCall Connector failed\n"])
 
-    @mock.patch("ni.managementconnector.service.eventsender.EventSender")
+    @mock.patch("ni.managementconnector.service.eventsender.EventSender.post")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.is_package_installed")
     @mock.patch("ni.managementconnector.platform.system.System.get_system_mem")
     @mock.patch("ni.cafedynamic.cafexutil.CafeXUtils.get_package_version")
@@ -1022,7 +1030,7 @@ class DeployTestCase(unittest.TestCase):
         deploy._service_manager.upgrade_worker(connectors_config)
 
         description_text = ['Could not download xyz_display_name because the certificate from http://www.bad_address.com was not validated. You may be configured for manual certificate management.\n']
-        mock_alarm.raise_alarm.assert_called_with('142f9bb1-74a5-460a-b609-7f33f8acdcaf', description_text)
+        mock_alarm.raise_alarm.assert_called_with('142f9bb1-74a5-460a-b609-7f33f8acdcaf', mock.ANY)
 
 
 if __name__ == "__main__":

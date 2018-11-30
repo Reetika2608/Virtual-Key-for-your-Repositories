@@ -3,57 +3,26 @@ import sys
 
 import unittest
 import logging
-import time
 import threading
 import mock
-
 import json
-import urllib2
+import time
 
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
 sys.path.append("/opt/c_mgmt/bin/")
 # Append all required paths to the syspath for library imports.
 from ni.managementconnector.platform.libraryutils import LibraryUtils
 LibraryUtils.append_library_path()
 
 from ni.managementconnector.platform import http
-
 from ni.managementconnector.config import jsonhandler
 from ni.managementconnector.config.config import Config
 from ni.managementconnector.deploy import Deploy
 from ni.managementconnector.cloud.mercury import Mercury
 
-from ni.managementconnector.deployrunner import DeployRunner
-
-from ni.managementconnector.platform.alarms import MCAlarm
-import time
 
 EMPTY_CONFIG = False
-
-# 1) Get bearer toeken from machine account: _get_bearer_token_for_machine_account
-#   type=POST,
-#   url=https://idbroker.webex.com/idb/token/4214d345-7caf-4e32-b015-34de878d1158/v1/actions/GetBearerToken/invoke,
-#   headers={'Content-Type': 'application/json'},
-#   data={"password": "aaBB12$9aa826c9-3d80-4b73-9c4b-d3d9a857df09", "name": "fusion-mgmnt-253508ed-e23b-4e08-a9ec-ce9f1263b3e6", "adminUser": false},
-#   response = {u'BearerToken': u'BRTOKEN++'}"
-# 2) Get bearer response from IDP: _get_bearer_oauth_response_from_idp
-#   type=POST,
-#   url=https://hercules.hitest.huron-dev.com/v1/machine_accounts,
-#   headers={'Content-Type': 'application/json', 'Authorization': 'Bearer NDA1YTFiZTgtZWY5Ny00M2EyLTk1MDEtY2ZhNTViNDI4OTA0ODM4MTY0MTctM2U1'},
-#   data={"session_id" : "57v6W32fVCm5cvNwOerTgJvcGYYWy9sp5d8aOpoT" },
-#   response = {u'username': u'fusion-mgmnt-253508ed-e23b-4e08-a9ec-ce9f1263b3e6', u'organization_id': u'4214d345-7caf-4e32-b015-34de878d1158', u'password': u'aaBB12$9aa826c9-3d80-4b73-9c4b-d3d9a857df09', u'location': u'https://identity.webex.com/organization/4214d345-7caf-4e32-b015-34de878d1158/v1/Machines/ed643b38-076f-4447-8583-5a1ef82b13e0'}"
-# 3) Get access token
-#   type=POST,
-#   url=https://idbroker.webex.com/idb/oauth2/v1/access_token,
-#   headers={'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic QzBjZDI4M2RjNWI3ZDhiZDU5MjlhODI1MzI0Yzc0YjRkMjc1NWQxNGNmNTJlYjRiMjU2ZjlhNjNiZWMxNWZjZTg6OTE0ZjkxNjFiNTBiZjNlYjNlYzAyOTIwNjcyMzg3YjVkMmQxMTgwMzRmNDgyOGIzODExZGM5ZTUzZmVhZWE2MA=='},
-#   data=grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type:saml2-bearer&assertion=BRTOKEN++&scope=Identity%3ASCIM%20Identity%3AOrganization%20squared-fusion-mgmt%3Amanagement%20%20spark%3Alogs_write,
-#   response = {u'token_type': u'Bearer', u'refresh_token_expires_in': 5183999, u'access_token': u'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', u'expires_in': 43199, u'refresh_token': u'N2NiM2I1ZjAtZDlmYi00NzRlLWFmOGMtN2YwNmJiZGNjMTkyOTlmMmMyYjUtNjk1'}"
-# 4) Management Connector: Register
-#   type=POST
-#   url=https://hercules.hitest.huron-dev.com/v1/connectors,
-#   headers={'Content-Type': 'application/json', 'Authorization': u'Bearer OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk'},
-#   data={"serial": "0974F8FD", "version": "X8.6PreAlpha0 (Test SW)", "cluster_id": "GUID", "cluster_name" : "cluster_name", "ip4_ip_address" : "ip_v4", "ip6_ip_address" : "ip_v6", "connector_type": "c_mgmt", "host_name": "gwydlvm1186"},
-#   response = {u'status': None, u'display_name': u'Fusion Management', u'registered_by': u'14a2a40a-8f38-4866-8f1a-e6226baf42c3', u'created_at': u'2014-11-14T09:43:49.744Z', u'updated_at': u'2014-11-14T09:43:49.744Z', u'status_url': u'https://hercules.hitest.huron-dev.com/v1/connector_statuses/18', u'organization_id': u'4214d345-7caf-4e32-b015-34de878d1158', u'connector_type': u'c_mgmt', u'version': u'X8.6PreAlpha0 (Test SW)', u'cluster_id': u'', u'host_name': u'gwydlvm1186', u'provisioning_url': u'https://hercules.hitest.huron-dev.com/v1/management_connectors/3', u'serial': u'0974F8FD', u'id': 18}"
-
 h_type = []
 h_url = []
 h_headers = []
@@ -104,7 +73,6 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
     http.DEV_LOGGER.info('***TEST _http_request: url=%s, data=%s, request_type=%s' % (url, data, request_type))
     # urllib2.urlopen(req)
     for i in range(len(h_type)):
-        #http.DEV_LOGGER.info('***TEST _http_request: i=%s, url=%s, data=%s, request_type=%s' % (i, h_url[i], h_data[i], h_type[i]))
         if "/v1/connectors" in url:
             indata = json.loads(data)
             if indata["status"] is not None:
@@ -120,7 +88,6 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
             http.DEV_LOGGER.info('***TEST _http_request: h_response[i]=%s***' % (h_response[i]))
             return h_response[i]
     http.DEV_LOGGER.info('***TEST Error, could not find url %s in h_urls =%s***' % (url, h_url))
-    #http.DEV_LOGGER.info('***TEST Error, could not find h_data=%s***' % h_data)
 
 
 class MockAlarm():
@@ -202,6 +169,7 @@ def mock_get_config(self):
         "oauthMachineAccountDetails" : {"username": "fusion-mgmnt-cbe0b5de-afb7-4a10-8fed-b57f3e0d5941", "organization_id": "4214d345-7caf-4e32-b015-34de878d1158", "password": "{cipher}oVrpg5PojgkbTkeo/zZven4unYXuAySG1maxmy63quZFWhx/zo/1c9p0ZuoYu4xMVhfuOZc/XTSSOKcwGodATw==", "location": "https://identity.webex.com/organization/4214d345-7caf-4e32-b015-34de878d1158/v1/Machines/5ddfa042-7c46-481b-a4d4-192c1866b119"},
          }
 
+
 def mock_deploy_fusion(self):
     http.DEV_LOGGER.info('+++++ mock_deploy_fusion')
 
@@ -219,6 +187,7 @@ def mock_deploy_fusion(self):
     
     http.DEV_LOGGER.info('+++++ completed mock_deploy_fusion')
 
+
 def mock_upgrade_worker(config):
     with install_semaphore:
         if not stop_install:
@@ -228,6 +197,7 @@ def mock_upgrade_worker(config):
             http.DEV_LOGGER.debug('Detail="sleep %d seconds - as if updating/installing takes long"' % long_install_duration)
             time.sleep(long_install_duration)
 
+
 def join_install_thread():
     for thread in threading.enumerate():
         if thread.getName() == 'InstallThread':
@@ -235,12 +205,15 @@ def join_install_thread():
             thread.join()
             break
 
-class DeployTest(unittest.TestCase):
+
+class DeployTest(fake_filesystem_unittest.TestCase):
     """ Deploy HTTP Test Class """
 
     def setUp(self):
         """ Deploy Test Setup """
         http.DEV_LOGGER.info('***TEST Setup***')
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
         self._oauth = mock.MagicMock()
         token = {
             "time_read": int(round(time.time())),

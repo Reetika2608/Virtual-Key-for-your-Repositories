@@ -2,6 +2,9 @@ import unittest
 import logging
 import mock
 from cStringIO import StringIO
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
+
 
 from ni.managementconnector.platform.system import System
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
@@ -9,7 +12,7 @@ from ni.managementconnector.config.managementconnectorproperties import Manageme
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
 
-class ManagementConnectorTest(unittest.TestCase):
+class ManagementConnectorTest(fake_filesystem_unittest.TestCase):
 
     ''' Management Connector Test Class '''
 
@@ -82,6 +85,8 @@ class ManagementConnectorTest(unittest.TestCase):
             Purpose: To verify baked in version is <= platform version, otherwise alarm will be raised after fresh install.
         """
         DEV_LOGGER.debug('***TEST*** test_platform_supported_against_baked_in_version')
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
         mock_get_package_version.return_value = "1.2.3"
 
         self.assertTrue(System.get_platform_supported_status(), "baked in version of FMC should not exceed Expressway version")
@@ -135,11 +140,11 @@ class ManagementConnectorTest(unittest.TestCase):
         DEV_LOGGER.debug('***TEST*** test_get_platform_type')
 
         # virtual machine
-        mock.mock_open(mock_file,read_data='hypervisor')
+        mock.mock_open(mock_file, read_data='hypervisor')
         self.assertEquals("virtual", System.get_platform_type())
 
         # physical machine
-        mock.mock_open(mock_file,read_data='')
+        mock.mock_open(mock_file, read_data='')
         self.assertEquals("physical", System.get_platform_type())
 
         # error

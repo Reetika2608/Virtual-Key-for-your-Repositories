@@ -7,6 +7,7 @@ from urlparse import urlparse
 from ni.managementconnector.config import jsonhandler
 from ni.managementconnector.config.databasehandler import DatabaseHandler
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from ni.managementconnector.config.versionchecker import get_expressway_full_version
 from ni.managementconnector.service.service import Service, ServiceException, DisableException, EnableException, \
     DownloadServerUnavailableException, DownloadTLPAccessException, InstallException, \
     ServiceCertificateExceptionFusionCA, ServiceCertificateExceptionNameMatch, \
@@ -39,6 +40,7 @@ class ServiceManager():
         self._database_handler = DatabaseHandler()
         self._alarms = MCAlarm(self._config)
         self.is_upgrade_thread_running = False
+        self._expressway_full_version = get_expressway_full_version()
 
     # -------------------------------------------------------------------------
 
@@ -74,7 +76,7 @@ class ServiceManager():
                         None,  # fileSize
                         config['url'],
                         config['version'],
-                        ManagementConnectorProperties.EXPRESSWAY_FULL_VERSION,
+                        self._expressway_full_version,
                         reason,
                         download_exception)
 

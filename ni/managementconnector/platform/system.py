@@ -7,7 +7,8 @@ import os
 import subprocess
 from distutils.version import StrictVersion
 
-from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties, get_expressway_version
+from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from ni.managementconnector.config.versionchecker import get_expressway_version
 from ni.cafedynamic.cafexutil import CafeXUtils
 
 # DE2834 - Temporary Fix - initialise logging before importing clusterconfigurationutils

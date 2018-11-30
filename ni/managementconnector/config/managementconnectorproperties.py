@@ -4,37 +4,7 @@
 # Standard library imports
 import logging
 import os
-import xml.etree.ElementTree as ET
 from datetime import datetime
-
-
-def get_expressway_version():
-    """ Gets the Expressway Major.Minor Version from product info xml file """
-    root = ET.parse("/info/product_info.xml")
-    major = root.findtext('version/major')
-    minor = root.findtext('version/minor')
-    version = "{}.{}".format(major, minor)
-
-    return version
-
-
-def get_expressway_full_version():
-    """
-       Gets the Full Expressway Version from product info XML file
-    """
-    root = ET.parse("/info/product_info.xml")
-    major = root.findtext('version/major')
-    minor = root.findtext('version/minor')
-    maintenance = root.findtext('version/maintenance')
-    release_type = root.findtext('version/release/type')
-    release_version = root.findtext('version/release/version')
-
-    if maintenance != '0':
-        version = "X{}.{}.{}{}{}".format(major, minor, maintenance, release_type, release_version)
-    else:
-        version = "X{}.{}{}{}".format(major, minor, release_type, release_version)
-
-    return version
 
 
 class ManagementConnectorProperties(object):
@@ -77,9 +47,6 @@ class ManagementConnectorProperties(object):
     LOGGER_DB_PATH = "/configuration/hybridserviceslogger"
     LOGGER_INOTIFY = "/tmp/management/notifications/diagnostics/hybridserviceslogger"
 
-    EXPRESSWAY_VERSION = get_expressway_version()
-    EXPRESSWAY_FULL_VERSION = get_expressway_full_version()
-
     HYBRID_PREFIX = "hybridservices."
     HYBRID_LOGGER_NAME = HYBRID_PREFIX + "managementconnector"
     CAFE_LOGGER_NAME = HYBRID_PREFIX + "cafedynamic"
@@ -97,11 +64,7 @@ class ManagementConnectorProperties(object):
         """
             Return CAFE developer/hybridservices logger depending on Expressway Version
         """
-        version = ManagementConnectorProperties.EXPRESSWAY_VERSION
         module = ManagementConnectorProperties.LOGGER_NAMES['default']
-
-        if version in ManagementConnectorProperties.LOGGER_NAMES:
-            module = ManagementConnectorProperties.LOGGER_NAMES[version]
 
         return logging.getLogger(module)
 

@@ -12,3 +12,9 @@ debian/data
 
 # Runtime files
 *.pyc
+
+# Virtual environment for tests
+test_environment/venv
+
+# Stubs build artefacts
+test_environment/stubs/dist

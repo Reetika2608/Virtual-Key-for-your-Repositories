@@ -6,8 +6,9 @@
 import unittest
 import logging
 import mock
-import json
 
+from pyfakefs import fake_filesystem_unittest
+from productxml import PRODUCT_XML_CONTENTS
 from ni.managementconnector.cloud.remotedispatcher import RemoteDispatcher
 from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
@@ -30,7 +31,7 @@ def config_read(path):
         return "ABC12345"
 
 
-class RemoteDispatcherTest(unittest.TestCase):
+class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
     """RemoteDispatcher unit tests"""
 
     def setUp(self):
@@ -185,6 +186,8 @@ class RemoteDispatcherTest(unittest.TestCase):
     def test_processing_ping(self, mock_service_mgr, mock_connector_status, mock_start_time, mock_connectors):
         """ User Story: US13960 Implement FMC and RemoteDispatcher interaction (Register/Ping)"""
         DEV_LOGGER.info("***TEST*** test_processing_ping")
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
 
         class MockService():
             def get_composed_status(self):

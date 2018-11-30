@@ -3,7 +3,6 @@ import unittest
 # Standard library imports
 import logging
 
-import ni.unittests.mock._platform
 # Local application / library specific imports
 from ni.unittests.cafedynamic.mockcafedatabase import MockCAFEDatabase
 from ni.cafedynamic.cafeconvenience import CAFEConvenience
