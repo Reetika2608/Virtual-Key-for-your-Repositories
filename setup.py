@@ -20,7 +20,7 @@ class CleanCommand(Command):
     def run(self):
         cmd_list = dict(
             pyc="find . -name '*.pyc' -exec rm -rf {} \;",
-            build_dirs="rm -rf build/ debian/_build/ debian/data/ ./*.egg-info",
+            build_dirs="rm -rf build/ dist/ debian/_build/ debian/data/ ./*.egg-info",
         )
         for key, cmd in cmd_list.items():
             os.system(cmd)
@@ -30,7 +30,7 @@ setup(
     name='management_connector',
     version='0.1',
     cmdclass={'clean': CleanCommand},
-    packages=find_packages(exclude=["files.*", "files"]),
+    packages=find_packages(exclude=["files.*", "files", "*.tests.*"]),
     namespace_packages=['ni'],
     install_requires=('websocket_client', 'pycrypto', 'pyratemp'),
     description='Provides an environment and utils for management connector package when not on Expressway',

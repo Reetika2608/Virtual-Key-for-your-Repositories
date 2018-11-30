@@ -17,6 +17,14 @@ install_python_component(){
     echo "install_python_component: Compiling and installing python package"
     # Force install into debian directory, overwiritng any existing files
     ${PYTHON} setup.py install --force --root=debian/data/ -O0 --compile
+
+    # Ensure FMC real unit tests are excluded from the debian
+    TEST_DIR=debian/data/share/python/site-packages/ni/tests/managementconnector/
+    [[ -d ${TEST_DIR} ]] && echo "Exclude Failure: ${TEST_DIR} should not exist" && exit 1
+
+    # Ensure unittests directory tests are installed on box
+    UNITTESTS_DIR=debian/data/share/python/site-packages/ni/unittests/cafedynamic/
+    [[ ! -d ${UNITTESTS_DIR} ]] && echo "Exclude Failure: ${UNITTESTS_DIR} should get installed" && exit 1
 }
 
 duplicate_and_symlink_transform(){
