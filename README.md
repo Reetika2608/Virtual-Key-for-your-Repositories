@@ -18,21 +18,39 @@ Once you have run `setup_test_environment.sh` you can use the virtual environmen
 
 ### Cleaning your current working directory
 Running the following command will delete all staging/build directories, pyc files, debians etc.
-* ```python setup.py clean```
+
+```python setup.py clean```
 
 ### Building FMC
 To Build a c_mgmt.deb run the following script, this will clean the working director, compile and install FMC,
 and package all required elements for the c_mgmt debian
-    * `./build.sh`
 
-### Building FMC within Docker
+```./build.sh```
+
+### Development in a Docker environment
 To build a c_mgmt.deb from within docker you can run the following commands. This will build a docker image from the
-`Dockerfile`, where `fmc-build` is a docker image name and `~/git/management-connector/` is the root of your FMC checkout
+`Dockerfile`, where `fmc-build` is a docker image name.
+The commands below will build a Docker image, and start an interactive container with access via a bash shell.
+From there you have a build environment, with the CWD added to the container for access to FMC source, and pip test requirements installed.
+You can run unit tests, complete a build of FMC, all from within this container.
 
 ```
 docker build -t fmc-build .
-docker run -v ~/git/management-connector/:/management-connector fmc-build
+docker run -it fmc-build /bin/bash
 ```
+
+#### Example Commands run in the fmc-build Docker container
+```
+# Running Unit tests
+root@acdc32ee8df8:/management-connector# cd test_environment/stubs
+root@acdc32ee8df8:/management-connector/test_environment/stubs# python setup.py install
+root@acdc32ee8df8:/management-connector/test_environment/stubs# cd -
+root@acdc32ee8df8:/management-connector# nosetests ni/tests/managementconnector/
+
+# Doing a Build of FMC debian
+root@acdc32ee8df8:/management-connector# ./build.sh
+```
+
 
 ### Security
 * Threat Model ID: [21796](https://wwwin-tb.cisco.com/www/threatBuilder.html?id=21796)

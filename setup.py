@@ -20,7 +20,7 @@ class CleanCommand(Command):
     def run(self):
         cmd_list = dict(
             pyc="find . -name '*.pyc' -exec rm -rf {} \;",
-            build_dirs="rm -rf build/ dist/ debian/_build/ debian/data/ ./*.egg-info",
+            build_dirs="rm -rf build/ dist/ debian/_build/ debian/data/ ./*.egg-info test-results.xml",
         )
         for key, cmd in cmd_list.items():
             os.system(cmd)

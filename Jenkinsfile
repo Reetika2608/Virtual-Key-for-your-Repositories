@@ -13,13 +13,13 @@ pipeline {
                 dir("test_environment/stubs/"){
                     sh "python setup.py install"
                 }
-                sh "nosetests ni/tests/managementconnector/ --verbose --with-xunit --xunit-file=test-reports/results.xml"
+                sh "nosetests ni/tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml"
             }
             post{
                 always{
                     // Archive unit tests results
                     junit allowEmptyResults: true,
-                        testResults: 'test-reports/results.xml'
+                        testResults: 'test-results.xml'
                 }
             }
         }
