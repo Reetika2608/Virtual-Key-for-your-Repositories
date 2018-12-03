@@ -13,6 +13,11 @@ clean_working_directory(){
     python setup.py clean
 }
 
+audit_import_paths(){
+    echo "audit_import_paths: ensuring correct import"
+    python setup.py audit_import_paths
+}
+
 install_python_component(){
     echo "install_python_component: Compiling and installing python package"
     # Force install into debian directory, overwiritng any existing files

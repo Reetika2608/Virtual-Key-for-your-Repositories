@@ -11,5 +11,6 @@ remove_init_py_files
 convert_po_to_mo
 generate_symlinks
 duplicate_and_symlink_transform
+audit_import_paths
 install_external_dependencies
 package_debian
