@@ -463,7 +463,7 @@ msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.title"
 msgstr "[Hybrid services] Connector unexpectedly not running"
 
 msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.description"
-msgstr "The process %s unexpectedly stopped."
+msgstr "%s."
 
 msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.solution"
 msgstr "From [[PRODUCT]]-C, restart the connector. If that connector upgraded itself recently, roll it back to the previous connector. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
