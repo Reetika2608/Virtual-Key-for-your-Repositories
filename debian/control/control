@@ -1,5 +1,5 @@
 Package: c_mgmt
-Version: 8.10-1.0.321351
+Version: 8.10-BUILD_VERSION
 Maintainer: Cisco
 Architecture: all
 Section: component

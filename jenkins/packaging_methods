@@ -141,13 +141,48 @@ install_external_dependencies(){
     [[ ! -d ${WEBSOCKET_DIR}websocket/ ]] && echo "External Dependencies Failure: ${WEBSOCKET_DIR}websocket/ install failure" && exit 1
 }
 
+generate_debian_version(){
+    PIPELINE_VERSION=1.0
+    PR_VERSION=555.0
+    DEVELOPER_VERSION=999.0
+
+    BUILD_NUMBER=$1
+
+    # Creating a staging directory for the control files, and copy the source for manipulation and packing
+    CONTROL_BUILD=debian/control/_build
+    CONTROL_FILE=${CONTROL_BUILD}/control
+    [[ ! -d ${CONTROL_BUILD} ]] && mkdir -p ${CONTROL_BUILD}
+
+    # Copy files to packing directory, newly created empty dir will be ignored
+    cp debian/control/* ${CONTROL_BUILD}
+
+    # Find out what type of build it is, local, PR or pipeline
+    if [ "$CHANGE_ID" != "" ]; then
+        # Example: 8.10-555.0.53, where change id is the PR build number
+        BUILD_VERSION=${PR_VERSION}"."${CHANGE_ID}
+        echo "generate_debian_version: This is a PR build: ${BUILD_VERSION}"
+
+    elif [ "$JOB_BASE_NAME" == "master" ]; then
+        # Example: 8.10-1.0.321353
+        BUILD_VERSION=${PIPELINE_VERSION}.${BUILD_NUMBER}
+        echo "generate_debian_version: This is a master branch build: ${BUILD_VERSION}"
+    else
+        # Example: 8.10-999.0.12345
+        BUILD_VERSION=${DEVELOPER_VERSION}.${BUILD_NUMBER}
+        echo "generate_debian_version: This is a local developer build: ${BUILD_VERSION}"
+    fi
+
+    # Replace the placeholder in the control file with the build revision
+    sed -i "s/BUILD_VERSION/${BUILD_VERSION}/" ${CONTROL_FILE}
+}
+
 package_debian(){
     # Build a debian from a debian-bnary, control, and data tars.
     echo "package_debian: Building the control, data tars and debian package"
     [[ ! -d debian/_build/ ]] && mkdir -p debian/_build/
 
-    pushd debian/control > /dev/null
-    tar czp --owner=root --group=root -f ../_build/control.tar.gz .
+    pushd debian/control/_build > /dev/null
+    tar czp --owner=root --group=root -f ../../_build/control.tar.gz .
     popd > /dev/null
 
     CONTROL_TAR=debian/_build/control.tar.gz
@@ -168,6 +203,6 @@ package_debian(){
     if [[ -f ${C_MGMT_DEB} ]]; then
         echo "package_debian: ${C_MGMT_DEB} created."
     else
-        echo "Archive Failure: $C_MGMT_DEB not created" && exit 1
+        echo "Archive Failure: ${C_MGMT_DEB} not created" && exit 1
     fi
 }
