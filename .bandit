@@ -1,0 +1,2 @@
+[bandit]
+exclude: /share,/test_environment/venv/

@@ -23,6 +23,12 @@ pipeline {
                 }
             }
         }
+        stage('static analysis'){
+            steps{
+                sh "python setup.py pylint"
+                sh "test_environment/run_bandit.sh"
+            }
+        }
         stage('build'){
             steps{
                 sh(script: """

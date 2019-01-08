@@ -21,3 +21,4 @@ test_environment/stubs/dist
 
 # Unit tests artefacts
 test-results.xml
+bandit_baseline_result.txt
