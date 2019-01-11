@@ -35,11 +35,37 @@ clean_install(){
 install(){
     echo "[install] Starting install on ${TARGET}"
     sshpass -p ${TARGET_PASSWORD} scp ./debian/_build/c_mgmt.deb root@${TARGET}:/tmp/pkgs/new/
+    if [[ ${WAIT_FOR_INSTALL} == true ]]; then
+        wait_for_install
+    fi
 }
 
 uninstall(){
     echo "[uninstall] Starting uninstall on ${TARGET}"
     sshpass -p ${TARGET_PASSWORD} ssh root@${TARGET} 'echo c_mgmt > /tmp/pkgs/new/files.rem'
+}
+
+wait_for_install(){
+    echo "Waiting for install..."
+    for i in `seq 1 30`;
+    do
+        installed_version=$(sshpass -p ${TARGET_PASSWORD} ssh root@${TARGET} '(dpkg -s c_mgmt || true) | grep Version')
+
+        if [[ ${installed_version} == *"${VERSION}" ]]; then
+            install_status=$(sshpass -p ${TARGET_PASSWORD} ssh root@${TARGET} 'dpkg -s c_mgmt | grep Status')
+
+            if [[ ${install_status} == *"install ok installed" ]]; then
+                echo -e "\nc_mgmt ${installed_version} installed successfully"
+                exit 0
+            fi
+        fi
+        sleep 1
+        echo -ne "Waited for $i of 30 seconds for c_mgmt to install successfully"\\r
+    done
+
+    echo -e "\nERROR - c_mgmt failed to install. Current status:"
+    echo $(sshpass -p ${TARGET_PASSWORD} ssh root@${TARGET} 'dpkg -s c_mgmt')
+    exit 1
 }
 
 
@@ -50,7 +76,7 @@ fi
 
 # Settings defaults
 TARGET_PASSWORD=x
-while getopts ":ht:pv:c:" opt; do
+while getopts ":ht:pv:c:w" opt; do
     case ${opt} in
         h )
           usage
@@ -67,6 +93,9 @@ while getopts ":ht:pv:c:" opt; do
             ;;
         c )
             CMD=$OPTARG
+            ;;
+        w )
+            WAIT_FOR_INSTALL=true
             ;;
         \? )
           echo "Invalid Option: -$OPTARG" 1>&2
