@@ -176,6 +176,18 @@ generate_debian_version(){
     sed -i "s/BUILD_VERSION/${BUILD_VERSION}/" ${CONTROL_FILE}
 }
 
+remove_group_write_permissions(){
+    chmod -R g-w ./debian
+
+    num_found=$(find ./debian -perm -g=w -type f | wc -l)
+    if [ $num_found -ne 0 ]; then
+        echo "Files exist with the group write permission set - FAILING BUILD"
+        echo "Infringing files are:"
+        find ./debian -perm -g=w -type f
+        exit 1
+    fi
+}
+
 package_debian(){
     # Build a debian from a debian-bnary, control, and data tars.
     echo "package_debian: Building the control, data tars and debian package"
