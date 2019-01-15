@@ -29,7 +29,7 @@ class PylintCommand(Command):
             print("ERROR: Parameter --min-quality must be a float")
             sys.exit(1)
 
-        run = lint.Run(["./src"], exit=False)
+        run = lint.Run(["src/base_platform", "src/cafedynamic", "src/managementconnector", "src/unittests"], exit=False)
         actual_score = run.linter.stats['global_note']
 
         if actual_score < min_score:

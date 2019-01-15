@@ -53,12 +53,6 @@ function prep_env()
     pip install -r requirements.txt
     if [[ $? -ne 0 ]]; then deactivate; return 0; fi
 
-    pushd stubs > /dev/null
-    python setup.py install
-#    cd ../.. > /dev/null
-    popd
-    popd
-
     # If script was not sourced, remind the user.
     if [[ "$0" != "-bash" ]]; then
         echo ""

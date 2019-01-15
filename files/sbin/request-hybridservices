@@ -16,8 +16,10 @@ do
 
     # Python source can't have unexpected indents
     python <<END_PYTHON_PART
-from ni.managementconnector.platform.hybridrequesthandler import on_request
-from ni.managementconnector.config.databasehandler import DatabaseHandler
+import sys
+sys.path.append('/opt/c_mgmt/src/')
+from managementconnector.platform.hybridrequesthandler import on_request
+from managementconnector.config.databasehandler import DatabaseHandler
 on_request(DatabaseHandler(), '${contents}')
 END_PYTHON_PART
     fi

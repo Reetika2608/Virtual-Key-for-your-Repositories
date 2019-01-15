@@ -6,11 +6,13 @@ import xml.etree.cElementTree as ElementTree
 import json
 import traceback
 
-from ni.managementconnector.service.service import Service
-from ni.managementconnector.config.config import Config
-from ni.utils.web.restclient import HttpResponseError
-from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-from ni.managementconnector.service.manifest import ServiceManifest
+import sys
+sys.path.append('/opt/c_mgmt/src/')
+
+from managementconnector.service.service import Service
+from managementconnector.config.config import Config
+from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from managementconnector.service.manifest import ServiceManifest
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
@@ -67,7 +69,7 @@ def get_status(rest_cdb_adaptor, i18n_token_translator):
 
     try:
         entitled_connectors = rest_cdb_adaptor.get_records(entitled_connectors_path)
-    except HttpResponseError:
+    except Exception:  # pylint: disable=W0703:
         DEV_LOGGER.error('Detail="Management Connector entitled connectors path was not found in CDB" '
                          'Entitled Connectors Path="%s" ' % entitled_connectors_path)
         # the name/value pair doesn't exist so return the empty 'connectors' element.

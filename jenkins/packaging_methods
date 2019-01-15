@@ -24,11 +24,11 @@ install_python_component(){
     ${PYTHON} setup.py install --force --root=debian/data/ -O0 --compile
 
     # Ensure FMC real unit tests are excluded from the debian
-    TEST_DIR=debian/data/share/python/site-packages/ni/tests/managementconnector/
+    TEST_DIR=debian/data/opt/c_mgmt/src/tests/managementconnector/
     [[ -d ${TEST_DIR} ]] && echo "Exclude Failure: ${TEST_DIR} should not exist" && exit 1
 
     # Ensure unittests directory tests are installed on box
-    UNITTESTS_DIR=debian/data/share/python/site-packages/ni/unittests/cafedynamic/
+    UNITTESTS_DIR=debian/data/opt/c_mgmt/src/unittests/cafedynamic/
     [[ ! -d ${UNITTESTS_DIR} ]] && echo "Exclude Failure: ${UNITTESTS_DIR} should get installed" && exit 1
 }
 
@@ -64,7 +64,7 @@ sanitize_debian_package(){
         find debian/data/ -name "management_connector*.pth" -print | xargs rm -rf {}
 
         # Don't bundle any py files that have been byte-compiled
-        find debian/data/share/python/ -name '*.py' -exec rm -rf {} \;
+        find debian/data/opt/c_mgmt/src/ -name '*.py' -exec rm -rf {} \;
     fi
 }
 
@@ -74,9 +74,6 @@ remove_init_py_files(){
     INIT_FILES="debian/data/__init__.py
                 debian/data/share/python/site-packages/ni/tests/__init__.pyc
                 debian/data/share/python/site-packages/ni/unittests/__init__.pyc
-                debian/data/share/python/site-packages/ni/utils/__init__.pyc
-                debian/data/share/python/site-packages/ni/utils/logging/__init__.pyc
-                debian/data/share/python/site-packages/ni/utils/logging/plugins/__init__.pyc
                 debian/data/opt/__init__.py
                 debian/data/opt/c_mgmt/__init__.py
                 debian/data/opt/c_mgmt/xcommand/__init__.py
@@ -91,6 +88,8 @@ remove_init_py_files(){
 include_files(){
     # Copy everything under files into the debian data
     cp -r files/* debian/data/
+
+    [[ ! -f debian/data/share/python/site-packages/ni/utils/logging/plugins/managementconnectorlogplugin.py ]] && echo "hybrid logging plugin not found" && exit 1
 }
 
 convert_po_to_mo(){
@@ -122,17 +121,6 @@ generate_symlinks(){
     popd > /dev/null
 
     [[ ! -L ${ETC_DIR}config ]] && echo "Link Failure: ${ETC_DIR}config symlink not created" && exit 1
-
-    OPT_BIN=/share/python/site-packages/ni/managementconnector
-    OPT_TEST=/share/python/site-packages/ni/tests/managementconnector
-    OPT_CMGMT_DIR=debian/data/opt/c_mgmt/
-    pushd ${OPT_CMGMT_DIR} > /dev/null
-    ln -s ${OPT_BIN} bin
-    ln -s ${OPT_TEST} test
-    popd > /dev/null
-
-    [[ ! -L ${OPT_CMGMT_DIR}bin ]] && echo "Link Failure: ${OPT_CMGMT_DIR}bin symlink not created" && exit 1
-    [[ ! -L ${OPT_CMGMT_DIR}test ]] && echo "Link Failure: ${OPT_CMGMT_DIR}test symlink not created" && exit 1
 }
 
 install_external_dependencies(){

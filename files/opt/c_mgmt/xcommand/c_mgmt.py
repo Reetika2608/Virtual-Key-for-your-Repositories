@@ -3,8 +3,10 @@
 """
 
 # Sys Path needs to be in place before imports performed
+import sys
+sys.path.append('/opt/c_mgmt/src/')
 
-from ni.managementconnector.platform.libraryutils import LibraryUtils
+from managementconnector.platform.libraryutils import LibraryUtils
 LibraryUtils.append_library_path()
 
 import json
@@ -17,17 +19,17 @@ import shutil
 import ssl
 import jsonschema
 
-from ni.managementconnector.config.config import Config
-from ni.managementconnector.deploy import Deploy
-from ni.managementconnector.cloud.oauth import OAuth
-from ni.managementconnector.platform.serviceutils import ServiceUtils
-from ni.managementconnector.platform.http import Http, CertificateExceptionFusionCA, CertificateExceptionNameMatch, CertificateExceptionInvalidCert
-from ni.managementconnector.config import jsonhandler
-from ni.managementconnector.platform.system import System
-from ni.managementconnector.config.databasehandler import DatabaseHandler
-from ni.managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-from ni.managementconnector.service.eventsender import EventSender
-from ni.managementconnector.cloud.u2c import U2C
+from managementconnector.config.config import Config
+from managementconnector.deploy import Deploy
+from managementconnector.cloud.oauth import OAuth
+from managementconnector.platform.serviceutils import ServiceUtils
+from managementconnector.platform.http import Http, CertificateExceptionFusionCA, CertificateExceptionNameMatch, CertificateExceptionInvalidCert
+from managementconnector.config import jsonhandler
+from managementconnector.platform.system import System
+from managementconnector.config.databasehandler import DatabaseHandler
+from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from managementconnector.service.eventsender import EventSender
+from managementconnector.cloud.u2c import U2C
 
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()

@@ -5,5 +5,8 @@ websocket-client==0.48.0
 pycrypto==2.6.1
 jsonschema==2.5.1
 pyfakefs==3.5.2
+pyinotify==0.9.6
+httplib2==0.10.3
+twisted==16.6.0
 pylint==1.9.3
 bandit==1.5.1

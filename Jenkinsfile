@@ -32,8 +32,8 @@ pipeline {
         stage('build'){
             steps{
                 sh(script: """
-                        chmod +x build.sh;
-                        ./build.sh;
+                        chmod +x build_and_upgrade.sh;
+                        ./build_and_upgrade.sh -c build;
                     """.trim())
             }
         }
