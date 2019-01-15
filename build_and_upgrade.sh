@@ -32,6 +32,7 @@ build(){
     generate_debian_version ${BUILD_NUMBER}
     remove_group_write_permissions
     package_debian
+    audit_debian_contents
 }
 
 upgrade(){

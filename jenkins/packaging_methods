@@ -206,3 +206,19 @@ package_debian(){
         echo "Archive Failure: ${C_MGMT_DEB} not created" && exit 1
     fi
 }
+
+audit_debian_contents(){
+    # Audit the contents of the debian to ensure critical files exist and are located as expected
+    C_MGMT_DEB=debian/_build/c_mgmt.deb
+    content_haystack=$(dpkg --contents ${C_MGMT_DEB})
+
+    files="./share/pubkeys/fmc.1
+           ./share/python/site-packages/ni/utils/logging/plugins/managementconnectorlogplugin.py"
+
+    for file in ${files}
+    do
+        if [[ ! ${content_haystack} == *"${file}"* ]]; then
+            echo "audit_debian_contents: Could not find file: ${file}" && exit 1
+        fi
+    done
+}
