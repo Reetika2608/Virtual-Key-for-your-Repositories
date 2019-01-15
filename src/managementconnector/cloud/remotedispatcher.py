@@ -3,9 +3,11 @@
 import os
 import json
 from base64 import b64decode
-from Crypto.Signature import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA256
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_der_public_key
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.exceptions import InvalidSignature
 
 from managementconnector.config import jsonhandler
 from managementconnector.platform.http import Http
@@ -60,7 +62,7 @@ class RemoteDispatcher(object):
         """ Register with RemoteDispatcher """
         RemoteDispatcher.config = config
         RemoteDispatcher.oauth = oauth
-                        
+
         mercury_config = RemoteDispatcher.get_mercury_config()
         if mercury_config:
             post_data = {
@@ -107,20 +109,27 @@ class RemoteDispatcher(object):
 
         if test_mode == 'true':
             DEV_LOGGER.debug('Detail="FMC_Websocket It is test mode."')
-            public_key = RSA.importKey(
-                b64decode(ManagementConnectorProperties.COMMANDS_TEST_PUB_KEY))
+
+            public_key = load_der_public_key(
+                b64decode(ManagementConnectorProperties.COMMANDS_TEST_PUB_KEY),
+                default_backend())
         else:
             with open('/opt/c_mgmt/etc/hercules.pem') as pem:
-                public_key = RSA.importKey(pem.read())
+                public_key = load_pem_public_key(
+                    pem.read(),
+                    default_backend())
 
         if public_key is None:
             DEV_LOGGER.error('Detail="FMC_Websocket Public key could not be obtained."')
             return False
 
-        verifier = PKCS1_v1_5.new(public_key)
-        if verifier.verify(SHA256.new(message['data']['command']['action']), b64decode(message['data']['signature'])):
+        try:
+            public_key.verify(b64decode(message['data']['signature']),
+                              str(message['data']['command']['action']),
+                              padding.PKCS1v15(),
+                              hashes.SHA256())
             return True
-        else:
+        except InvalidSignature:
             DEV_LOGGER.error('Detail="FMC_Websocket The signature is not authentic."')
             return False
 

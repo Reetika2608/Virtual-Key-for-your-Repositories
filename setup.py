@@ -10,6 +10,6 @@ setup(
     cmdclass={'clean': CleanCommand, 'audit_import_paths': AssertImportCommand, 'pylint': PylintCommand},
     package_dir={'': 'src'},
     packages=find_packages('src'),
-    install_requires=('websocket_client', 'pycrypto', 'pyratemp'),
+    install_requires=('websocket_client', 'cryptography', 'pyratemp'),
     description='Provides an environment and utils for management connector package when not on Expressway',
 )

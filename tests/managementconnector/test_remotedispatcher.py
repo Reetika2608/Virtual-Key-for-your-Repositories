@@ -46,7 +46,7 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
                 "command": {
                     "commandId": "159b5d02-127b-469f-b33a-4dfde4526b1c",
                     "connectorId": "c_mgmt@52A00612",
-                    "action": "ping",
+                    "action": u"ping",
                     "created": "2016-08-05T14:48:05.656Z",
                     "updated": "2016-08-05T14:48:05.656Z",
                     "status": "dispatched",
