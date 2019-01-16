@@ -91,6 +91,7 @@ class Deploy(object):
 
         self._oauth_init = False
 
+        # Process any TLP left behind in the downloads directory before we started up
         ServiceUtils.save_tlps_for_rollback(self._config,
                                             mc_type)
 

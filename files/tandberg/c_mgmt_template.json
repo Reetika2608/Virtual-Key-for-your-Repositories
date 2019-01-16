@@ -56,6 +56,7 @@
         "domainname" : "$!setvar("domainname", 'CDB["/configuration/dns", "?peer=local"]')!$<!--(if len(domainname))-->$!domainname[0]['domain_name']!$<!--(else)-->{}<!--(end)-->",
         "clusterName" : "$!setvar("clusterName", 'CDB["/configuration/cluster", ""]')!$<!--(if len(clusterName))-->$!clusterName[0]['cluster_name']!$<!--(else)-->""<!--(end)-->",
         "clusterId" :  $!setvar("clusterId", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_clusterId"]')!$<!--(if len(clusterId))-->$!clusterId[0]['value']!$<!--(else)-->""<!--(end)-->,
+        "tempTargetOrgId" :  $!setvar("orgId", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_tempTargetOrgId"]')!$<!--(if len(orgId))-->$!orgId[0]['value']!$<!--(else)-->""<!--(end)-->,
         "fused" :  $!setvar("fused", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_fused"]')!$<!--(if len(fused))-->$!fused[0]['value']!$<!--(else)-->""<!--(end)-->,
         "cdb_version" : $!setvar("cdb_version", 'CDB["/configuration/cafe/cafestaticconfiguration", "name/c_mgmt_system_cdb_version]')!$<!--(if len(cdb_version))-->$!cdb_version[0]['value']!$<!--(else)-->{}<!--(end)-->,
         "serialNumber" : "$!setvar("serialNumber", 'CDB["/status/system", "?peer=local"]')!$<!--(if len(serialNumber))-->$!serialNumber[0]['hardware_serial_number']!$<!--(else)-->{}<!--(end)-->",

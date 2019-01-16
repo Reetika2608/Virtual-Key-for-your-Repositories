@@ -68,6 +68,14 @@ class DatabaseHandler(ClusterDatabaseRestClient):
 
     # -------------------------------------------------------------------------
 
+    def delete_blob_entry(self, path):
+        """ Writes to any database table """
+        cdb_url = ManagementConnectorProperties.BLOB_CDB_PATH + path
+        self.send_delete(cdb_url)
+        DEV_LOGGER.debug('Detail="__DatabaseHandler::_delete: path=%s"' % path)
+
+    # -------------------------------------------------------------------------
+
     def read(self, path):
         '''Retrieve Record from the DB'''
 

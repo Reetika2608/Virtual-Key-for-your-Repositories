@@ -39,21 +39,13 @@ class FusionCertPage extends SecurityCertificatesPageBase
 
         $this->updateData();
 
-        if(FusionLib::is_registered($this->rest_data_adapter) || $this->IProduct->isExpresswayEnabled())
+        if($this->IProduct->isExpresswayEnabled())
         {
-            if($this->IProduct->isExpresswayEnabled())
-            {
-                $this->addError(new InfoMessage(
-                    tt_gettext("err.NO_FUSION_ON_EXPRESSWAY_TITLE"),
-                    tt_gettext("err.NO_FUSION_ON_EXPRESSWAY")));
-            }
-            $this->initForm();
+            $this->addError(new InfoMessage(
+                tt_gettext("err.NO_FUSION_ON_EXPRESSWAY_TITLE"),
+                tt_gettext("err.NO_FUSION_ON_EXPRESSWAY")));
         }
-        else
-        {
-            // Not fused: to accept CAs provided by the cloud, select tickbox during fuse.
-            $this->addError(new ErrorMessage(tt_gettext("err.NOT_FUSED_TITLE"), tt_gettext("err.USE_CA_TICKBOX_WHEN_REGISTERING")));
-        }
+        $this->initForm();
     }
 
     protected function get_decoded_view_link()
@@ -419,7 +411,7 @@ class FusionCertPage extends SecurityCertificatesPageBase
 
         if(!$this->IProduct->isExpresswayEnabled())
         {
-            if((FusionLib::is_registered($this->rest_data_adapter)) && (FusionLib::are_fusion_certs_installed()))
+            if(FusionLib::are_fusion_certs_installed())
             {
                  $this->certs_details->render();
             }

@@ -18,6 +18,13 @@ import os
 import shutil
 import ssl
 import jsonschema
+from urlparse import urlsplit
+from base64 import urlsafe_b64decode, b64decode
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_der_public_key
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.exceptions import InvalidSignature
 
 from managementconnector.config.config import Config
 from managementconnector.deploy import Deploy
@@ -277,6 +284,18 @@ def run(command_name, parameters, rest_cdb_adaptor, callback, error_queue):  # p
             # Parse machine account details
             machine_account = json.loads(machine_account)
 
+            # The following is to attempt to handle the case where we get a fuse that was initiated on a FMC that
+            # started the fuse flow using V2 but then bootstraps to and lands here on a V3 build. In this case FMS
+            # will have included URLs for idbroker & identity in th machine account payload. FMC should only need
+            # the idbroker one which we save off to cdb. Then when we initiate the oauth object we should be talking to
+            # the correct CI cluster when we get tokens.
+            if "idBrokerUrl" in machine_account:
+                idb_url = get_bare_url(machine_account["idBrokerUrl"])
+                DEV_LOGGER.info(
+                    'Detail="DEPRECATED: FMC_Lifecycle got an idbroker url from FMS in the machine account: {}"'.format(
+                        idb_url))
+                config.write_blob(ManagementConnectorProperties.U2C_IDB_HOST, idb_url)
+
             oauth = OAuth(config)
 
             oauth.create_machine_account(cluster_id, machine_account)
@@ -292,6 +311,8 @@ def run(command_name, parameters, rest_cdb_adaptor, callback, error_queue):  # p
             if reregister:
                 DEV_LOGGER.debug('Detail="Management Connector: Xcommand reregister: set reregister flag to false"')
                 config.write_blob(ManagementConnectorProperties.REREGISTER, 'false')
+            else:
+                DatabaseHandler().delete_blob_entry(ManagementConnectorProperties.TEMP_TARGET_ORG_ID)
 
             DEV_LOGGER.info('Detail="Management Connector: Xcommand Success Full Startup"')
             callback("Success Full Startup " + oauth.get_access_token())
@@ -422,11 +443,80 @@ def run(command_name, parameters, rest_cdb_adaptor, callback, error_queue):  # p
 
         Http.download(url, tlp_path_tmp)
 
-        shutil.move(tlp_path_tmp, tlp_path_dest)
+        # Copy the bootstrap TLP to the install directory and leave it behind in the downloads directory.
+        # The next time we start up Deploy::deploy_fusion will call ServiceUtils::save_tlps_for_rollback and
+        # correctly stash away the TLP into currentversions.
+        shutil.copy(tlp_path_tmp, tlp_path_dest)
 
         callback("c_mgmt configured")
 
     # -------------------------------------------------------------------------
+
+    def mc_verify_signature():
+        DEV_LOGGER.info('Detail="ManagementConnector verify_signature xcommand called"')
+
+        parameters_list = parameters.split()
+
+        bootstrap = parameters_list[0]
+        signature = parameters_list[1]
+
+        config = Config(False)
+        test_mode = config.read(ManagementConnectorProperties.COMMANDS_TEST_MODE)
+        public_key = None
+
+        if test_mode == 'true':
+            DEV_LOGGER.debug('Detail="verify_signature is in test mode."')
+            public_key = load_der_public_key(
+                b64decode(ManagementConnectorProperties.COMMANDS_TEST_PUB_KEY),
+                default_backend())
+        else:
+            with open('/opt/c_mgmt/etc/hercules.pem') as pem:
+                public_key = load_pem_public_key(
+                    pem.read(),
+                    default_backend())
+
+        if public_key is None:
+            DEV_LOGGER.error('Detail="verify_signature Public key could not be obtained."')
+            return False
+
+        try:
+            public_key.verify(urlsafe_b64decode(signature),
+                              str(urlsafe_b64decode(bootstrap)),
+                              padding.PKCS1v15(),
+                              hashes.SHA256())
+            DEV_LOGGER.info('Detail="Successfully verified the standard signature."')
+            write_bootstrap_data(config, json.loads(urlsafe_b64decode(bootstrap)))
+            callback("Successfully verified signature")
+        except InvalidSignature:
+            try:
+                public_key.verify(urlsafe_b64decode(urlsafe_b64decode(signature)),
+                                  str(urlsafe_b64decode(bootstrap)),
+                                  padding.PKCS1v15(),
+                                  hashes.SHA256())
+                DEV_LOGGER.info('Detail="Successfully verified the double wrapped signature"')
+                write_bootstrap_data(config, json.loads(urlsafe_b64decode(bootstrap)))
+                callback("Successfully verified signature")
+            except InvalidSignature:
+                DEV_LOGGER.info('Detail="Failed to verify both signature formats"')
+                callback("Failed to verify signature")
+
+    def write_bootstrap_data(config, bootstrap_json):
+        if "u2cUrl" in bootstrap_json:
+            config.write_blob(ManagementConnectorProperties.U2C_HOST, bootstrap_json["u2cUrl"])
+        if "targetOrgId" in bootstrap_json:
+            config.write_blob(ManagementConnectorProperties.TEMP_TARGET_ORG_ID, bootstrap_json["targetOrgId"])
+        if "idBrokerUrl" in bootstrap_json:
+            config.write_blob(ManagementConnectorProperties.U2C_IDB_HOST, get_bare_url(bootstrap_json["idBrokerUrl"]))
+        if "fmsUrl" in bootstrap_json:
+            config.write_blob(ManagementConnectorProperties.FMS_HOST, get_bare_url(bootstrap_json["fmsUrl"]))
+        if "teamsClusterId" in bootstrap_json:
+            config.write_blob(ManagementConnectorProperties.TEAMS_CLUSTER_ID, bootstrap_json["teamsClusterId"])
+        if "identityUrl" in bootstrap_json:
+            config.write_blob(ManagementConnectorProperties.U2C_IDENTITY_HOST, bootstrap_json["identityUrl"])
+
+    def get_bare_url(raw_url):
+        parsed_url = urlsplit(raw_url)
+        return parsed_url.scheme + "://" + parsed_url.netloc
 
     def usage():
         """Output correct usage information"""
@@ -450,6 +540,7 @@ def run(command_name, parameters, rest_cdb_adaptor, callback, error_queue):  # p
                    "control":               mc_control,
                    "deregistered_check":    mc_deregistered_check,
                    "repair_certs":          mc_repair_certs,
+                   "verify_signature":      mc_verify_signature,
                    "prefuse_install":       mc_prefuse_install}
 
     if command_name not in run_options:

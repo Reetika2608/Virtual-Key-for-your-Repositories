@@ -5,10 +5,10 @@ msgid "ttl.FUSION_SERVICES"
 msgstr "Connector Management"
 
 msgid "lbl.FUSION_REDIRECT_WARNING"
-msgstr "When you click Register, you're redirected to https://admin.webex.com, where you need your <b>Organization Administrator Credentials</b>."
+msgstr "Click Register to be redirected to the Cisco Webex Cloud for the final confirmation."
 
 msgid "lbl.FUSION_MANAGEMENT_CONNECTOR_UPGRADE"
-msgstr "To ensure that the Expressway registers correctly, the latest version of Management Connector will be downloaded and installed automatically."
+msgstr "The latest version of Management Connector must be downloaded and installed."
 
 msgid "err.FUSION_MANAGEMENT_CONNECTOR_UPGRADE_ERROR"
 msgstr "Error occurred when upgrading Management Connector: %s"
@@ -26,34 +26,28 @@ msgid "fieldset.CLOUD_FUSION_SERVICES_SERVICE"
 msgstr "Connector management"
 
 msgid "lbl.FUSION_NOT_REGISTERED"
-msgstr "This [[PRODUCT]] is not yet registered with the Cisco Collaboration Cloud. Go to %s to check if it is on the allow list. "
+msgstr "This [[PRODUCT]] is not yet registered with the Cisco Webex Cloud."
 
 msgid "lbl.FUSION_REVIVE_MAY_BE_REQUIRED"
-msgstr "There is an error in your connection to the Cisco Collaboration Cloud  "
+msgstr "There is an error in your connection to the Cisco Webex Cloud  "
 
 msgid "btn.FUSION_REVIVE"
 msgstr "Re-Register"
 
-msgid "lbl.FUSION_CLUSTER"
-msgstr "Peers in the cluster: %s"
-
-msgid "lbl.FUSION_CERT_REGISTER_TITLE"
-msgstr "Register"
-
 msgid "lbl.FUSION_REGISTRATION_POLLING"
-msgstr "<b>Please wait whilst we check your connection to the Cloud</b>"
+msgstr "<b>Please wait</b>"
 
 msgid "lbl.FUSION_DEREGISTRATION_WAIT"
 msgstr "<b>Removing connectors...</b>"
 
 msgid "msg.C_MGMT_INSTALLING"
-msgstr "Registration can take a few minutes to complete"
+msgstr "Registration will take a few seconds to complete"
 
 msgid "lbl.PRECHECK_FAILED"
 msgstr "Connection failed"
 
 msgid "lbl.PRECHECK_FAILED_EXPLANATION"
-msgstr "We failed the test connection to Cisco Collaboration Cloud. Check the following:"
+msgstr "We failed the test connection to Cisco Webex Cloud. Check the following:"
 
 msgid "lbl.PRECHECK_TRY_FIREWALL"
 msgstr "Does your firewall allow outbound connections from this VCS?"
@@ -68,7 +62,7 @@ msgid "lbl.PRECHECK_PROXY_BROKEN_%s"
 msgstr "Are your %s settings correct"
 
 msgid "lbl.FUSION_CA_EXPLANATION"
-msgstr "To register for Hybrid Services, the [[PRODUCT]] must establish Certificate Authority trust with Cisco Collaboration Cloud."
+msgstr "The [[PRODUCT]] must establish Certificate Authority trust with Cisco Webex Cloud."
 
 msgid "btn.RETRY_FUSION_PRECHECK"
 msgstr "Retry connection"
@@ -80,13 +74,13 @@ msgid "lbl.FUSION_CA_CONFIRMATION_MESSAGE"
 msgstr "I want Cisco to manage the [[PRODUCT]] CA certificates required for this trust."
 
 msgid "lbl.FUSION_CA_GOOD_CONFIRMATION_MESSAGE"
-msgstr "I want Cisco Collaboration Cloud to add the required CA certificates to the [[PRODUCT]] trust list."
+msgstr "I want Cisco Webex Cloud to add the required CA certificates to the [[PRODUCT]] trust list."
 
 msgid "link.CISCO_CLOUD_CA_CERTIFICATES"
 msgstr "Cisco Cloud CA Certificates"
 
 msgid "err.NOT_FUSED_TITLE"
-msgstr "The [[PRODUCT]] is not registered with the Cisco Collaboration Cloud."
+msgstr "The [[PRODUCT]] is not registered with the Cisco Webex Cloud."
 
 msgid "err.USE_CA_TICKBOX_WHEN_REGISTERING"
 msgstr "To attain required CA certificates tick the relevant checkbox at registration."
@@ -98,16 +92,16 @@ msgid "link.ACKNOWLEDGE_ALARMS"
 msgstr "Acknowledge these alarms on the alarms page"
 
 msgid "lbl.FUSION_REGISTERED"
-msgstr "This [[PRODUCT]] cluster is registered with the Cisco Collaboration Cloud."
+msgstr "This [[PRODUCT]] cluster is registered with the Cisco Webex Cloud and is now ready for Hybrid Services."
 
 msgid "lbl.FUSION_SERVICES_MESSAGE_%s"
-msgstr "%s - view the status of your clusters and connectors"
+msgstr "%s - configure your hybrid services, enable users for features, manage your hybrid service clusters, and set upgrade schedules for connectors."
 
 msgid "lbl.FUSION_CERTS_ARE_ACCEPTED_%s"
-msgstr "%s -  you are currently allowing Cisco Collaboration Cloud to add required CA certificates to the [[PRODUCT]] trust list"
+msgstr "%s -  you are currently allowing Cisco Webex Cloud to add required CA certificates to the [[PRODUCT]] trust list"
 
 msgid "lbl.FUSION_CERTS_ARE_NOT_ACCEPTED_%s"
-msgstr "%s -  you are currently not allowing Cisco Collaboration Cloud to add required CA certificates to the [[PRODUCT]] trust list"
+msgstr "%s -  you are currently not allowing Cisco Webex Cloud to add required CA certificates to the [[PRODUCT]] trust list"
 
 msgid "err.SECURITY_REQUIREMENTS_NOT_MET_FOR_FUSION"
 msgstr "Security requirements not met for registration"
@@ -153,19 +147,19 @@ msgid "btn.DEFUSE"
 msgstr "Deregister"
 
 msgid "lbl.DEFUSE_LOCAL"
-msgstr "Click Deregister to remove this node from Cisco Collaboration Cloud."
+msgstr "Click Deregister to remove this node from Cisco Webex Cloud."
 
 msgid "msg.DEFUSE_CONFIRM"
-msgstr "Are you sure you want to remove this node from Cisco Collaboration Cloud?"
+msgstr "Are you sure you want to remove this node from Cisco Webex Cloud?"
 
 msgid "err.FUSION_DEFUSED"
-msgstr "Deregistered from the Cisco Collaboration Cloud"
+msgstr "Deregistered from the Cisco Webex Cloud"
 
 msgid "err.REMOTE_DEFUSE_TITLE"
 msgstr "Deregistered"
 
 msgid "err.REMOTE_DEFUSE"
-msgstr "This cluster has been deregistered from the Cisco Collaboration Cloud"
+msgstr "This cluster has been deregistered from the Cisco Webex Cloud"
 
 msgid "err.CLOUD_MAINTENANCE_MODE_TITLE"
 msgstr "Cloud Maintenance Mode"
@@ -187,10 +181,10 @@ msgid "btn.REDIRECT_TO_FUSION"
 msgstr "Back to Hybrid Services"
 
 msgid "err.REGISTERED_FOR_FUSION"
-msgstr "Registered with Cisco Collaboration Cloud"
+msgstr "Registered with Cisco Webex Cloud"
 
 msgid "err.CAFE_REDIRECT_FAILING"
-msgstr "Unable to redirect to the identity provider (IdP) for Cisco Collaboration Cloud"
+msgstr "Unable to redirect to the identity provider (IdP) for Cisco Webex Cloud"
 
 msgid "err.REGISTRATION_SESSION_TIMED_OUT"
 msgstr "Could not register because the session timed out"
@@ -244,7 +238,7 @@ msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.title"
 msgstr "[Hybrid services] Connection failed because the CA certificate was not found"
 
 msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.description"
-msgstr "Cannot securely connect to the Cisco Collaboration Cloud because the root CA that signed the certificate from %s is not in the [[PRODUCT]]'s trusted CA list."
+msgstr "Cannot securely connect to the Cisco Webex Cloud because the root CA that signed the certificate from %s is not in the [[PRODUCT]]'s trusted CA list."
 
 msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.solution"
 msgstr "Update the [[PRODUCT]]'s trusted CA list to include the CA that signed the received certificate."
@@ -310,7 +304,7 @@ msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.title"
 msgstr "[Hybrid services] Upgrade prevented by user choice"
 
 msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.description"
-msgstr "You previously rejected connector upgrades currently advertised by Cisco Collaboration Cloud. Automatic upgrades will continue when the next versions are available. The advertised versions are: %s"
+msgstr "You previously rejected connector upgrades currently advertised by Cisco Webex Cloud. Automatic upgrades will continue when the next versions are available. The advertised versions are: %s"
 
 msgid "alm.a2a259b5-93a6-4a1a-b03d-36ac0987e6db.solution"
 msgstr "View connector versions and either wait for the next automatic upgrade time or go to admin.webex.com > Services > Hybrid Call > View All to open the resources and manually accept the upgrade."
@@ -355,7 +349,7 @@ msgid "alm.ba883968-4b5a-4f83-9e71-50c7d7621b44.title"
 msgstr "[Hybrid services] Connectivity error"
 
 msgid "alm.ba883968-4b5a-4f83-9e71-50c7d7621b44.description"
-msgstr "Could not reach Cisco Collaboration Cloud address: %s"
+msgstr "Could not reach Cisco Webex Cloud address: %s"
 
 msgid "alm.ba883968-4b5a-4f83-9e71-50c7d7621b44.solution"
 msgstr "Check %s, or %s, or use network utilities %s, to verify this address."
@@ -370,7 +364,7 @@ msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.title"
 msgstr "[Hybrid services] Communication error"
 
 msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.description"
-msgstr "HTTP error code %s from Cisco Collaboration Cloud (address: %s)"
+msgstr "HTTP error code %s from Cisco Webex Cloud (address: %s)"
 
 msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.solution"
 msgstr "Check Hybrid Services status on the [[PRODUCT]]-C. Check status.ciscospark.com for outages. If the error remains, go to admin.webex.com, click your admin username, and then click Feedback to open a case for further investigation."
@@ -522,13 +516,13 @@ msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.severity"
 msgstr "error"
 
 msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.title"
-msgstr "[Hybrid services] Invalid responses from Cisco Collaboration Cloud"
+msgstr "[Hybrid services] Invalid responses from Cisco Webex Cloud"
 
 msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.description"
 msgstr "Invalid data was received from %s."
 
 msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.solution"
-msgstr "Check that you have the expected address for Cisco Collaboration Cloud."
+msgstr "Check that you have the expected address for Cisco Webex Cloud."
 
 msgid "alm.b31d5f2c-d183-4559-97e2-d9da9572af26.id"
 msgstr "60068"
@@ -576,7 +570,7 @@ msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.title"
 msgstr "[Hybrid services] No service connectors"
 
 msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.description"
-msgstr "You registered for Hybrid Services but there are no service connectors installed. The Management Connector is active and is making unnecessary connections to the Cisco Collaboration Cloud."
+msgstr "You registered for Hybrid Services but there are no service connectors installed. The Management Connector is active and is making unnecessary connections to the Cisco Webex Cloud."
 
 msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.solution"
 msgstr "Go to admin.webex.com and check that your organization is entitled to use one or more Hybrid Services. If you are not using any Hybrid Services, we strongly recommend that you %s this [[PRODUCT]]."
@@ -663,16 +657,16 @@ msgid "err.SSL_ERROR_LINK"
 msgstr "Hybrid Services status"
 
 msgid "err.INVALID_RESPONSE_%s"
-msgstr "Invalid responses were received from %s. Check that this is the address you expected for Cisco Collaboration Cloud."
+msgstr "Invalid responses were received from %s. Check that this is the address you expected for Cisco Webex Cloud."
 
 msgid "err.CERT_CONNECTION_ERROR_%s_%s"
-msgstr "Could not register with the Cisco Collaboration Cloud because the certificate from %s was not validated. Check that the root CA which signed the certificate is in the %s. Check whether it is expired or revoked."
+msgstr "Could not register with the Cisco Webex Cloud because the certificate from %s was not validated. Check that the root CA which signed the certificate is in the %s. Check whether it is expired or revoked."
 
 msgid "err.CERT_CONNECTION_NAME_ERROR_%s"
-msgstr "Could not register with the Cisco Collaboration Cloud because the certificate name was not recognized. Check that the CN or a SAN on the certificate from %s matches host its URL"
+msgstr "Could not register with the Cisco Webex Cloud because the certificate name was not recognized. Check that the CN or a SAN on the certificate from %s matches host its URL"
 
 msgid "err.CERT_FUSION_CA_ERROR_%s_%s"
-msgstr "Could not register with the Cisco Collaboration Cloud because the certificate from %s was not validated against the trusted CA list. This list includes root CA certificates added by Cisco Cloud. Check the %s for the root CA that signed the received certificate"
+msgstr "Could not register with the Cisco Webex Cloud because the certificate from %s was not validated against the trusted CA list. This list includes root CA certificates added by Cisco Cloud. Check the %s for the root CA that signed the received certificate"
 
 msgid "err.DOWNLOAD_CERT_ERROR_%s_%s"
 msgstr "Could not download %s because the certificate from %s was not validated. You may be configured for manual certificate management."
@@ -702,7 +696,7 @@ msgid "err.PROCESS_STOPPED_ERROR_%s"
 msgstr "The %s service unexpectedly stopped"
 
 msgid "err.VERSION_MISMATCH_%s_%s_%s"
-msgstr "Cisco Collaboration Cloud is advertising %s version %s but the package version is %s. The version numbers should be identical."
+msgstr "Cisco Webex Cloud is advertising %s version %s but the package version is %s. The version numbers should be identical."
 
 msgid "lbl.SERVICE_ALARMS_%d"
 msgid_plural "lbl.SERVICE_ALARMS_%d.plural"
@@ -725,7 +719,7 @@ msgid "lbl.FUSION_PROXY_FIELDSET"
 msgstr "Connector Proxy Configuration"
 
 msgid "lbl.USE_FUSION_PROXY"
-msgstr "Register with Cisco Collaboration Cloud through a proxy"
+msgstr "Register with Cisco Webex Cloud through a proxy"
 
 msgid "lbl.FUSION_PROXY_ADDRESS"
 msgstr "Address"
@@ -740,13 +734,13 @@ msgid "lbl.FUSION_PROXY_PASSWORD"
 msgstr "Password"
 
 msgid "doc.USE_FUSION_PROXY"
-msgstr "Select whether this [[PRODUCT]] registers through a proxy. <br/><br/><b>Yes</b>: Routes outbound requests to Cisco Collaboration Cloud through the specified proxy. <br/><br/><b>No</b>: The outbound requests to Cisco Collaboration Cloud will go directly."
+msgstr "Select whether this [[PRODUCT]] registers through a proxy. <br/><br/><b>Yes</b>: Routes outbound requests to Cisco Webex Cloud through the specified proxy. <br/><br/><b>No</b>: The outbound requests to Cisco Webex Cloud will go directly."
 
 msgid "doc.FUSION_PROXY_ADDRESS"
 msgstr "Address of your proxy server. Enter either IPv4 address, IPv6 address, or FQDN of the proxy."
 
 msgid "doc.FUSION_PROXY_PORT"
-msgstr "The port on which the proxy server is listening for requests towards the Cisco Collaboration Cloud."
+msgstr "The port on which the proxy server is listening for requests towards the Cisco Webex Cloud."
 
 msgid "doc.FUSION_PROXY_USERNAME"
 msgstr "The username for authorizing requests at the proxy server."
@@ -764,7 +758,7 @@ msgid "ttl.HYBRID_LOGGING"
 msgstr "Connector Logging"
 
 msgid "ttl.HYBRID_SERIVCES_SEND_LOG"
-msgstr "Send Logs to Cisco Collaboration Cloud"
+msgstr "Send Logs to Cisco Webex Cloud"
 
 msgid "btn.REDIRECT_TO_HYBRID_LOG"
 msgstr "Back to Hybrid Services Log"
@@ -776,7 +770,7 @@ msgid "lbl.HYBRID_SERVICES_INFO_FIELDSET"
 msgstr "Information"
 
 msgid "lbl.HYBRID_SERVICES_INFORMATION"
-msgstr "This action sends Hybrid Services logs and configuration data to the Cisco Collaboration Cloud. We remove all personally identifiable information and passwords before the data leaves the system.<br/><br/>We use the Serial Number and Generated Search Key to locate the logs in the Cisco Collaboration Cloud.<br/><br/>By clicking Send you imply your consent to sending these logs to Cisco."
+msgstr "This action sends Hybrid Services logs and configuration data to the Cisco Webex Cloud. We remove all personally identifiable information and passwords before the data leaves the system.<br/><br/>We use the Serial Number and Generated Search Key to locate the logs in the Cisco Webex Cloud.<br/><br/>By clicking Send you imply your consent to sending these logs to Cisco."
 
 msgid "btn.SEND_LOGS"
 msgstr "Send Logs"
@@ -815,19 +809,19 @@ msgid "err.LOG_PUSH_CERT_FAILURE_%s"
 msgstr "Log push failed due to a certificate error. Verify that certificates are correct under %s before you try to resend the logs."
 
 msgid "err.LOG_PUSH_MANAGED_CERT_LOCATION"
-msgstr "<b>Applications > Hybrid Services > Connector Management > Cisco Collaboration Cloud certificate management</b>"
+msgstr "<b>Applications > Hybrid Services > Connector Management > Cisco Webex Cloud certificate management</b>"
 
 msgid "err.LOG_PUSH_UNMANAGED_CERT_LOCATION"
 msgstr "<b>Maintenance > Security certificates > Trusted CA certificates</b>"
 
 msgid "err.LOG_PUSH_NETWORK_FAILURE"
-msgstr "Log push failed due to a networking error, possibly due to network or connectivity issues between Management Connector and the Cisco Collaboration Cloud."
+msgstr "Log push failed due to a networking error, possibly due to network or connectivity issues between Management Connector and the Cisco Webex Cloud."
 
 msgid "err.LOG_PUSH_UNSPECIFIED_FAILURE"
 msgstr "Log push failed due to an unspecified error. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "ttl.FUSION_CERT_TOOL"
-msgstr "Cisco Collaboration Cloud certificate management"
+msgstr "Cisco Webex Cloud certificate management"
 
 msgid "menu.FUSION_CERT_TOOL"
 msgstr "Cloud Certificate management"
@@ -839,16 +833,16 @@ msgid "err.ADD_FUSION_CERTS"
 msgstr "Added Cisco Cloud CA root certificates"
 
 msgid "lbl.FUSION_CERT_ADD_INSTRUCTIONS"
-msgstr "You are not receiving trusted CA certificates from Cisco Collaboration Cloud. You can choose to get them here, or you must manually update the [[PRODUCT]] trust list."
+msgstr "You are not receiving trusted CA certificates from Cisco Webex Cloud. You can choose to get them here, or you must manually update the [[PRODUCT]] trust list."
 
 msgid "btn.ADD_FUSION_CERTS"
 msgstr "Get certificates"
 
 msgid "err.REMOVED_FUSION_CERTS"
-msgstr "Removed Cisco Collaboration Cloud CA root certificates"
+msgstr "Removed Cisco Webex Cloud CA root certificates"
 
 msgid "lbl.FUSION_CERT_REMOVE_INSTRUCTIONS"
-msgstr "You are accepting trusted CA certificates from Cisco Collaboration Cloud. If you remove them, you must manually update the [[PRODUCT]] trust list."
+msgstr "You are accepting trusted CA certificates from Cisco Webex Cloud. If you remove them, you must manually update the [[PRODUCT]] trust list."
 
 msgid "btn.REMOVE_FUSION_CERTS"
 msgstr "Remove certificates"
@@ -870,7 +864,7 @@ msgid "lbl.EXPRESSWAY_FUSION_CERT_ADD_INSTRUCTIONS"
 msgstr "For some hybrid services, the [[EXPRESSWAY]] needs to trust the CAs that sign the Collaboration Cloud certificates, and you can install them here."
 
 msgid "lbl.EXPRESSWAY_FUSION_CERT_REMOVE_INSTRUCTIONS"
-msgstr "If you do not want to use this [[EXPRESSWAY]] for hybrid services, remove Cisco Collaboration Cloud CA root certificates from the [[PRODUCT]] CA trust list."
+msgstr "If you do not want to use this [[EXPRESSWAY]] for hybrid services, remove Cisco Webex Cloud CA root certificates from the [[PRODUCT]] CA trust list."
 
 msgid "err.TIMED_OUT_ADDING_FUSION_CERTS"
 msgstr "Timed out while trying to add CA certificates"
@@ -919,3 +913,33 @@ msgstr "Are you sure you want to allow this upgrade?"
 
 msgid "lbl.CONNECTOR_STATUS"
 msgstr "Connector Status"
+
+msgid "btn.BOOTSTRAP_FMC"
+msgstr "Update software & verify connection"
+
+msgid "lbl.FUSION_BOOTSTRAP_TITLE"
+msgstr "Requirements for registering [[PRODUCT]] for Hybrid Services"
+
+msgid "msg.C_MGMT_BOOTSTRAPPING"
+msgstr "Update & connection verification can take a few minutes to complete"
+
+msgid "err.BOOTSTRAP_SIGNATURE_FAILURE"
+msgstr "Failed to verify Cisco Webex Cloud registration"
+
+msgid "err.BOOTSTRAP_SIGNATURE_FAILURE_MESSAGE"
+msgstr "Restart the registration process from Cisco Webex Cloud."
+
+msgid "lbl.BOOTSTRAP_MISSING_TITLE"
+msgstr "Pre-registration not completed"
+
+msgid "lbl.BOOTSTRAP_MISSING"
+msgstr "You must first register your [[PRODUCT]] as a resource through Cisco Webex Control Hub at %s"
+
+msgid "err.BOOTSTRAP_INSTALL_TIMEOUT"
+msgstr "Update failed to complete within time limit."
+
+msgid "lbl.FUSION_BOOTSTRAP_READY"
+msgstr "The Webex cloud handed out a token to the [[PRODUCT]]. Next you must meet the following requirements to continue the registration of this [[PRODUCT]] for Hybrid Services."
+
+msgid "lbl.FUSION_REGISTRATION_READY"
+msgstr "The latest software was successfully installed and all the prerequisites are met for this [[PRODUCT]] to be registered for Hybrid Services."

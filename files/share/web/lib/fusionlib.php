@@ -218,35 +218,87 @@ class FusionLib
         return $container;
     }
 
-    static private function get_portal_link_widget()
+    static public function create_goto_cloud_form()
     {
-        // attempt to find link in config file
-        $link = null;
-        $json_conf_location = "/opt/c_mgmt/etc/config/c_mgmt.json";
-        if(file_exists($json_conf_location))
-        {
-            $json_conf = file_get_contents($json_conf_location);
-            $decoded = json_decode($json_conf);
-            if($decoded && isset($decoded->oauth->atlasAdminFusionPortal))
-            {
-                $link = $decoded->oauth->atlasAdminFusionPortal;
-            }
-        }
+        // init cloud form
+        $cloud_form = new DataForm( "fusionregistration", "", "dataform", "" );
 
-        // create a widget with a link if we found one.
-        $not_registered_message = tt_gettext("lbl.FUSION_NOT_REGISTERED");
-        $link_text = tt_gettext("link.CISCO_CLOUD_COLLABORATION_PORTAL");
-        if($link)
-        {
-            return new TextWithHyperLinks("", $not_registered_message, [$link_text => $link]);
-        }
-        else
-        {
-            return new Label(sprintf($not_registered_message, $link_text));
-        }
+        // renderable submit button created below
+        $cloud_form->removeDefaultSubmitButton();
+
+        $fieldset = $cloud_form->createFieldset("fieldset.CLOUD_FUSION_SERVICES");
+        
+        // form doesn't need labels. This makes messages more readable
+        $fieldset->hide_labels();
+
+        $not_registered_message = new Label(tt_gettext("lbl.FUSION_NOT_REGISTERED"));
+        $fieldset->addRow("", $not_registered_message);
+
+        $goto_cloud_text = new Label(tt_gettext("lbl.BOOTSTRAP_MISSING_TITLE"));
+        $goto_cloud_text->setBold();
+        $fieldset->addRow("", $goto_cloud_text);
+
+        $table_widget = new Container("");
+        $link = tt_gettext("link.CISCO_CLOUD_COLLABORATION_PORTAL");
+        $bootstrap_needed = new TextWithHyperLinks("", tt_gettext("lbl.BOOTSTRAP_MISSING"), [$link => $link]);
+        $table_widget->addWidget($bootstrap_needed);
+        $table_widget->addCSSclass("registration_indent");
+        $fieldset->addRow("", $table_widget);
+
+        return $cloud_form;
     }
 
-    static public function create_registration_form($peer_data, $precheck_run=false, $server_visible=true, $certs_good=false, $proxy_configured=false)
+    static public function create_bootstrap_form()
+    {
+        // init bootstrap form
+        $bootstrap_form = new DataForm( "fusionregistration", "", "dataform", "" );
+
+        // renderable submit button created below
+        $bootstrap_form->removeDefaultSubmitButton();
+
+        $fieldset = $bootstrap_form->createFieldset("fieldset.CLOUD_FUSION_SERVICES");
+        
+        // form doesn't need labels. This makes messages more readable
+        $fieldset->hide_labels();
+
+        $registration_ready = new Label(tt_gettext("lbl.FUSION_BOOTSTRAP_READY"));
+        $fieldset->addRow("", $registration_ready);
+
+        $bootstrap_text = new Label(tt_gettext("lbl.FUSION_BOOTSTRAP_TITLE"));
+        $bootstrap_text->setBold();
+        $fieldset->addRow("", $bootstrap_text);
+
+        $widget = new Label(tt_gettext("lbl.FUSION_CA_EXPLANATION"));
+        $widget->addCSSclass("registration_indent");
+        $fieldset->addRow("", $widget);
+
+        // a tickbox to determine whether we should trust cisco to handle our CAs 
+        $container = new Container(""); 
+        $ca_tickbox = new tickbox("use_fusion_ca", "use", "", "");
+        $container->addWidget($ca_tickbox);
+        $ca_confirmation_label = new Label(tt_gettext("lbl.FUSION_CA_CONFIRMATION_MESSAGE"));
+        $ca_confirmation_label->addCSSclass("tickbox_additional_spacing");
+
+        $container->addWidget($ca_confirmation_label); 
+        $container->addCSSclass("registration_indent");
+        $fieldset->addRow("", $container);
+
+        $upgrade_message = new Label(tt_gettext("lbl.FUSION_MANAGEMENT_CONNECTOR_UPGRADE"));
+        $upgrade_message->addCSSclass("registration_indent");
+        $fieldset->addRow("", $upgrade_message);
+
+        $message = tt_escape_quotes_for_js(tt_gettext("msg.C_MGMT_BOOTSTRAPPING"));
+        $container = new Container("");
+        $bootstrap_button = $bootstrap_form->getRenderableSubmitButton(
+            "btn.BOOTSTRAP_FMC", "trigger_loader_gif( '$message' );return true;", "register");
+        $container->addWidget($bootstrap_button);
+        $bootstrap_widget = $container;
+        $fieldset->addRow("Bootstrap", $bootstrap_widget);
+
+        return $bootstrap_form;
+    }
+
+    static public function create_register_form()
     {
         // init registration form
         $registration_form = new DataForm( "fusionregistration", "", "dataform", "" );
@@ -259,88 +311,27 @@ class FusionLib
         // form doesn't need labels. This makes messages more readable
         $fieldset->hide_labels();
 
-        // register message depends on visibility to the cloud and whether proxy is configured.
-        $fieldset->addRow("", self::get_portal_link_widget());
-        
-        // add a seperate message when in cluster
-        if (count($peer_data) > 1) 
+        $registration_ready = new Label(tt_gettext("lbl.FUSION_REGISTRATION_READY"));
+        $fieldset->addRow("", $registration_ready);
+
+        if(self::are_fusion_certs_installed())
         {
-            $peers = implode(",", array_keys($peer_data));
-            $cluster_message = sprintf(tt_gettext("lbl.FUSION_CLUSTER"), $peers);   
-            $fieldset->addRow("", new Label($cluster_message));
+            // use certs link
+            $cert_text = "lbl.FUSION_CERTS_ARE_ACCEPTED_%s";
+        }
+        else
+        {
+            // refuse certs link
+            $cert_text = "lbl.FUSION_CERTS_ARE_NOT_ACCEPTED_%s";
         }
 
-        if($precheck_run && !$server_visible)
-        {
-            // add a button which retrys the connection. Encouraging users to fix problem and retry test.
-            $registration_form->addSubmitButton( "btn.RETRY_FUSION_PRECHECK", "location.reload(true);return false;" );
+        $cert_link = new TextWithHyperLinks("", tt_gettext($cert_text), 
+            array(tt_gettext("ttl.FUSION_CERT_TOOL") => "fusioncerts"));
 
-            // add red opening line
-            $widget = new Label(tt_gettext("lbl.PRECHECK_FAILED"));
-            $widget->setBold();
-            $widget = new StatusWidget($widget, "error");
-            $fieldset->addRow("", $widget);
-
-            // add explanation (without bullet point)
-            $widget = new Label(tt_gettext("lbl.PRECHECK_FAILED_EXPLANATION"));
-            $widget->addCSSclass("registration_indent");
-            $fieldset->addRow("", $widget);
-
-            // add three possible causes, all indented with bullet points
-            $firewall_widget = new Label(tt_gettext("lbl.PRECHECK_TRY_FIREWALL"));
-            $firewall_widget = self::create_bullet_point($firewall_widget);
-            $fieldset->addRow("", $firewall_widget);
-
-            $dns_link = new TextWithHyperLinks("", tt_gettext("lbl.PRECHECK_TRY_DNS_%s"), 
-                array(tt_gettext("menu.DNS") => "dns"));
-            $dns_link = new Label($dns_link->renderAsString());
-            $dns_link = self::create_bullet_point($dns_link);
-            $fieldset->addRow("", $dns_link);
-
-            if($proxy_configured)
-            {
-                // proxy configured but not working
-                $proxy_required_text = "lbl.PRECHECK_PROXY_BROKEN_%s";
-            }
-            else
-            {
-                // need proxy
-                $proxy_required_text = "lbl.PRECHECK_TRY_PROXY_%s";
-            }
-            $proxy_link = new TextWithHyperLinks("", tt_gettext($proxy_required_text), 
-                array(tt_gettext("ttl.FUSION_PROXY") => "fusionproxy"));
-            $proxy_link = new Label($proxy_link->renderAsString());
-            $proxy_link = self::create_bullet_point($proxy_link);
-          
-            $fieldset->addRow("", $proxy_link);
-        }
-
-        // add a bolded register title
-        $register_text = new Label(tt_gettext("lbl.FUSION_CERT_REGISTER_TITLE"));
-        $register_text->setBold();
-        $fieldset->addRow("", $register_text);
-
-        $widget = new Label(tt_gettext("lbl.FUSION_CA_EXPLANATION"));
-        $widget->addCSSclass("registration_indent");
-        $fieldset->addRow("", $widget);
-
-        // a tickbox to determine whether we should trust cisco to handle our CAs 
-        $container = new Container(""); 
-        $ca_tickbox = new tickbox("use_fusion_ca", "use", "", ""); 
-        $container->addWidget($ca_tickbox);
-        $ca_confirmation_label = new Label(tt_gettext("lbl.FUSION_CA_CONFIRMATION_MESSAGE"));
-        $ca_confirmation_label->addCSSclass("tickbox_additional_spacing");
-
-        $container->addWidget($ca_confirmation_label); 
-        $container->addCSSclass("registration_indent");
-        $fieldset->addRow("", $container);
+        $fieldset->addRow("", $cert_link);
 
         $redirect_warning_message = new Label(tt_gettext("lbl.FUSION_REDIRECT_WARNING"));
-        $redirect_warning_message->addCSSclass("registration_indent");
         $fieldset->addRow("", $redirect_warning_message);
-
-        $upgrade_message = new Label(tt_gettext("lbl.FUSION_MANAGEMENT_CONNECTOR_UPGRADE"));
-        $fieldset->addRow("", $upgrade_message);
 
         $message = tt_escape_quotes_for_js(tt_gettext("msg.C_MGMT_INSTALLING"));
         $container = new Container("");
@@ -408,79 +399,34 @@ class FusionLib
         return rtrim($comp[1]);
     }
 
-    static private function populate_service_entries($results, $rest_data_adapter)
+    static public function on_latest_c_mgmt($rest_data_adapter)
     {
-        $service_map = Array("idbroker" => "c_mgmt_system_idpHost_u2c",
-                             "fms" => "c_mgmt_system_fmsUrl",
-                             "atlasFusionAdminPortal" => "c_mgmt_system_atlas_portal_u2c");
-                             
-        if (isset($results))
+        $decoded_json_conf = self::read_json_config_file();
+        if( $decoded_json_conf )
         {
-            foreach ($results['services'] as $service)
+            $latest_package_response = self::get_latest_package_info($decoded_json_conf);
+            $json_latest_package = json_decode($latest_package_response);
+            if (isset($json_latest_package))
             {
-                if (array_key_exists($service['serviceName'], $service_map)) {
-                    $url = $service['logicalNames'][0];
-
-                    // if the url is fms then the path needs to be stripped
-                    if ($service['serviceName'] == "fms")
-                    {
-                        $parsed_url = parse_url($url);
-                        $url = (isset($parsed_url['scheme']) ? "${parsed_url['scheme']}://" : "https://") .
-                                $parsed_url['host'] .
-                                (isset($parsed_url['port']) ? ":${parsed_url[port]}" : "");
-                    }
-
-                    // add service url to cdb
-                    $rest_data_adapter->put_array(array("value" => '"' . $url . '"'),
-                            "configuration/cafe/cafeblobconfiguration/name/" . $service_map[$service['serviceName']]);
+                if (self::get_c_mgmt_version() == $json_latest_package->version)
+                {
+                    return true;
                 }
             }
         }
+        return false;
     }
 
-    static public function update_service_catalog($rest_data_adapter)
+    static private function read_json_config_file()
     {
-        // get service urls from u2c
         $json_conf_location = "/opt/c_mgmt/etc/config/c_mgmt.json";
-        if (file_exists($json_conf_location)) {
-            $json_conf = file_get_contents($json_conf_location);
-            $decoded_json_conf = json_decode($json_conf);
-
-            // configure curl data
-            $url= $decoded_json_conf->u2c->u2cHost . $decoded_json_conf->u2c->serviceUrl;
-            $proxy_settings = $decoded_json_conf->proxy;
-            $ca_cert = $decoded_json_conf->certs->ca;
-            $postdata = '{"email":"123@abc.com"}';
-
-            // configure curl statement
-            $ch = curl_init( $url );
-
-            // configure proxy if being used
-            if ($proxy_settings && isset($proxy_settings->enabled) && ($proxy_settings->enabled == "true"))
-            {
-                curl_setopt($ch, CURLOPT_PROXY, $proxy_settings->address . ":" . $proxy_settings->port);
-                curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy_settings->username . ":" . taa_crypto_decrypt($proxy_settings->password));
-            }
-            curl_setopt($ch, CURLOPT_USERAGENT, "FMC");
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-            curl_setopt($ch, CURLOPT_CAINFO, $ca_cert);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($ch, CURLOPT_HEADER, 0);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
-            $result = curl_exec( $ch );
-
-            // populate services with returned responses
-            if ($result)
-            {
-                self::populate_service_entries(json_decode($result, true), $rest_data_adapter);
-            }
+        if(!file_exists($json_conf_location))
+        {
+            die();
         }
+
+        $json_conf = file_get_contents($json_conf_location);
+        return json_decode($json_conf);
     }
 }
 

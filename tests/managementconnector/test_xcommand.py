@@ -40,7 +40,7 @@ class CMgmtXCommandTest(unittest.TestCase):
         """Test running with invalid options"""
         mock_callback = mock.MagicMock()
         c_mgmt.run("invalid_run_option", 'qwe qwe', None, mock_callback, None)
-        expected_callback = 'Incorrect Command supplied: invalid_run_option - Current options: control, precheck, init, rollback, repair_certs, deregistered_check, prefuse_install, defuse'
+        expected_callback = 'Incorrect Command supplied: invalid_run_option - Current options: control, precheck, init, rollback, repair_certs, verify_signature, deregistered_check, prefuse_install, defuse'
         mock_callback.assert_called_with(expected_callback)
 
     @mock.patch('__builtin__.open')
@@ -58,14 +58,16 @@ class CMgmtXCommandTest(unittest.TestCase):
             with mock.patch('c_mgmt.U2C'):
                 with mock.patch('c_mgmt.Http'):
                     with mock.patch('c_mgmt.Config'):
-                        with mock.patch('c_mgmt.OAuth') as mock_oauth:
-                            mc_init()
+                        with mock.patch('c_mgmt.DatabaseHandler'):
+                            with mock.patch('c_mgmt.OAuth') as mock_oauth:
+                                mc_init()
         except ImportError:
             with mock.patch('files.opt.c_mgmt.xcommand.c_mgmt.U2C'):
                 with mock.patch('files.opt.c_mgmt.xcommand.c_mgmt.Http'):
                     with mock.patch('files.opt.c_mgmt.xcommand.c_mgmt.Config'):
-                        with mock.patch('files.opt.c_mgmt.xcommand.c_mgmt.OAuth') as mock_oauth:
-                            mc_init()
+                        with mock.patch('files.opt.c_mgmt.xcommand.c_mgmt.DatabaseHandler'):
+                            with mock.patch('files.opt.c_mgmt.xcommand.c_mgmt.OAuth') as mock_oauth:
+                                mc_init()
 
     def test_mc_precheck(self):
         """Test running precheck"""
@@ -160,6 +162,16 @@ class CMgmtXCommandTest(unittest.TestCase):
                 with mock.patch('files.opt.c_mgmt.xcommand.c_mgmt.U2C'):
                     with mock.patch('files.opt.c_mgmt.xcommand.c_mgmt.Http'):
                         init_register()
+
+    @mock.patch('managementconnector.config.config.Config.read')
+    def test_verify_signature(self, mock_config_read):
+        """Test running init reregister"""
+        bootstrap_data = "eyJ1cmwiOiAidXJsIn0="  # {"url": "url"}
+        bootstrap_signature = "b_ifNuBqcKtQEtNgd8m7EZWNk_LHTRdutycda_EzOM0JjNyYn6nNYt8mTUGt2LdrnGOdTbY5tuXkCpFHBFW6IAyY7Vca4JUYc1B13w-xfs2CfbKES6d7BhHze9a6Fo-hyW1hHVMfrz34CVc-voZKW_x8OhQry1kDa_M5aOecBbblAW7EHwL3GoPkAXZyn4iIux6gnECeuB_oNhsgXdxogdSzZeDH4BJ0FduxW4FiHRL-PUregAwYy6iFbHpHJByhiecOCKrto5c6zor0z35JY2bwxrU4rRlDcjr5bcmo2tWjGUJ2hmYTGhL6mkTJDv5UIogge6D2i8Hq_skG-1pdNQ=="
+        mock_config_read.return_value = "true"
+        mock_callback = mock.MagicMock()
+        c_mgmt.run("verify_signature", bootstrap_data + " " + bootstrap_signature, None, mock_callback, None)
+        mock_callback.assert_called_with('Successfully verified signature')
 
 
 if __name__ == "__main__":

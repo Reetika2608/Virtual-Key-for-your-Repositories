@@ -108,10 +108,18 @@ class CafePage extends ApplicationPage
         $client_id = $this->decoded_json_conf->oauth->clientId;
         $cluster_id = $this->decoded_json_conf->system->clusterId;
         $reregisterstring = $reregister ? "true" : "false";
+
+        // If this is a reregister then the orgId to use in the registration flow is the one from the machine account.
+        // If this is a first time fuse we use the tempTargetOrgId from bootstrap - in that case we can't get to this
+        // code unless the bootstrap data has been written to CDB
         if ($reregister)
         {
             $org_id = $this->decoded_json_conf->oauthMachineAccountDetails->organization_id;
             $reregisterstring = $reregisterstring . '", "org_id" : "' . $org_id;
+        }
+        else
+        {
+            $org_id = $this->decoded_json_conf->system->tempTargetOrgId;
         }
 
         $serial_number = $this->decoded_json_conf->system->serialNumber;
@@ -141,11 +149,12 @@ class CafePage extends ApplicationPage
                          . '"connector_type" : "c_mgmt", '
                          . '"reregistration" : "' . $reregisterstring . '", '
                          . '"cluster_id" : "' . $cluster_id . '", '
+                         . '"org_id" : "' . $org_id . '", '
                          . '"serial" : "' . $serial_number . '", '
                          . '"version": "' . $version . '", '
                          . '"platform": "' . 'expressway' . '", '
                          . '"platform_version": "' . $platform_version . '", '
-                         . '"protocol_version": "' . '2' . '" }';
+                         . '"protocol_version": "' . '3' . '" }';
 
         $encrypted_encryption_blob = $this->publicly_encrypt_keys($encryption_blob, $public_key);
         
@@ -843,6 +852,7 @@ EOT;
         }
         return $decluster;
     }
+
     /*
     * If not registered we're going to create a registration_form.
     * This form will simply show a spinner till it is updated with ajax
@@ -901,11 +911,20 @@ EOT;
 
     private function initRegistrationForm()
     {
+        if(isset($_GET['signature']) && isset($_GET['bootstrap']))
+        {
+            list($success, $error) = BlobLibrary::run_xcommand($this->rest_data_adapter,
+                    "c_mgmt", "verify_signature", $_GET['bootstrap'] . " " . $_GET['signature']);
+                if( !$success )
+                {
+                    $this->addError( new ErrorMessage(tt_gettext("err.BOOTSTRAP_SIGNATURE_FAILURE"), tt_gettext("err.BOOTSTRAP_SIGNATURE_FAILURE_MESSAGE")));
+                }
+        }
         if ($this->check_basic_requirements())
         {
             $this->view->inline_style[] = ".registration_indent { padding-left:30px; }";
             $this->view->inline_style[] = ".tickbox_additional_spacing { padding-left:10px; }";
-            
+
             $this->registration_form_spinner ( $this->run_precheck );
         }
     }
@@ -1114,13 +1133,8 @@ EOT;
                     redirect("fusionregistration");
                 }
             }
-            else
+            else if ($_POST['submitbutton'] == tt_gettext('btn.BOOTSTRAP_FMC'))
             {
-                // run revive command
-                $reregister =  $_POST['submitbutton'] == tt_gettext("btn.FUSION_REVIVE");
-
-                $redirect = $_SERVER['SCRIPT_URI'];
-                $fms_action = "fuse";
                 $registered = FusionLib::is_registered($this->rest_data_adapter);
 
                 if(!$registered)
@@ -1138,26 +1152,30 @@ EOT;
                             "configuration/cafe/cafestaticconfiguration/name/c_mgmt_certs_addFusionCertsToCA");
                     }
                 }
+                $prevent_upgrade_record = $this->rest_data_adapter->get_local("configuration/cafe/cafestaticconfiguration/name/c_mgmt_config_preventMgmtConnUpgrade");
+                $prevent_upgrade = false;
 
-                // get service urls from u2c
-                FusionLib::update_service_catalog($this->rest_data_adapter);
+                if (isset($prevent_upgrade_record) && (int)$prevent_upgrade_record->num_recs > 0)
+                {
+                    if ((string)$prevent_upgrade_record->record[0]->value === "on")
+                    {
+                        $prevent_upgrade = true;
+                    }
+                }
+                if (!$prevent_upgrade)
+                {
+                    sleep(self::WAIT_TIME_FOR_CERTS_TO_BE_ADDED);
+                    $this->install_latest_c_mgmt();
+                }
+                redirect();
+            }
+            else
+            {
+                // run revive command
+                $reregister =  $_POST['submitbutton'] == tt_gettext("btn.FUSION_REVIVE");
 
-            	$prevent_upgrade_record = $this->rest_data_adapter->get_local("configuration/cafe/cafestaticconfiguration/name/c_mgmt_config_preventMgmtConnUpgrade");
-	            $prevent_upgrade = false;
-
-		        if (isset($prevent_upgrade_record) && (int)$prevent_upgrade_record->num_recs > 0)
-		        {
-		            if ((string)$prevent_upgrade_record->record[0]->value === "on")
-		            {
-		                $prevent_upgrade = true;
-		            }
-		        }
-
-		        if (!$prevent_upgrade)
-		        {
-		            sleep(self::WAIT_TIME_FOR_CERTS_TO_BE_ADDED);
-		            $this->install_latest_c_mgmt();
-		        }
+                $redirect = $_SERVER['SCRIPT_URI'];
+                $fms_action = "fuse";
 
                 $box_name = $this->IProduct->getSystemName();
 
@@ -1286,13 +1304,16 @@ EOT;
                     BlobLibrary::run_xcommand($this->rest_data_adapter, "c_mgmt", "prefuse_install",
                         $json_latest_package->tlpUrl . " " . $json_latest_package->version);
 
-                    $this->poll_on_package_install($json_latest_package->version, 60);
+                    $install_completed = $this->poll_on_package_install($json_latest_package->version, 60);
+                    if ( !$install_completed )
+                    {
+                        $this->addError(new ErrorMessage(tt_gettext("Failed"), tt_gettext("err.BOOTSTRAP_INSTALL_TIMEOUT")));
+                    }
                 }
             }
             else
             {
                 $this->addError(new ErrorMessage(tt_gettext("Failed"), $latest_package_response));
-                redirect();
             }
         }
     }

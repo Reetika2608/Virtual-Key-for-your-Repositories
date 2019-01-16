@@ -29,49 +29,41 @@ class PrecheckPage extends AjaxPage
         return false;
     }
 
+    private function is_bootstrap_data_present() {
+        $root = $this->rest_data_adapter->get_local("configuration/cafe/cafeblobconfiguration/name/c_mgmt_system_tempTargetOrgId");
+        return (int)$root->num_recs > 0 && $root->record[0]->value != '';
+    }
+
     protected function writeContent()
     {
         // fake the box looking like an expressway if no release key
         $proxy_configured = $this->is_proxy_configured();
 
-        $server_visible = true;
-        $certs_good = false;
-        $precheck_run = false;
 
-        // get service urls from u2c
-        FusionLib::update_service_catalog($this->rest_data_adapter);
-
-        // run precheck xcommand
-        list($precheck_run, $precheck_info) = BlobLibrary::run_xcommand($this->rest_data_adapter, "c_mgmt", "precheck", array());
-        if($precheck_run)
+        if ( !$this->is_bootstrap_data_present() )
         {
-	        switch($precheck_info)
-	        {
-	            case 'Not_found':
-	                $server_visible = false;
-	                $certs_good = false;
-	                break;
-	            case 'Found_bad_certs':
-                    $server_visible = true;
-	                $certs_good = false;
-	                break;
-	            case 'Found_good_certs':
-	                // everythings great
-                    $server_visible = true;
-                    $certs_good = true;
-	                break;
-	            case 'Unchecked':
-	            default:
-                    $precheck_run = false;
-	                break;
-	        }
-	    }
-
-        $peer_data = $this->IProduct->get_peerdata();
-
-        $registration_form = FusionLib::create_registration_form(
-                                        $peer_data, $precheck_run,
-                                        $server_visible, $certs_good, $proxy_configured);
+            $registration_form = FusionLib::create_goto_cloud_form();
+        }
+        else
+        {
+            $prevent_upgrade_record = $this->rest_data_adapter->get_local("configuration/cafe/cafestaticconfiguration/name/c_mgmt_config_preventMgmtConnUpgrade");
+            $prevent_upgrade = false;
+            if (isset($prevent_upgrade_record) && (int)$prevent_upgrade_record->num_recs > 0)
+            {
+                if ((string)$prevent_upgrade_record->record[0]->value === "on")
+                {
+                    $prevent_upgrade = true;
+                }
+            }
+            $on_latest = FusionLib::on_latest_c_mgmt($this->rest_data_adapter);
+            if ( $prevent_upgrade || $on_latest ) {
+                $registration_form = FusionLib::create_register_form();
+            }
+            else
+            {
+                $registration_form = FusionLib::create_bootstrap_form();
+            }
+        }
         $registration_form->render(); 
     }
 }

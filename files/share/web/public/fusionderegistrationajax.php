@@ -23,8 +23,7 @@ class DeregPage extends AjaxPage
 
         BlobLibrary::run_xcommand($this->rest_data_adapter, "c_mgmt", "deregistered_check", array());
 
-        $peer_data = $this->IProduct->get_peerdata();
-        $registration_form = FusionLib::create_registration_form( $peer_data );
+        $registration_form = FusionLib::create_goto_cloud_form();
         $registration_form->render(); 
     }
 }

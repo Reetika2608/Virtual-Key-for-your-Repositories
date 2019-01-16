@@ -18,9 +18,9 @@ class U2C(object):
                    "remoteDispatcher": ManagementConnectorProperties.U2C_RD,
                    "feature": ManagementConnectorProperties.U2C_FEATURE,
                    "idbroker": ManagementConnectorProperties.U2C_IDBROKER,
+                   "identity": ManagementConnectorProperties.U2C_IDENTITY,
                    "fms": ManagementConnectorProperties.U2C_FMS,
                    "atlasFusionAdminPortal": ManagementConnectorProperties.U2C_ADMIN_PORTAL}
-
 
     def __init__(self, config, oauth):
         """ Constructor """

@@ -325,6 +325,9 @@ class ManagementConnectorProperties(object):
     DOMAINNAME = SYSTEM + "domainname"
     CLUSTER_NAME = SYSTEM + "clusterName"
     CLUSTER_ID = SYSTEM + "clusterId"
+    TEMP_TARGET_ORG_ID = SYSTEM + "tempTargetOrgId"
+    TEAMS_CLUSTER_ID = SYSTEM + "teamsClusterId"
+    BOOTSTRAP_PARAMS = SYSTEM + "bootstrapParams"
     CDB_VERSION = SYSTEM + "cdb_version"
     FUSED = SYSTEM + "fused"
     SERIAL_NUMBER = SYSTEM + "serialNumber"
@@ -340,6 +343,7 @@ class ManagementConnectorProperties(object):
     LAST_HEARTBEAT_TIME = "lastHeartbeatTime_"
     LAST_MERCURY_TIME = "lastMercuryTime_"
     WATCHDOG_RESTART_TIME = "watchdogRestartTime_"
+    FMS_HOST = SYSTEM + "fmsUrl"
 
     ALARMS = "alarms_"
     ALARMS_RAISED = ALARMS + "raised"
@@ -386,8 +390,11 @@ class ManagementConnectorProperties(object):
     U2C_ATLAS = BLOB_CDB_PATH + LOGGING_HOST + "_u2c"
     U2C_WDM = BLOB_CDB_PATH + WDM_HOST + "_u2c"
     U2C_METRICS = BLOB_CDB_PATH + METRICS_HOST + "_u2c"
-    U2C_RD =  BLOB_CDB_PATH + REMOTE_DISPATCHER_HOST + "_u2c"
+    U2C_RD = BLOB_CDB_PATH + REMOTE_DISPATCHER_HOST + "_u2c"
     U2C_FEATURE = BLOB_CDB_PATH + FEATURES_HOST + "_u2c"
-    U2C_IDBROKER = BLOB_CDB_PATH + "system_idpHost_u2c"
-    U2C_FMS =  BLOB_CDB_PATH + "system_fmsUrl"
+    U2C_IDB_HOST = "system_idpHost_u2c"
+    U2C_IDBROKER = BLOB_CDB_PATH + U2C_IDB_HOST
+    U2C_IDENTITY_HOST = "system_identityHost_u2c"
+    U2C_IDENTITY = BLOB_CDB_PATH + U2C_IDENTITY_HOST
+    U2C_FMS = BLOB_CDB_PATH + "system_fmsUrl"
     U2C_ADMIN_PORTAL = BLOB_CDB_PATH + "system_atlas_portal_u2c"
