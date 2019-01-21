@@ -1265,7 +1265,7 @@ EOT;
                     else if(isset($results[0]['info']))
                     {
                         $info = $results[0]['info'];
-                        if(preg_match("/Success Full Startup [a-zA-Z0-9]*/", $info))
+                        if(preg_match("/Success Full Startup*/", $info))
                         {
                             $success = true;
                         }
