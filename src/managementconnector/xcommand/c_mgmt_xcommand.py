@@ -571,14 +571,14 @@ def error_handler(message):
     """ report error content back from xcommand """
     # print the error message to stdout so that the invoking script can pass along the content
     print json.dumps(message)
-    sys.exit(ManagementConnectorProperties.XCOMMAND_ERROR_CODE)
+    sys.exit(ManagementConnectorProperties.SYS_ERROR_CODE)
 
 
 def success_handler(message):
     """ report success content back from xcommand """
     # print the success message to stdout so that invoking script can pass along the content
     print message
-    sys.exit(ManagementConnectorProperties.XCOMMAND_SUCCESS_CODE)
+    sys.exit(ManagementConnectorProperties.SYS_SUCCESS_CODE)
 
 
 def main():

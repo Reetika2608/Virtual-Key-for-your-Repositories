@@ -111,8 +111,9 @@ class ManagementConnectorProperties(object):
     WS_PING_TIMEOUT = 10
     WS_PING_INTERVAL = 30
 
-    XCOMMAND_SUCCESS_CODE = 0
-    XCOMMAND_ERROR_CODE = 99
+    SYS_SUCCESS_CODE = 0
+    SYS_UNKNOWN_ERROR_CODE = 1
+    SYS_ERROR_CODE = 99
 
     GENERIC_STATUS_FILE = '/var/run/%s/status.json'
 

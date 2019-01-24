@@ -1,3 +1,4 @@
+""" Test xstatus """
 
 import sys
 import mock
@@ -8,17 +9,11 @@ import unittest
 import logging
 from constants import SYS_LOG_HANDLER
 
-sys.path.append("/opt/c_mgmt/bin/")
-sys.path.append("/opt/c_mgmt/xstatus/")
-
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
-try:
-    import c_mgmt
-except ImportError:
-    import files.opt.c_mgmt.xstatus.c_mgmt as c_mgmt
+import managementconnector.xstatus.c_mgmt_xstatus as c_mgmt
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
@@ -61,8 +56,8 @@ class MockServiceManifest():
         pass
       
     def contains_alarm(self, alarm_id):
-      DEV_LOGGER.info('***TEST*** MockServiceManifest')
-      return True 
+        DEV_LOGGER.info('***TEST*** MockServiceManifest')
+        return True
 
     def get_cgroup_limits(self):
         return {'cpu': 100, 'memory': 100}
@@ -80,9 +75,6 @@ class XStatusTest(fake_filesystem_unittest.TestCase):
     def setUp(self):
         self.setUpPyfakefs()
         self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
-        # reload c_mgmt as xstatus and xcommand share the same module name
-        sys.path.insert(0, "/opt/c_mgmt/xstatus/")
-        reload(c_mgmt)
 
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils")
@@ -95,8 +87,7 @@ class XStatusTest(fake_filesystem_unittest.TestCase):
                       MockConfigNoAlarms(),
                       MockServiceManifest)
 
-            xtree = xstatus[0]
-            node = xtree.find("c_mgmt")
+            node = xstatus.find("c_mgmt")
             alarms = node.find("alarms")
             self.assertEquals(alarms.text, "0")
 
@@ -105,19 +96,15 @@ class XStatusTest(fake_filesystem_unittest.TestCase):
             xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}, {"display_name": "UCM Service", "name": "c_ucmc"}]', 'name': 'c_mgmt_entitled_services'}],
                                       MockConfig2Alarms(),
                                       MockServiceManifest)
-            xtree = xstatus[0]
-            node = xtree.find("c_mgmt")
+
+            node = xstatus.find("c_mgmt")
             alarms = node.find("alarms")
             self.assertEquals(alarms.text, "2")
 
             DEV_LOGGER.info('***TEST*** XStatusTest end')
 
-        try:
-            with mock.patch('c_mgmt.Service.get_status'):
-                alarms()
-        except ImportError:
-            with mock.patch('files.opt.c_mgmt.xstatus.c_mgmt.Service.get_status'):
-                alarms()
+        with mock.patch('managementconnector.xstatus.c_mgmt_xstatus.Service.get_status'):
+            alarms()
 
 
 if __name__ == "__main__":

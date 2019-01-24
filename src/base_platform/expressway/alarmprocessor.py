@@ -1,6 +1,7 @@
 """ FMC Alarm Processor """
 
 import subprocess
+import traceback
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
 ALARM_EXECUTABLE = '/sbin/alarm'
@@ -25,6 +26,9 @@ class AlarmProcessor(object):
             subprocess.check_output(command)
         except subprocess.CalledProcessError:
             DEV_LOGGER.ERROR('Detail="AlarmProcessor: Failed to raise alarm alarm_id=%s"', alarm_id)
+        except Exception as error:  # pylint: disable=W0703
+            DEV_LOGGER.error('Detail="AlarmProcessor: Failed to raise alarm alarm_id=%s, Exception occurred:%s, '
+                             'stacktrace=%s"', alarm_id, repr(error), traceback.format_exc())
 
     @staticmethod
     def lower_alarm(alarm_id):
@@ -35,3 +39,6 @@ class AlarmProcessor(object):
             subprocess.check_output(command)
         except subprocess.CalledProcessError:
             DEV_LOGGER.ERROR('Detail="AlarmProcessor: Failed to lower alarm alarm_id=%s"', alarm_id)
+        except Exception as error:  # pylint: disable=W0703
+            DEV_LOGGER.error('Detail="AlarmProcessor: Failed to lower alarm alarm_id=%s, Exception occurred:%s, '
+                             'stacktrace=%s"', alarm_id, repr(error), traceback.format_exc())
