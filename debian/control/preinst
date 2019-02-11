@@ -2,16 +2,17 @@
 
 
 ####################################################################################################################
-################################################# Library pyc Removal Migration ####################################
+############################################## bin symlink to directory migration ##################################
 ####################################################################################################################
-# This Section will fix old broken postrm scripts, that were deleting libraries' pyc files on upgrade
-# US12647 - TechDebt: Remove sed on postrm
+# Changing /opt/c_mgmt/bin from a symlink to a real file can sometimes fail and leave bin files in the
+# ni python directory structure, delete it before installing the real bin directory
 
-function fix_remove_all_pycs()
+function remove_bin_directory_symlink()
 {
-    postrm_path="/tandberg/tbl/dpkg/info/c_mgmt.postrm"
-    sed -i 's/find -P .*/find -P \/opt\/c_mgmt\/xcommand\/ \/opt\/c_mgmt\/xstatus\/ -name \*.pyc | xargs rm -f/' ${postrm_path}
+    if [ -L /opt/c_mgmt/bin ]; then
+        rm /opt/c_mgmt/bin
+    fi
 }
-fix_remove_all_pycs
+remove_bin_directory_symlink
 
 ################################################# End Migration logic ##############################################
