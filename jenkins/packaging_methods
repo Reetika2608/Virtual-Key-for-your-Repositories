@@ -121,6 +121,17 @@ generate_symlinks(){
     popd > /dev/null
 
     [[ ! -L ${ETC_DIR}config ]] && echo "Link Failure: ${ETC_DIR}config symlink not created" && exit 1
+
+
+    # Create a symlink from /opt/c_mgmt/bin/ -> /opt/c_mgmt/usr/bin/
+    # prexisting FMC have a bin symlink, which debian/dpkg can't get replace
+    # with a real dir, so, point the bin symlink to a new loation
+    OPT_C_MGMT_DIR=debian/data/opt/c_mgmt/
+    pushd ${OPT_C_MGMT_DIR} > /dev/null
+    ln -s usr/bin/ bin
+    popd
+
+    [[ ! -L ${OPT_C_MGMT_DIR}bin ]] && echo "Link Failure: ${OPT_C_MGMT_DIR}bin symlink not created" && exit 1
 }
 
 install_external_dependencies(){
