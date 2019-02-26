@@ -1,19 +1,36 @@
 #!/usr/bin/groovy
 
+TARGET=""
+
 pipeline {
-    agent { dockerfile true }
+    agent {
+        docker {
+            image 'fmc-build'
+            args '--mount type=bind,source="$HOME/",target="/management-connector"'
+        }
+    }
+
     stages {
-        stage('clean') {
+
+        stage('Configure') {
             steps {
-                sh 'python setup.py clean'
+                // Need to install the readYaml plugin, and ensure it's available on SQBU
+                script { config = readYaml (file: './tests_integration/configuration/default.yaml') }
+                script { TARGET = config.expressway.exp_hostname1.toString() }
+                echo "Expressway Target: ${TARGET}"
             }
         }
+
+        stage('static analysis'){
+            steps{
+                sh "python setup.py pylint"
+                sh "test_environment/run_bandit.sh"
+            }
+        }
+
         stage('unit test'){
              steps{
-                dir("test_environment/stubs/"){
-                    sh "python setup.py install"
-                }
-                sh "nosetests ni/tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml"
+                sh "nosetests tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml"
             }
             post{
                 always{
@@ -23,20 +40,19 @@ pipeline {
                 }
             }
         }
-        stage('static analysis'){
-            steps{
-                sh "python setup.py pylint"
-                sh "test_environment/run_bandit.sh"
-            }
-        }
+
         stage('build'){
             steps{
-                sh(script: """
-                        chmod +x build_and_upgrade.sh;
-                        ./build_and_upgrade.sh -c build;
-                    """.trim())
+                sh "./build_and_upgrade.sh -c upgrade -v ${BUILD_ID} -t ${TARGET} -w;"
             }
         }
+
+        stage('system test'){
+            steps{
+                sh 'python -m unittest discover tests_integration/ "*_test.py"'
+            }
+        }
+
     }
     post{
         success{

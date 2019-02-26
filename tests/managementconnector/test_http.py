@@ -9,18 +9,21 @@ from constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
+sys.modules['pyinotify'] = mock.MagicMock()
+
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 import managementconnector.platform.http as http
 import managementconnector.config.config as config
 from managementconnector.cloud import schema
 
+
 class HTTPTest(unittest.TestCase):
     """ Management Connector HTTP Test Class """
         
     def setUp(self):
         """ Manamgent Connector Test Setup """
-        http.Http.init(config.Config())
+        http.Http.init(config.Config(inotify=False))
         http._http_request = _http_request # mock out http request
         
         http.DEV_LOGGER.debug('***TEST Setup***')
@@ -283,6 +286,7 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
         return {'foo': "DELETE"}
     else:
         raise Exception("bad error")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

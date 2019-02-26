@@ -5,8 +5,12 @@ import json
 import unittest
 import mock
 from mock import mock_open, patch
+import sys
 from constants import SYS_LOG_HANDLER
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
+
+sys.modules['pyinotify'] = mock.MagicMock()
+
 
 from managementconnector.config.jsonhandler import JsonHandler
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
@@ -42,7 +46,6 @@ def get_config(path):
     DEV_LOGGER.info('get_config: Mocking out file read')
     js_clean = SAMPLE_CONFIG.replace("'", "")
     return json.loads(js_clean)
-
 
 
 class JsonHandlerTest(unittest.TestCase):

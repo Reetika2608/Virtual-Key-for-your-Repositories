@@ -14,7 +14,7 @@ usage(){
 
 build(){
     BUILD_NUMBER=$1
-    if [ -z "${BUILD_NUMBER}" ]
+    if [[ -z "${BUILD_NUMBER}" ]]
     then
         BUILD_NUMBER=12345
     fi
@@ -35,14 +35,21 @@ build(){
     audit_debian_contents
 }
 
+add_to_known_hosts(){
+    # Check and create the ssh directory, which may not exist in the docker image
+    [[ ! -d ~/.ssh/ ]] && mkdir ~/.ssh/
+    ssh-keyscan -H ${TARGET} >> ~/.ssh/known_hosts
+}
+
 upgrade(){
+    add_to_known_hosts
     # Set the version number to installed version + 1, if the -v option was not supplied
     INSTALLED_VERSION=$(sshpass -p ${TARGET_PASSWORD} ssh root@${TARGET} dpkg  -l | grep c_mgmt | awk '{print $3}' | cut -d "." -f 4)
-    if [ -z "${VERSION}" ]; then
+    if [[ -z "${VERSION}" ]]; then
         VERSION=$((INSTALLED_VERSION+1))
     fi
 
-    [ "$INSTALLED_VERSION" = "$VERSION" ] && echo "[upgrade] Error: Can't upgrade to same version as installed: ${VERSION}" && exit 1
+    [[ "$INSTALLED_VERSION" = "$VERSION" ]] && echo "[upgrade] Error: Can't upgrade to same version as installed: ${VERSION}" && exit 1
 
     echo "[upgrade] Upgrading: ${TARGET} from ${INSTALLED_VERSION} to ${VERSION}"
     build ${VERSION}
@@ -51,6 +58,7 @@ upgrade(){
 
 clean_install(){
     echo "[clean_install] Fresh installing: ${TARGET} with version ${VERSION}"
+    add_to_known_hosts
     uninstall
     build ${VERSION}
     install

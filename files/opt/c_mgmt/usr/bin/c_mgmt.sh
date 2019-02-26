@@ -20,7 +20,7 @@ import managementconnector.managementconnectormain
 
 managementconnector.managementconnectormain.main()
 EOF
-python -c "$PYTHON_CODE" 2>&1
+/opt/c_mgmt/python/bin/python -c "$PYTHON_CODE" 2>&1
 py_status=$?
 popd >/dev/null 2>&1
 

@@ -1,21 +1,15 @@
 #!/bin/bash
 
-PYTHON=python
-TOOLCHAIN_PYTHON=/tandberg/system/toolchain/x86_64_gcc-7.3.0_glibc-2.28_i686-host-linux-gnu-5/bin/python
-
-if [[ -f ${TOOLCHAIN_PYTHON}  ]]; then
-    # Use the local toolchain python if it's available
-    PYTHON=${TOOLCHAIN_PYTHON}
-fi
+PYTHON=python2.7
 
 clean_working_directory(){
     echo "clean_working_directory: Cleaning un-wanted build files and directories"
-    python setup.py clean
+    ${PYTHON} setup.py clean
 }
 
 audit_import_paths(){
     echo "audit_import_paths: ensuring correct import"
-    python setup.py audit_import_paths
+    ${PYTHON} setup.py audit_import_paths
 }
 
 install_python_component(){
@@ -138,6 +132,16 @@ install_external_dependencies(){
     WEBSOCKET_DIR=debian/data/opt/c_mgmt/lib/websocket_client/
     pip install websocket-client==0.37.0 --target=${WEBSOCKET_DIR} --no-dependencies
     [[ ! -d ${WEBSOCKET_DIR}websocket/ ]] && echo "External Dependencies Failure: ${WEBSOCKET_DIR}websocket/ install failure" && exit 1
+
+    # Extra python dependencies
+    pip install pyinotify==0.9.6 --target=debian/data/opt/c_mgmt/lib/pyinotify/ --no-dependencies
+    pip install six==1.11.0 --target=debian/data/opt/c_mgmt/lib/six/ --no-dependencies
+    pip install httplib2==0.10.3 --target=debian/data/opt/c_mgmt/lib/httplib/ --no-dependencies
+    pip install pyratemp==0.3.2 --target=debian/data/opt/c_mgmt/lib/pyratemp/ --no-dependencies
+    pip install functools32==3.2.3.post2 --target=debian/data/opt/c_mgmt/lib/functools32/ --no-dependencies
+    pip install jsonschema==2.5.1 --target=debian/data/opt/c_mgmt/lib/jsonschema/ --no-dependencies
+    pip install cryptography==2.4.2 --target=debian/data/opt/c_mgmt/lib/cryptography/
+    pip install defusedxml==0.5.0 --target=debian/data/opt/c_mgmt/lib/defusedxml/ --no-dependencies
 }
 
 generate_debian_version(){
@@ -190,17 +194,26 @@ remove_group_write_permissions(){
 package_debian(){
     # Build a debian from a debian-bnary, control, and data tars.
     echo "package_debian: Building the control, data tars and debian package"
+
+    if [[ "$(uname)" == "Darwin" ]]; then
+        echo "It looks like you are running on a Mac. Using gtar to build the debian"
+        echo "To install gtar via homebrew run: brew install gnu-tar"
+        TAR=gtar
+    else
+        TAR=tar
+    fi
+
     [[ ! -d debian/_build/ ]] && mkdir -p debian/_build/
 
     pushd debian/control/_build > /dev/null
-    tar czp --owner=root --group=root -f ../../_build/control.tar.gz .
+    ${TAR} czp --owner=root --group=root -f ../../_build/control.tar.gz .
     popd > /dev/null
 
     CONTROL_TAR=debian/_build/control.tar.gz
     [[ ! -f ${CONTROL_TAR} ]] && echo "Archive Failure: ${CONTROL_TAR} not created" && exit 1
 
     pushd debian/data > /dev/null
-    tar czp --owner=root --group=root -f ../_build/data.tar.gz .
+    ${TAR} czp --owner=root --group=root -f ../_build/data.tar.gz .
     popd > /dev/null
 
     DATA_TAR=debian/_build/data.tar.gz

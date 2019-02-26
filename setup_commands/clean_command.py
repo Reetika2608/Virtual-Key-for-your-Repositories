@@ -18,7 +18,9 @@ class CleanCommand(Command):
 
     def run(self):
         cmd_list = dict(
-            pyc="find . -name '*.pyc' -exec rm -rf {} \;",
+            pyc="find ./src -name *.pyc | xargs rm -f; "
+                "find ./tests -name *.pyc | xargs rm -f; "
+                "find ./setup_commands -name *.pyc | xargs rm -f; ",
             build_dirs="rm -rf build/ dist/ debian/_build/ debian/data/ debian/control/_build ./*.egg-info test-results.xml",
         )
         for key, cmd in cmd_list.items():

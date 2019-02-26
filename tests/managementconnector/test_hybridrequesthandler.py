@@ -10,6 +10,8 @@ import sys
 from constants import SYS_LOG_HANDLER
 
 sys.modules['taacrypto'] = mock.Mock()
+sys.modules['pyinotify'] = mock.MagicMock()
+
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 from managementconnector.platform.hybridrequesthandler import on_request

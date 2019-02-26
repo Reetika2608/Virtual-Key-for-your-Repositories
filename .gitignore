@@ -10,15 +10,21 @@ _build/
 # Staging directory for Debian content
 debian/data
 
-# Runtime files
-*.pyc
-
 # Virtual environment for tests
 test_environment/venv
-
-# Stubs build artefacts
-test_environment/stubs/dist
 
 # Unit tests artefacts
 test-results.xml
 bandit_baseline_result.txt
+
+# Test configuration
+tests_integration/configuration/default.yaml
+
+# Test Logs
+tests_integration/ui_based_tests/logs/
+
+# PYC files we know that we can ignore
+setup_commands/*.pyc
+tests_integration/**/*.pyc
+tests/**/*.pyc
+src/**/*.pyc

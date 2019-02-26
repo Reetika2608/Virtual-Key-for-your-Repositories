@@ -4,12 +4,15 @@
 
 """ This module starts ManagementConnector """
 
-# Initialise logging framework before all other application imports
-import base_platform.expressway.logframework.setup as logging_setup
-
 # Append all required paths to the syspath for library imports.
 from managementconnector.platform.libraryutils import LibraryUtils
 LibraryUtils.append_library_path()
+from managementconnector.platform.taacryptoappender import TaacryptoAppender
+TaacryptoAppender.append_taacrypto_version()
+
+# Initialise logging framework before all other application imports
+import base_platform.expressway.logframework.setup as logging_setup
+
 
 # Local application / library specific imports
 from managementconnector.applicationrunner import ApplicationRunner

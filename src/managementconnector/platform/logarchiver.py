@@ -261,7 +261,7 @@ class LogArchiver(object):
             # "true"    - managing certs.
             # "false"   - not managing certs.
             # None      - never managed certs.
-            add_certs = Config().read(ManagementConnectorProperties.ADD_FUSION_CERTS)
+            add_certs = Config(inotify=False).read(ManagementConnectorProperties.ADD_FUSION_CERTS)
 
             cause = "unmanaged-certs"
 

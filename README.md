@@ -37,6 +37,7 @@ For faster development you can add a bash alias to build and upgrade your FMC on
 `~/.bash_aliases` file and ensure it's been sourced correctly.
 
 `alias upgrade_<hostname>='cd ~/git/management-connector/ && ./build_and_upgrade.sh -c upgrade -t <taget_expressway_ip> -w'`
+`alias doc_upgrade_<hostname>='cd ~/git/management-connector/ && docker run -it --mount type=bind,source="$(pwd)/",target="/management-connector" fmc-build ./build_and_upgrade.sh -c upgrade -t <target_expressway> -w'`
 
 The `-c` option specifies the different command options, `-t` specifies the target you want to upgrade, and the `-w` specifies that you
 want to wait for the install of the debian to complete
@@ -51,7 +52,11 @@ You can run unit tests, complete a build of FMC, all from within this container.
 
 ```
 docker build -t fmc-build .
-docker run -it fmc-build /bin/bash
+docker run -it --mount type=bind,source="$(pwd)/",target="/management-connector" fmc-build /bin/bash
+
+or
+
+docker run -it --mount type=bind,source="$(pwd)/",target="/management-connector" fmc-build  ./build_and_upgrade.sh -c upgrade -t <TARGET> -w
 ```
 
 #### Example Commands run in the fmc-build Docker container

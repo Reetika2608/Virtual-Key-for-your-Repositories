@@ -17,7 +17,6 @@ import time
 # Local application/library specific imports
 from base_platform.expressway.filesystem.filewriter import FileWriter
 from base_platform.expressway.filesystem.monitor import FileMonitor
-from base_platform.expressway.filesystem.twistedmonitor import TwistedFileMonitor
 import base_platform.expressway.logframework.setup
 from base_platform.expressway.platforminfo import PlatformInfo
 from base_platform.expressway.logframework.plugin import Plugin
@@ -270,23 +269,6 @@ class Log4ConfigurationMonitor(FileMonitor):
         self.configuration_loader.update_log_levels()
         self.register_file_observer(self.configuration_loader.get_file_path(), self._on_change)
         self.start()
-
-    def _on_change(self, _file_path):
-        """Reads log levels from the update configuration file and updates the
-        logging system."""
-        self.configuration_loader.update_log_levels()
-
-
-class TwistedLog4ConfigurationMonitor(TwistedFileMonitor):
-    """Monitors the log4 configuration file with the twisted file monitor
-    and updates the logging levels if the file changes.
-    """
-
-    def __init__(self, file_path=None, twisted_reactor=None):
-        TwistedFileMonitor.__init__(self, twisted_reactor)
-        self.configuration_loader = Log4ConfigurationLoader(file_path)
-        self.configuration_loader.update_log_levels()
-        self.register_file_observer(self.configuration_loader.get_file_path(), self._on_change)
 
     def _on_change(self, _file_path):
         """Reads log levels from the update configuration file and updates the

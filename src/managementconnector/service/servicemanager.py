@@ -88,10 +88,10 @@ class ServiceManager():
                                      upgrade_event.get_detailed_info())
 
             # Audit Services + Dependencies
-            # Checks for any old Connectors (package that start with c_)
-            self.purge_deleted_connectors(connectors_config, ManagementConnectorProperties.CONNECTOR_PREFIX)
             # Checks for any old Dependencies (package that start with d_)
             self.purge_deleted_connectors(connectors_config, ManagementConnectorProperties.DEPENDENCY_PREFIX)
+            # Checks for any old Connectors (package that start with c_)
+            self.purge_deleted_connectors(connectors_config, ManagementConnectorProperties.CONNECTOR_PREFIX)
 
             # Alarm Processing.
             self._process_unknownhost_alarm(upgrade_failures['server_unavailable'],

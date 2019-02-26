@@ -11,6 +11,8 @@ from constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
+sys.modules['pyinotify'] = mock.MagicMock()
+
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 from managementconnector.cloud.u2c import U2C
@@ -40,7 +42,8 @@ class U2CTest(unittest.TestCase):
         self.config_mock = mock.MagicMock()
 
     @mock.patch('managementconnector.cloud.u2c.Http.get')
-    def test_update_user_catalog(self, mock_http_get):
+    @mock.patch('managementconnector.cloud.u2c.DatabaseHandler')
+    def test_update_user_catalog(self, mock_db, mock_http_get):
         """ Test U2C User Catalog Processed Correctly"""
 
         self.config_mock.read.side_effect = config_read
@@ -62,7 +65,8 @@ class U2CTest(unittest.TestCase):
                                                   {'value': '"https://atlas-intb.ciscospark.com/admin/api/v1"'})
 
     @mock.patch('managementconnector.cloud.u2c.Http.get')
-    def test_update_user_catalog_service_missing(self, mock_http_get):
+    @mock.patch('managementconnector.cloud.u2c.DatabaseHandler')
+    def test_update_user_catalog_service_missing(self, mock_db, mock_http_get):
         """ Test U2C User Catalog Processed Correctly with missing value"""
 
         self.config_mock.read.side_effect = config_read

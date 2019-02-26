@@ -199,28 +199,27 @@ class Deploy(object):
         DEV_LOGGER.info('Detail="FMC_Lifecycle Management Connector removing Packages on attempt %s"' % defuse_attempt)
 
         try:
+            services = []
             # Remove any installed connectors
-            cached_services = list(self._service_manager.get_all())
-
-            # Compare cached list with all installed connectors to ensure none are missed
-            if len(cached_services) == 1:
-                installed_connectors = CafeXUtils.get_installed_connectors(ManagementConnectorProperties.
-                                                                           CONNECTOR_PREFIX)
-                installed_dependencies = CafeXUtils.get_installed_connectors(ManagementConnectorProperties.
-                                                                             DEPENDENCY_PREFIX)
-                currently_installed = []
-                if installed_connectors:
-                    currently_installed += installed_connectors
-                if installed_dependencies:
-                    currently_installed += installed_dependencies
-                for connector in currently_installed:
-                    if connector != ManagementConnectorProperties.SERVICE_NAME:
-                        cached_services.append(self._service_manager.get(connector))
+            installed_dependencies = CafeXUtils.get_installed_connectors(ManagementConnectorProperties.
+                                                                         DEPENDENCY_PREFIX)
+            installed_connectors = CafeXUtils.get_installed_connectors(ManagementConnectorProperties.
+                                                                       CONNECTOR_PREFIX)
+            currently_installed = []
+            # Make sure Java is NOT removed last, but first, so we don't get the bug where we
+            # delete the symlink /mnt/harddisk
+            if installed_dependencies:
+                currently_installed += installed_dependencies
+            if installed_connectors:
+                currently_installed += installed_connectors
+            for connector in currently_installed:
+                if connector != ManagementConnectorProperties.SERVICE_NAME:
+                    services.append(self._service_manager.get(connector))
 
             excluded_alarms = list()
 
-            if cached_services:
-                for service in cached_services:
+            if services:
+                for service in services:
                     service_name = service.get_name()
                     service_alarms = service.get_exclude_alarms()
                     if service_alarms:

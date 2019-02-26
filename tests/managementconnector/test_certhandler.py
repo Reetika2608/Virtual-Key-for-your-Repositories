@@ -1,7 +1,10 @@
 import unittest
 import logging
 import mock
+import sys
 from constants import SYS_LOG_HANDLER
+
+sys.modules['pyinotify'] = mock.MagicMock()
 
 from managementconnector.config.certhandler import merge_certs, repair_certs
 

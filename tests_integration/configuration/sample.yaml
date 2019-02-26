@@ -1,0 +1,21 @@
+expressway:
+  exp_hostname1:
+  exp_hostname2:
+  exp_hostname3:
+  exp_admin_user: admin
+  exp_admin_pass: x
+  exp_root_user: root
+  exp_root_pass: x
+org:
+  org_id: bb9e6b5d-1383-40ed-938a-cbefc6d5b868
+  org_admin_user: admin@marneweltest.int
+  org_admin_password: some_sample_password
+urls:
+  fms_server: hercules-intb.ciscospark.com
+  ci_broker_server: idbrokerbts.webex.com
+connectors:
+  expected_connectors: {c_mgmt: 'Management Connector', c_cal: 'Calendar Connector', c_ucmc: 'Call Connector', c_imp: 'Message Connector'}
+misc:
+  # TODO: Get a client, this is e2e's one
+  client_id: Ca779cc7acab70dade83b616c5d35a88909355ffe3090a6644d0fac4cf1fdb317
+  client_secret: 7056e27320ad4a0f872e988f189f4090f33413efb94fbdeb72e007a82651c239

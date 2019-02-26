@@ -683,8 +683,7 @@ def _initialise_log4configuration(monitoring=True, with_twisted=False, twisted_r
         if LOG_LEVEL_MONITOR is None:
             if with_twisted and twisted_reactor is not None:
                 LOG_LEVEL_MONITOR = (
-                    log4configuration.TwistedLog4ConfigurationMonitor(
-                        twisted_reactor=twisted_reactor))
+                    log4configuration.Log4ConfigurationMonitor())
             else:
                 LOG_LEVEL_MONITOR = log4configuration.Log4ConfigurationMonitor() # pylint: disable=R0204
     else:

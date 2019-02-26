@@ -14,6 +14,8 @@ from productxml import PRODUCT_XML_CONTENTS
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
+sys.modules['pyinotify'] = mock.MagicMock()
+
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 # Append all required paths to the syspath for library imports.

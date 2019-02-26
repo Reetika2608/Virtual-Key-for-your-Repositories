@@ -9,12 +9,13 @@ from constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
+sys.modules['pyinotify'] = mock.MagicMock()
+
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.cloud.oauth import OAuth
 from managementconnector.config.config import Config
-
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
@@ -26,49 +27,55 @@ REFRESHED_TOKEN = "Refreshed Access Token"
 def config_read_side_effect(*args, **kwargs):
     """ Config Side Effect """
     if args[0] == ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS:
-        return {"username" : "username", "organization_id" : "org_id", "location": "somewhere", "password": "{cipher}LT4V5Hr02ejy326BWD+3TgmyS2GK6TPm6UyxxgmxgzOe96Zr52c9HOk7hKBtDeI1iob1OTTFom+bzvFXKMgPwQ==", "id": "id"}
+        return {"username": "username", "organization_id": "org_id", "location": "somewhere",
+                "password": "{cipher}LT4V5Hr02ejy326BWD+3TgmyS2GK6TPm6UyxxgmxgzOe96Zr52c9HOk7hKBtDeI1iob1OTTFom+bzvFXKMgPwQ==",
+                "id": "id"}
 
     if args[0] == ManagementConnectorProperties.OAUTH_BASE:
-        return {"idpHost" : "idpHost" , "clientId" : "clientId", "clientSecret" : "clientSecret"}
+        return {"idpHost": "idpHost", "clientId": "clientId", "clientSecret": "clientSecret"}
+
 
 def config_read_side_effect_none(*args, **kwargs):
     """ Config Side Effect """
     if args[0] == ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS:
         return None
 
+
 def config_read_side_effect_exception(*args, **kwargs):
     """ Config Side Effect """
     if args[0] == ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS:
-        raise
+        raise Exception("Random error")
+
 
 def post(url, headers, data, silent=False, schema=None):
     """ Post Side Effect """
     DEV_LOGGER.info("Post Side Effect")
 
     curr_time = OAuth.get_current_time()
+    oauth_response = None
 
     if "grant_type" in data:
-
-       oauth_response = {'access_token' : REFRESHED_TOKEN, 'expires_in' : 100, 'accountExpiration' : 272,
-                            'time_read' : curr_time, 'refresh_token_expires_in' : 865000,
-                            'refresh_token' : REFRESH_TOKEN,
-                            'refresh_time_read' : curr_time}
+        oauth_response = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 272,
+                          'time_read': curr_time, 'refresh_token_expires_in': 865000,
+                          'refresh_token': REFRESH_TOKEN,
+                          'refresh_time_read': curr_time}
 
     elif "GetBearerToken" in url:
-        oauth_response = {'BearerToken' : 'bearertoken'}
+        oauth_response = {'BearerToken': 'bearertoken'}
 
     return oauth_response
+
 
 class OAuthTest(unittest.TestCase):
     """ Management Connector OAuth Test Class """
 
     def setUp(self):
-        ''' Test Setup'''
+        """ Test Setup"""
 
         self.oauth = OAuth(Config(inotify=False))
 
     def tearDown(self):
-        ''' Test tearDown '''
+        """ Test tearDown """
 
     @mock.patch('managementconnector.cloud.oauth.taacrypto.decrypt_with_system_key')
     @mock.patch('managementconnector.platform.http.Http.post', side_effect=post)
@@ -101,15 +108,14 @@ class OAuthTest(unittest.TestCase):
 
         mock_json_config.return_value = {'password': 'password'}
 
-
-        #Valid Token
+        # Valid Token
 
         curr_time = OAuth.get_current_time()
 
-        self.oauth.oauth_response = {'access_token' : ACCESS_TOKEN, 'expires_in' : 400, 'accountExpiration' : 272,
-                            'time_read' : curr_time, 'refresh_token_expires_in' : 865000,
-                            'refresh_time_read' : curr_time,
-                            'refresh_token' : REFRESH_TOKEN}
+        self.oauth.oauth_response = {'access_token': ACCESS_TOKEN, 'expires_in': 400, 'accountExpiration': 272,
+                                     'time_read': curr_time, 'refresh_token_expires_in': 865000,
+                                     'refresh_time_read': curr_time,
+                                     'refresh_token': REFRESH_TOKEN}
 
         self.oauth.machine_response = {}
 
@@ -121,7 +127,8 @@ class OAuthTest(unittest.TestCase):
     @mock.patch('managementconnector.cloud.oauth.OAuth._get_machine_details_from_json')
     @mock.patch('managementconnector.cloud.oauth.OAuth._is_machine_account_cache_stale')
     @mock.patch('managementconnector.cloud.oauth.Http')
-    def test_get_access_token_expired(self, mock_http, mock_is_machine_acc_cache_stale, mock_json_config, mock_config_read):
+    def test_get_access_token_expired(self, mock_http, mock_is_machine_acc_cache_stale, mock_json_config,
+                                      mock_config_read):
         """ Get Access Token Tests """
 
         DEV_LOGGER.info("****** test_get_access_token_expired ******")
@@ -134,24 +141,24 @@ class OAuthTest(unittest.TestCase):
 
         mock_json_config.return_value = {'password': 'password'}
 
-        mock_http.post.return_value = {'access_token' : REFRESHED_TOKEN, 'expires_in' : 100, 'accountExpiration' : 272,
-                            'time_read' : curr_time, 'refresh_token_expires_in' : 865000,
-                            'refresh_token' : REFRESH_TOKEN,
-                            'refresh_time_read' : curr_time}
+        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 272,
+                                       'time_read': curr_time, 'refresh_token_expires_in': 865000,
+                                       'refresh_token': REFRESH_TOKEN,
+                                       'refresh_time_read': curr_time}
 
         self.oauth.http = mock_http
 
-        #Expired Token
+        # Expired Token
 
         curr_time = OAuth.get_current_time()
 
-        self.oauth.oauth_response = {'access_token' : ACCESS_TOKEN, 'expires_in' : 10, 'accountExpiration' : 272,
-                            'time_read' : curr_time, 'refresh_token_expires_in' : 865000,
-                            'refresh_time_read' : curr_time, 'refresh_token' : REFRESH_TOKEN}
+        self.oauth.oauth_response = {'access_token': ACCESS_TOKEN, 'expires_in': 10, 'accountExpiration': 272,
+                                     'time_read': curr_time, 'refresh_token_expires_in': 865000,
+                                     'refresh_time_read': curr_time, 'refresh_token': REFRESH_TOKEN}
 
         token = self.oauth.get_access_token()
 
-        DEV_LOGGER.info("token = %s" %(token))
+        DEV_LOGGER.info("token = %s" % (token))
 
         self.assertTrue(token == REFRESHED_TOKEN)
 
@@ -159,7 +166,8 @@ class OAuthTest(unittest.TestCase):
     @mock.patch('managementconnector.cloud.oauth.OAuth._is_machine_account_cache_stale')
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.platform.http.Http.post', side_effect=post)
-    def test_get_access_token_refresh_expired(self, mock_http, mock_config, mock_is_machine_acc_cache_stale, mock_decrypt):
+    def test_get_access_token_refresh_expired(self, mock_http, mock_config, mock_is_machine_acc_cache_stale,
+                                              mock_decrypt):
         """ Get Access Token Tests """
 
         DEV_LOGGER.info("****** test_get_access_token_refresh_expired ******")
@@ -169,19 +177,18 @@ class OAuthTest(unittest.TestCase):
         mock_config.read.side_effect = config_read_side_effect
         test_oauth = OAuth(mock_config)
 
-        #Expired Refresh Token
+        # Expired Refresh Token
 
         curr_time = OAuth.get_current_time()
 
         mock_is_machine_acc_cache_stale.return_value = False
 
-        test_oauth.oauth_response = {'access_token' : ACCESS_TOKEN, 'expires_in' : 10, 'accountExpiration' : 272,
-                            'time_read' : curr_time, 'refresh_token_expires_in' : 10,
-                            'refresh_time_read' : curr_time, 'refresh_token' : REFRESH_TOKEN}
+        test_oauth.oauth_response = {'access_token': ACCESS_TOKEN, 'expires_in': 10, 'accountExpiration': 272,
+                                     'time_read': curr_time, 'refresh_token_expires_in': 10,
+                                     'refresh_time_read': curr_time, 'refresh_token': REFRESH_TOKEN}
 
-        test_oauth.machine_response = {'location' : 'some_location', 'username' : 'username', 'password' : 'password',
-                                         'adminUser' : False, 'organization_id' : 'organization_id'}
-
+        test_oauth.machine_response = {'location': 'some_location', 'username': 'username', 'password': 'password',
+                                       'adminUser': False, 'organization_id': 'organization_id'}
 
         token = test_oauth.get_access_token()
 
@@ -189,8 +196,6 @@ class OAuthTest(unittest.TestCase):
 
         token = test_oauth.get_access_token()
         self.assertTrue(token == REFRESHED_TOKEN)
-
-
 
     @mock.patch('managementconnector.cloud.oauth.Http')
     def test_refresh_oauth_resp_with_idp(self, mock_http, mock_config):
@@ -231,7 +236,7 @@ class OAuthTest(unittest.TestCase):
         self.oauth.http = mock_http
 
         mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 100}
-        
+
         oauth_info = self.oauth._refresh_oauth_resp_with_idp()
         self.assertTrue(oauth_info['refresh_time_read'] > time_in_past)
         self.assertTrue(oauth_info['access_token'] == REFRESHED_TOKEN)
@@ -246,7 +251,7 @@ class OAuthTest(unittest.TestCase):
         test_oauth = OAuth(mock_config)
         exception = Exception()
 
-        #JSON
+        # JSON
         mock_config.read.side_effect = config_read_side_effect
 
         ### Stale cache
@@ -289,7 +294,7 @@ class OAuthTest(unittest.TestCase):
 
         stale_state = test_oauth._is_machine_account_cache_stale()
 
-        DEV_LOGGER.info("state = %s" % (stale_state))
+        DEV_LOGGER.info("state = %s" % stale_state)
 
         self.assertFalse(stale_state)
 
@@ -320,7 +325,7 @@ class OAuthTest(unittest.TestCase):
 
         test_oauth._config.write_blob.assert_called_with(ManagementConnectorProperties.REREGISTER, 'true')
 
-        #REREGISTER, 'false'
+        # REREGISTER, 'false'
         mock_http.post.side_effect = None
         mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 100}
         test_oauth._refresh_oauth_resp_with_idp()
@@ -339,13 +344,14 @@ class OAuthTest(unittest.TestCase):
 
         test_oauth = OAuth(mock_config)
 
-        mock_json_config.return_value = {'username': 'username', 'password': 'password', 'organization_id': 'organization_id'}
+        mock_json_config.return_value = {'username': 'username', 'password': 'password',
+                                         'organization_id': 'organization_id'}
 
         headers = {'Content-Type': 'application/json', 'TrackingID': ''}
         stream = io.TextIOWrapper(io.BytesIO(''))
         url = "https://idbroker.webex.com/idb/token/org_id/v1/actions/GetBearerToken/invoke"
 
-        #test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
+        # test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
         mock_http.post.side_effect = urllib2.HTTPError(url, 401, "invalid", headers, stream)
 
         # REREGISTER, 'true'

@@ -8,6 +8,8 @@ from constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
+sys.modules['pyinotify'] = mock.MagicMock()
+
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 from managementconnector.platform.libraryutils import LibraryUtils
@@ -99,7 +101,8 @@ class ManagementConnectorTest(unittest.TestCase):
     @mock.patch('managementconnector.mgmtconnector.CAFEManager')
     @mock.patch('managementconnector.mgmtconnector.Deploy')
     @mock.patch('managementconnector.mgmtconnector.Config')
-    def test_on_config_update_c_mgmt(self, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_machine, mock_mercury, mock_u2c,  mock_toggle, mock_thread, mock_watchdog, mock_push_logs_async):
+    @mock.patch('managementconnector.config.certhandler.FilesystemManager')
+    def test_on_config_update_c_mgmt(self, mock_fs_manager, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_machine, mock_mercury, mock_u2c,  mock_toggle, mock_thread, mock_watchdog, mock_push_logs_async):
         """ Test ManagementConnector on_config_update for c_mgmt"""
 
         # Set Mocks
@@ -131,7 +134,8 @@ class ManagementConnectorTest(unittest.TestCase):
     @mock.patch('managementconnector.mgmtconnector.CAFEManager')
     @mock.patch('managementconnector.mgmtconnector.Deploy')
     @mock.patch('managementconnector.mgmtconnector.Config')
-    def test_on_config_update_c_cal(self, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_push_logs_async):
+    @mock.patch('managementconnector.config.certhandler.FilesystemManager')
+    def test_on_config_update_c_cal(self, mock_fs_manager, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_push_logs_async):
         """ Test ManagementConnector on_config_update for Exchange Calendar """
         service_path = "/configuration/service/name/c_cal"
 
@@ -168,7 +172,8 @@ class ManagementConnectorTest(unittest.TestCase):
     @mock.patch('managementconnector.mgmtconnector.CAFEManager')
     @mock.patch('managementconnector.mgmtconnector.Deploy')
     @mock.patch('managementconnector.mgmtconnector.Config')
-    def test_on_config_update_both_connectors(self, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_machine, mock_mercury, mock_toggle, mock_u2c_thread,  mock_feature_thread, mock_watchdog, mock_push_logs_async):
+    @mock.patch('managementconnector.config.certhandler.FilesystemManager')
+    def test_on_config_update_both_connectors(self, mock_fs_manager, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_machine, mock_mercury, mock_toggle, mock_u2c_thread,  mock_feature_thread, mock_watchdog, mock_push_logs_async):
         """ Test ManagementConnector on_config_update for c_mgmt and c_cal"""
         service_path = "/configuration/service/name/c_cal"
 
