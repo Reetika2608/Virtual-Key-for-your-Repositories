@@ -94,7 +94,7 @@ def get_cis_auth_code(org, user, passwd, cis_url, client_id, scopes=None):
 
     req = sess.post(ci_login_url, ci_login_data)
 
-    assert 'success' in req.text, "Can not find success message in request answer %s" % req.text
+    assert 'success' in req.text, "Can not find success message in request to LOGIN answer: %s" % req.text
 
     # log.info("login response: %s", req.text)
     LOG.info("END LOGIN---------------")

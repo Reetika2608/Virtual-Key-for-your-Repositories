@@ -1,6 +1,7 @@
 """ Hybrid Services Registration tests via requests library """
 import datetime
 import logging
+import re
 import unittest
 from tests_integration.utils import fms
 from tests_integration.utils.common_methods import wait_until, is_connector_entitled, is_connector_installed, \
@@ -43,6 +44,13 @@ class RequestsRegisterTest(unittest.TestCase):
             cls.access_token,
             cls.session)
 
+        for connector in cls.config.expected_connectors():
+            wait_until(is_connector_installed, 240, 10,
+                       *(cls.config.exp_hostname1(),
+                         cls.config.exp_root_user(),
+                         cls.config.exp_root_pass(),
+                         connector))
+
     @classmethod
     def tearDownClass(cls):
         LOG.info("Running: tearDownClass")
@@ -58,36 +66,18 @@ class RequestsRegisterTest(unittest.TestCase):
         if cls.refresh_token:
             ci.delete_ci_refresh_token(cls.refresh_token)
 
-    def tearDown(self):
-        LOG.info("Running: tearDown")
-
-    def test_01_requests_based_registration(self):
+    def test_connectors_can_be_enabled_with_correct_process_count(self):
         """
-        Purpose: Verify that all the expected connectors have been added to the Expressway entitled list
+        Purpose: Verify that connectors when enabled, have the correct number of running processes
         Steps:
-        1. Check all expected connectors are in the CDB
-        Notes:
+        1. Verify connectors are entitled
+        2. Verify connectors have been installed
+        3. Configure, and Enable connectors
+        4. Verify that connectors are running with correct number of processes
         """
-        LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_01_requests_based_registration.__doc__)
 
-        assert (wait_until(is_connector_entitled, 60, 5, *(self.config.exp_hostname1(),
-                                                           self.config.exp_admin_user(),
-                                                           self.config.exp_admin_pass(),
-                                                           self.config.expected_connectors())))
-
-    def test_02_check_entitled_connectors(self):
-        """
-        User Story: US6888: Alpha and Integration build pipeline - Part II
-        Purpose: Verify that all VCSes have a list of entitled connectors.
-        Steps:
-        1. For each VCS in the cluster get the list of entitled blends.
-        2. Verify that each VCS has a list of entitled connectors.
-        Notes: Runs on GPK TTM. Micro tests N/A.
-        Microtestable: False
-        """
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_02_check_entitled_connectors.__doc__)
+        LOG.info(self.test_connectors_can_be_enabled_with_correct_process_count.__doc__)
 
         self.assertTrue(wait_until(is_connector_entitled, 60, 5, *(self.config.exp_hostname1(),
                                                                    self.config.exp_admin_user(),
@@ -95,21 +85,6 @@ class RequestsRegisterTest(unittest.TestCase):
                                                                    self.config.expected_connectors())),
                         "%s does not have the full list of entitled connectors (%s)."
                         % (self.config.exp_hostname1(), str(self.config.expected_connectors())))
-
-    def test_03_check_installed_connectors(self):
-        """
-        User Story: US6888: Alpha and Integration build pipeline - Part II
-        Purpose: Verify that all entitled connectors are installed.
-        Steps:
-        1. Get the list of entitled blends.
-        2. For each VCS in the cluster verify that all the entitled connectors are
-           displayed on the upgrade page of the VCS.
-        Notes: Runs on GPK TTM. Micro tests N/A.
-        Microtestable: False
-        """
-
-        LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_03_check_installed_connectors.__doc__)
 
         for connector in self.config.expected_connectors():
             self.assertTrue(wait_until(is_connector_installed, 180, 10,
@@ -119,22 +94,6 @@ class RequestsRegisterTest(unittest.TestCase):
                                          connector)),
                             "%s does not have the connector %s installed." % (self.config.exp_hostname1(), connector))
 
-    def test_04_check_enabling_connectors(self):
-        """
-        User Story: DE1685: 2 instances of c_cal running on mgmt conn startup.
-        Purpose: Verify that we do not have multiple connector instances after
-        MC upgrade.
-        Steps:
-        1. Get the list of entitled blends.
-        2. For each VCS in the cluster verify that all the entitled connectors
-        have the correct no. of processes.
-        Notes: Runs on GPK TTM. Micro tests N/A.
-        Microtestable: False
-        """
-
-        LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_04_check_enabling_connectors.__doc__)
-
         configure_connectors(
             self.config.exp_hostname1(),
             self.config.exp_admin_user(),
@@ -142,6 +101,7 @@ class RequestsRegisterTest(unittest.TestCase):
             self.config.exp_root_user(),
             self.config.exp_root_pass())
 
+        # Enable all other connectors
         for connector in self.config.expected_connectors():
             if connector != "c_mgmt":
                 self.assertTrue(
@@ -152,30 +112,13 @@ class RequestsRegisterTest(unittest.TestCase):
                         connector),
                     "Connector %s is not enabled on %s." % (connector, self.config.exp_hostname1()))
 
-    def test_05_check_connector_instances(self):
-        """
-        User Story: DE1685: 2 instances of c_cal running on mgmt conn startup.
-        Purpose: Verify that we do not have multiple connector instances after
-        MC upgrade.
-        Steps:
-        1. Get the list of entitled blends.
-        2. For each VCS in the cluster verify that all the entitled connectors
-        have the correct process.
-        Notes: Runs on GPK TTM. Micro tests N/A.
-        Microtestable: False
-        """
 
-        LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_05_check_connector_instances.__doc__)
+            # Verify that all connectors have the corrent number of running processes
+            process_dict = {'c_cal': 'java',
+                            'c_ucmc': 'CSI',
+                            'c_mgmt': 'managementconnectormain',
+                            'c_imp': 'java'}
 
-        # Mapping of Connector (blend) to binary. If the binary associated with a Connector changes this
-        # dict will need updating
-        process_dict = {'c_cal': 'java',
-                        'c_ucmc': 'CSI',
-                        'c_mgmt': 'managementconnectormain',
-                        'c_imp': 'java'}
-
-        for connector in self.config.expected_connectors():
             connector_binary = None
             if connector in process_dict:
                 connector_binary = process_dict[connector]
@@ -195,9 +138,8 @@ class RequestsRegisterTest(unittest.TestCase):
                 "The number of processes for connector %s on %s is %s. It should be not be greater than 1"
                 % (connector, self.config.exp_hostname1(), count))
 
-    def test_06_heartbeat_file_write(self):
+    def test_heartbeat_file_write(self):
         """
-        User Story: US8593 Zero Downtime Upgrade - Management Connector implementation
         Purpose:
         This test ensures that management connector writes out connector's heartbeat response to file and the
         connector user can read the file.
@@ -212,7 +154,7 @@ class RequestsRegisterTest(unittest.TestCase):
         Notes:
         """
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_06_heartbeat_file_write.__doc__)
+        LOG.info(self.test_heartbeat_file_write.__doc__)
 
         connector = "c_cal"
         heartbeat_file = "/var/run/c_mgmt/{}.heartbeat".format(connector)
@@ -249,7 +191,7 @@ class RequestsRegisterTest(unittest.TestCase):
                         'Server utc is %s but heartbeat file was written at %s' % (
                             str(current_utc), str(heartbeat_time)))
 
-    def test_07_alarm_post(self):
+    def test_alarm_post(self):
         """
         Purpose:
         This test ensures that management connector alarms are sent in the heartbeat to FMS when they are raised
@@ -262,7 +204,7 @@ class RequestsRegisterTest(unittest.TestCase):
         2. Verify alarm is raised in FMS
         """
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_07_alarm_post.__doc__)
+        LOG.info(self.test_alarm_post.__doc__)
 
         alarm_to_raise = "60073"
 
@@ -306,3 +248,72 @@ class RequestsRegisterTest(unittest.TestCase):
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 "/sbin/alarm lower " + alarm_to_raise)
+
+    def test_check_file_permissions(self):
+        """
+        Purpose: Check connectors file permissions.
+        Steps:
+        1. For each Expressway in the cluster verify that all feature connectors files have correct permissions.
+        Notes:
+        """
+
+        LOG.info("Running test: %s", self._testMethodName)
+        LOG.info(self.test_check_file_permissions.__doc__)
+
+        for connector in self.config.expected_connectors():
+            if connector != 'c_mgmt':
+                opt_conn_perms = {'.': 'drwxr--r--',
+                                  'bin': 'drwxr--r--',
+                                  'etc': 'drwxr--r--',
+                                  'install': 'drwxr--r--'}
+
+                opt_root_perms = {'..': 'drwxr-xr-x'}
+
+                etc_conn_perms = {'/etc/init.d/%s' % connector: '-rwxr--r--'}
+
+                LOG.info('Check init.d script permissions')
+
+                results = run_ssh_command(
+                    self.config.exp_hostname1(),
+                    self.config.exp_root_user(),
+                    self.config.exp_root_pass(),
+                    'ls -lah /etc/init.d/%s' % connector)
+
+                LOG.info('Check init.d script permissions')
+                etc_user = "_%s" % connector
+
+                for path, perm in etc_conn_perms.items():
+                    LOG.info("Check user and permissions of '%s'", path)
+                    pattern = '(%s).*?(%s).*?(%s).*?(%s)' % (perm, etc_user, etc_user, path)
+                    regex = re.compile(pattern)
+                    match = regex.search(results)
+                    self.assertIsNotNone(match, "User or permissions of %s are not correct. The actual values are %s."
+                                         % (path, results))
+
+                LOG.info("Check opt user permissions")
+
+                results = run_ssh_command(
+                    self.config.exp_hostname1(),
+                    self.config.exp_root_user(),
+                    self.config.exp_root_pass(),
+                    'ls -lah /mnt/harddisk/current/opt/%s' % connector)
+
+                for path, perm in opt_conn_perms.items():
+                    LOG.info("Check user and permissions of '%s'.", path)
+                    pattern = '(%s).*?(%s).*?(%s).*?(%s)' % (perm, etc_user, etc_user, path)
+                    regex = re.compile(pattern)
+                    match = regex.search(results)
+
+                    self.assertIsNotNone(match, "User or permissions of %s are not correct. The actual values are %s."
+                                         % (path, results))
+
+                LOG.info("Check opt root permissions")
+                root_user = "root"
+                for path, perm in opt_root_perms.items():
+                    LOG.info("Check user and permissions of '%s'.", path)
+                    pattern = '(%s).*?(%s).*?(%s).*?(%s)' % (perm, root_user, root_user, path)
+                    regex = re.compile(pattern)
+                    match = regex.search(results)
+
+                    self.assertIsNotNone(match, "User or permissions of %s are not correct. The actual values are %s."
+                                         % (path, results))
