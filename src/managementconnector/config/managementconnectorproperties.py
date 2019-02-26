@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 
 
-class ManagementConnectorProperties(object):
+class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     """
         ManagementConnector properties
     """

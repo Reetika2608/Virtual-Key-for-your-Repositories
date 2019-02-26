@@ -288,7 +288,7 @@ class RemoteDispatcher(object):
             # Join the list of connector names into a string for bash request
             request_str = "%s %s" % (action, " ".join(connectors))
             DEV_LOGGER.info('Detail="FMC_Websocket handle_command writing command: %s"', request_str)
-            os.system("echo '%s' > %s" % (request_str, ManagementConnectorProperties.SERVICE_CONTROL_REQUEST))
+            os.system("echo '%s' > %s" % (request_str, ManagementConnectorProperties.SERVICE_CONTROL_REQUEST))  # nosec - input has been validated
 
         return err_str
 

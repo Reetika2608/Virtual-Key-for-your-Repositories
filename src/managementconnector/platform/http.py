@@ -277,7 +277,7 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
             DEV_LOGGER.error('Detail=' + unsupported_protocol_err)
             raise InvalidProtocolException({"message": "problem accessing tlp", "reason": unsupported_protocol_err})
 
-        req = urllib2.Request(url, None, headers)
+        req = urllib2.Request(url, None, headers)  # nosec - must be https
 
         if data is not None:
             req.add_data(data)
@@ -294,7 +294,7 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
             del headers_copy[auth_key]
 
         try:
-            response = urllib2.urlopen(req, timeout=ManagementConnectorProperties.HTTP_TIMEOUT)
+            response = urllib2.urlopen(req, timeout=ManagementConnectorProperties.HTTP_TIMEOUT)  # nosec - must be https
         except urllib2.URLError as url_exception:
             if silent:
                 DEV_LOGGER.error('Detail="RAW: _http_request silent: load_validate_json=%s, type=%s, url=%s, headers=%s"' %

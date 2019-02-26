@@ -524,7 +524,7 @@ class CAFEComponentConfig(threading.Thread):
         if not os.path.exists(file_path):
             return None
 
-        md5hash = hashlib.md5()
+        md5hash = hashlib.md5()  # nosec - md5 hash is acceptable
         with open(file_path, 'r') as myfile:
             for line in myfile:
                 md5hash.update(line)

@@ -6,7 +6,7 @@ Transform to update any Cafe encrypted data so that it becomes encrypted with th
 
 import sys
 import json
-import subprocess
+import subprocess  # nosec - usage validated
 import filecmp
 import logging
 import ni.migration.transform
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     # Note that it may have been the 'systemprivate' upgrade script, which must run before this script,
     # that copied over the default key file.
     if filecmp.cmp(FROOT + KEYFILE, FROOT + KEYFILE_DEFAULT):
-        ALT = subprocess.check_output(['bash', '-c', '. /etc/functions; get_alternate_root']).strip()
+        ALT = subprocess.check_output(['bash', '-c', '. /etc/functions; get_alternate_root']).strip()  # nosec - static
         INFO = json.load(open(FROOT + "/tandberg/etc/config.oldversioninfo"))
         VERSION = Version(INFO["version_code"], INFO["version_major"], INFO["version_minor"],
                           INFO.get("version_maintenance", 0))

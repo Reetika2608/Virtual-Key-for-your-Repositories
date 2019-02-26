@@ -500,7 +500,7 @@ class Service(object):
         ServiceUtils.set_installing_state(name, version, "installing")
 
         try:
-            tlp_path_dest = "/tmp/pkgs/new/" + self._name + ManagementConnectorProperties.PACKAGE_EXTENSION
+            tlp_path_dest = "/tmp/pkgs/new/" + self._name + ManagementConnectorProperties.PACKAGE_EXTENSION  # nosec - /tmp usage validated
             if self._name.startswith(ManagementConnectorProperties.DEPENDENCY_PREFIX):
                 shutil.move(tlp_path_tmp, tlp_path_dest)
             else:

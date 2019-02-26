@@ -149,5 +149,5 @@ class WatchdogThread(threading.Thread):
         """Restart FMC"""
         DEV_LOGGER.debug('Detail="FMC_Watchdog: restarting FMC due to bad connections, state: {}"'.format(working_state))
         jsonhandler.write_json_file(ManagementConnectorProperties.WATCHDOG_FILE_PATH, working_state)
-        os.system("echo 'restart c_mgmt' > /tmp/request/requestservicestart")
+        os.system("echo 'restart c_mgmt' > /tmp/request/requestservicestart")  # nosec - static input
         EventSender.post(self._oauth, self._config, EventSender.WATCHDOG_RESTART, detailed_info=str(working_state))

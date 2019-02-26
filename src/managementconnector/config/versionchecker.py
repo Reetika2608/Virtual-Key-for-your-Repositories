@@ -1,7 +1,7 @@
 """
     Version checking code
 """
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 
 def get_expressway_version():
     """

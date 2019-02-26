@@ -65,7 +65,7 @@ class CAFEProperties(object):
     # -------------------------------------------------------------------------
 
     COMPONENT_TEMPLATE_DIR = '/mnt/harddisk/current/fusion/template'
-    COMPONENT_CONFIG_STAGING_DIR = '/tmp/fusion/staging'
+    COMPONENT_CONFIG_STAGING_DIR = '/tmp/fusion/staging'  # nosec - /tmp usage validated
     CONFIG_FILEPATH_FORMAT = '/tandberg/persistent/fusion/config/%s.%s'
     COMPONENT_OWNER_FORMAT = '_%s'
 
@@ -125,7 +125,7 @@ class CAFEProperties(object):
 }
 """
 
-    COMPONENT_CONFIG_STATUS_DIR = '/tmp/fusion/status'
+    COMPONENT_CONFIG_STATUS_DIR = '/tmp/fusion/status'  # nosec - /tmp usage validated
     CONFIG_STATUS_FILE_FORMAT = '%s/%s_status.json'
 
     # -------------------------------------------------------------------------

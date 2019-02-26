@@ -1,8 +1,8 @@
 """Utility class shared between Cafe XCommand and Cafe XStatus"""
 
 import os
-import subprocess
-from subprocess import check_output
+import subprocess  # nosec - usage validated
+from subprocess import check_output  # nosec - usage validated
 import imp
 import pwd
 import commands
@@ -86,7 +86,7 @@ class CafeXUtils(object):
         try:
             with open(os.devnull, 'w') as devnull:
                 command = ["dpkg", "-s", package_name]
-                package_information = check_output(command, stderr=devnull)
+                package_information = check_output(command, stderr=devnull)  # nosec - package name is not user supplied
         except subprocess.CalledProcessError:
             # returned non-zero exit status, returning none object
             package_information = None
@@ -113,7 +113,8 @@ class CafeXUtils(object):
             # Check if this process exists
             retval = 0
             with open(os.devnull, 'w') as devnull:
-                retval = subprocess.call(['ps', '-p', pid], stdout=devnull, stderr=subprocess.STDOUT)
+                # pid is read from os and cannot be supplied by external sources
+                retval = subprocess.call(['ps', '-p', pid], stdout=devnull, stderr=subprocess.STDOUT)  # nosec
 
             if retval != 0:
                 return False
@@ -219,7 +220,8 @@ class CafeXUtils(object):
         rtn_list = None
 
         # grep contains a space to ensure traffic_server is not returned
-        output = commands.getstatusoutput("dpkg -l | grep \" %s\" | awk '{print $2}'" % (connector_type))
+        # connector_type cannot be supplied by an external process
+        output = commands.getstatusoutput("dpkg -l | grep \" %s\" | awk '{print $2}'" % (connector_type))  # nosec
 
         if output[1]:
             rtn_list = output[1].split()
@@ -318,7 +320,7 @@ class CafeXUtils(object):
         Check's if the busy file exists at: '/tmp/backup-restore-busy'
         """
 
-        occurring = os.path.isfile('/tmp/backup-restore-busy')
+        occurring = os.path.isfile('/tmp/backup-restore-busy')  # nosec - /tmp usage validated
         if occurring:
             logger.debug('Detail="is_backup_restore_occurring: %s"' % occurring)
 

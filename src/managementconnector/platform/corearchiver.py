@@ -3,7 +3,7 @@ import datetime
 import os
 import glob
 import time
-import subprocess
+import subprocess  # nosec - usage validated
 import urllib2
 import ssl
 import traceback
@@ -16,7 +16,7 @@ from managementconnector.platform.http import CertificateExceptionFusionCA, Cert
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
-CORE_DUMP_STORAGE = '/tmp/coredumps/'
+CORE_DUMP_STORAGE = '/tmp/coredumps/'  # nosec - /tmp usage validated
 
 
 class CoreArchiver(object):
@@ -34,7 +34,7 @@ class CoreArchiver(object):
             file_paths = CoreArchiver.retrieve_core_paths()
             if not file_paths:
                 output["status"] = "no core dumps found"
-                os.system('touch /tmp/request/deletecoredumpdir')
+                os.system('touch /tmp/request/deletecoredumpdir')  # nosec - static input
                 return output
 
             cmd_response = CoreArchiver.archive_core(tar_file, file_paths)
@@ -76,7 +76,7 @@ class CoreArchiver(object):
                     os.remove(file_path)
                 except IOError:
                     DEV_LOGGER.error('Detail=core_dump: Error removing file: %s' % file_path)
-            os.system('touch /tmp/request/deletecoredumpdir')
+            os.system('touch /tmp/request/deletecoredumpdir')  # nosec - static input
             return output
 
     @staticmethod
@@ -100,7 +100,7 @@ class CoreArchiver(object):
                 if(glob.iglob(file_path)):
                     core_file = max(glob.iglob(file_path), key=os.path.getctime)
                     core_file_paths.append(core_file)
-                    os.system("echo '%s' > /tmp/request/copycoredumps" % core_file)
+                    os.system("echo '%s' > /tmp/request/copycoredumps" % core_file)  # nosec - static input
                     timestamp = time.strftime("%d_%b_%Y_%H_%M_%S_", time.localtime(os.stat(core_file).st_mtime))
                     core_file_timestamps[os.path.basename(core_file)] = timestamp
             except ValueError:
@@ -128,7 +128,7 @@ class CoreArchiver(object):
         cmd_response = 0
         tar_command = ["tar", "--exclude=" + tar_file, "-zcvf", tar_file] + file_paths + ["--ignore-failed-read"]
         try:
-            subprocess.check_output(tar_command, cwd=CORE_DUMP_STORAGE)
+            subprocess.check_output(tar_command, cwd=CORE_DUMP_STORAGE)  # nosec - static input
         except subprocess.CalledProcessError as tar_ex:
             cmd_response = tar_ex.returncode
 

@@ -2,7 +2,7 @@
     ManagementConnector xstatus
 """
 
-import xml.etree.cElementTree as ElementTree
+import xml.etree.cElementTree as ElementTree  # nosec - xml being built from known data
 import json
 import traceback
 

@@ -5,7 +5,7 @@
 # Sys Path needs to be in place before imports performed
 import json
 import logging
-import subprocess
+import subprocess  # nosec - usage validated
 import traceback
 
 # These will have been initialised by the Cafe xcommand framework, for this module
@@ -52,7 +52,7 @@ def run(command_name, parameters, rest_cdb_adaptor, callback, error_queue):  # p
 
         try:
             command = ["/opt/c_mgmt/xcommand/c_mgmt.sh", "{}".format(command_name), '{}'.format(parameters)]
-            output = subprocess.check_output(command)
+            output = subprocess.check_output(command)  # nosec - argument has been validated
             callback(output)
         except subprocess.CalledProcessError as error_content:
             # Check for an explicit exit code that will supply content for the error queue on stdout

@@ -4,7 +4,7 @@ import re
 from re import split
 import glob
 import os
-import subprocess
+import subprocess  # nosec - usage validated
 from distutils.version import StrictVersion
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
@@ -140,7 +140,7 @@ class System(object):
                     }
         '''
 
-        res = subprocess.check_output(["df", "--total"])
+        res = subprocess.check_output(["df", "--total"])  # nosec - static input
         sys_disk = res.split('\n')[-2].split()
 
         total_disk = float(sys_disk[1]) / 1024
@@ -160,7 +160,7 @@ class System(object):
         ''' Gets the number of cpus
             Returns string with number of cpus
         '''
-        res = subprocess.check_output(["nproc", "--all"])
+        res = subprocess.check_output(["nproc", "--all"])  # nosec - static input
         return res.strip()
     # -------------------------------------------------------------------------
 

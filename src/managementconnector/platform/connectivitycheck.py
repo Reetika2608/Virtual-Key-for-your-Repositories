@@ -1,6 +1,6 @@
 """ Connectivity check processor """
 import urllib2
-import subprocess
+import subprocess  # nosec - usage validated
 import time
 
 from managementconnector.service.eventsender import EventSender
@@ -72,7 +72,8 @@ class ConnectivityCheck(object):
         if "/" in bare_addr:
             bare_addr = bare_addr.split("/")[0]
         DEV_LOGGER.info('Detail="Check connectivity testing PING %s"', bare_addr)
-        ping_response = subprocess.call(["/bin/ping", "-c1", "-w2", bare_addr], stdout=subprocess.PIPE)
+        # input has been validated
+        ping_response = subprocess.call(["/bin/ping", "-c1", "-w2", bare_addr], stdout=subprocess.PIPE)  # nosec
         if ping_response == 0:
             return "passed"
         else:

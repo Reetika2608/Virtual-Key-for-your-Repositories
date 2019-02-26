@@ -30,5 +30,5 @@ class LifecycleUtils(object):
         """ Returns a randomly modified poll time """
         poll_time = int(config.read(config_path,
                                     ManagementConnectorProperties.DEFAULT_POLL_TIME))
-        sleep_interval = abs(randint(poll_time - 5, poll_time + 5))
+        sleep_interval = abs(randint(poll_time - 5, poll_time + 5))  # nosec - pseudo random is good enough
         return sleep_interval

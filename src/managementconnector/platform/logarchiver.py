@@ -1,7 +1,7 @@
 """ Log Archiver """
 
 import datetime
-import subprocess
+import subprocess  # nosec - usage validated
 import glob
 import time
 import os
@@ -30,7 +30,7 @@ HYBRID_SERVICES_LOG = HYBRID_SERVICES_LOG_DIR + "hybrid_services_log*"
 PACKAGED_LOGS = HYBRID_SERVICES_LOG_DIR + "packagesd.log*"
 CONNECTORS_TOP_CONFIG_DIR = "/opt/c_mgmt/etc/config/"
 CONNECTORS_CONFIG = CONNECTORS_TOP_CONFIG_DIR + "*.json"
-CONFIGURATION_FILES_DIR = "/tmp/config_files/"
+CONFIGURATION_FILES_DIR = "/tmp/config_files/"  # nosec - /tmp usage validated
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
@@ -180,7 +180,7 @@ class LogArchiver(object):
         cmd_response = 0
         cmd_output = None
 
-        log_file = "/tmp/" + LogArchiver.generate_log_name(serial_number)
+        log_file = "/tmp/" + LogArchiver.generate_log_name(serial_number)  # nosec - /tmp usage validated
 
         files = sorted(glob.iglob(HYBRID_SERVICES_LOG), key=os.path.getmtime, reverse=True)
 
@@ -201,7 +201,7 @@ class LogArchiver(object):
         start_archive_timer = time.time()
 
         try:
-            subprocess.check_output(tar_command, cwd=HYBRID_SERVICES_LOG_DIR)
+            subprocess.check_output(tar_command, cwd=HYBRID_SERVICES_LOG_DIR)  # nosec - input is controlled
         except subprocess.CalledProcessError as tar_ex:
             # returned non-zero exit status, returning none object
             cmd_response = tar_ex.returncode
@@ -231,7 +231,7 @@ class LogArchiver(object):
         cmd_output = 0
 
         try:
-            subprocess.check_output(["rm", archive_path])
+            subprocess.check_output(["rm", archive_path])  # nosec - input is controlled
         except subprocess.CalledProcessError as rm_ex:
             cmd_output = rm_ex.returncode
 
@@ -244,7 +244,7 @@ class LogArchiver(object):
         cmd_output = 0
 
         try:
-            subprocess.check_output(["rm", "-rf", CONFIGURATION_FILES_DIR])
+            subprocess.check_output(["rm", "-rf", CONFIGURATION_FILES_DIR])  # nosec - input is controlled
         except subprocess.CalledProcessError as rm_ex:
             cmd_output = rm_ex.returncode
 

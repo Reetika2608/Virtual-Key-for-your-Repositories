@@ -99,7 +99,7 @@ def run(command_name, parameters, callback, error_callback):
                                                        connector_id,
                                                        ManagementConnectorProperties.PACKAGE_EXTENSION)
                 shutil.copy(System.get_previous_tlp_filepath(connector_id), fake_downloaded_tlp)
-                shutil.copy(fake_downloaded_tlp, "/tmp/pkgs/new")
+                shutil.copy(fake_downloaded_tlp, "/tmp/pkgs/new")  # nosec - /tmp usage validated
 
             # Reapply Cached Rollback CDB entries
             DEV_LOGGER.info('Detail="rollback: reapplying %s\'s cached cdb data"' % connector_id)
@@ -136,7 +136,7 @@ def run(command_name, parameters, callback, error_callback):
             open(ManagementConnectorProperties.CONFIG_FILE_STATUS_LOCATION % connector_id, 'a').close()
         else:
             try:
-                os.system("echo '%s %s' > %s"
+                os.system("echo '%s %s' > %s"  # nosec - arguments have been validated
                           % (action_name, connector_id, ManagementConnectorProperties.SERVICE_CONTROL_REQUEST))
                 callback("%s %s Complete" % (connector_id, action_name))
             except OSError:
@@ -427,7 +427,7 @@ def run(command_name, parameters, callback, error_callback):
 
         DEV_LOGGER.info('Detail="ManagementConnector repair_certs xcommand called"')
 
-        open('/tmp/request/fixfusioncerts', 'a').close()
+        open('/tmp/request/fixfusioncerts', 'a').close()  # nosec - /tmp usage validated
         callback("Cert repair request complete")
 
     # -------------------------------------------------------------------------
