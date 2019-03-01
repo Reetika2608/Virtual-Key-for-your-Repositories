@@ -25,7 +25,7 @@ class AlarmProcessor(object):
         try:
             subprocess.check_output(command)
         except subprocess.CalledProcessError:
-            DEV_LOGGER.ERROR('Detail="AlarmProcessor: Failed to raise alarm alarm_id=%s"', alarm_id)
+            DEV_LOGGER.error('Detail="AlarmProcessor: Failed to raise alarm alarm_id=%s"', alarm_id)
         except Exception as error:  # pylint: disable=W0703
             DEV_LOGGER.error('Detail="AlarmProcessor: Failed to raise alarm alarm_id=%s, Exception occurred:%s, '
                              'stacktrace=%s"', alarm_id, repr(error), traceback.format_exc())
@@ -38,7 +38,7 @@ class AlarmProcessor(object):
         try:
             subprocess.check_output(command)
         except subprocess.CalledProcessError:
-            DEV_LOGGER.ERROR('Detail="AlarmProcessor: Failed to lower alarm alarm_id=%s"', alarm_id)
+            DEV_LOGGER.error('Detail="AlarmProcessor: Failed to lower alarm alarm_id=%s"', alarm_id)
         except Exception as error:  # pylint: disable=W0703
             DEV_LOGGER.error('Detail="AlarmProcessor: Failed to lower alarm alarm_id=%s, Exception occurred:%s, '
                              'stacktrace=%s"', alarm_id, repr(error), traceback.format_exc())
