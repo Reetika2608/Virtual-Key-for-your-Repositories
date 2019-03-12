@@ -1,0 +1,30 @@
+#!/usr/bin/groovy
+
+timestamps {
+    stage('Get files') {
+        node() {
+            script {
+                [$class              : 'CopyArtifact',
+                 fingerprintArtifacts: true,
+                 projectName         : '/Jobs/bitbucket-pipelines/EXP/auto/wood/master',
+                 selector            : [$class                   : 'TriggeredBuildSelector',
+                                        allowUpstreamDependencies: false,
+                                        fallbackToLastSuccessful : true,
+                                        upstreamFilterStrategy   : 'UseGlobalSetting']]
+            }
+        }
+    }
+
+    stage('Generate bundle') {
+        node() {
+            // 1. Create json template with version number.
+            // 2. Publish c_mgmt.tlp
+            // 3. Create cdn link and get manifest.
+            // 4. Create complete json template.
+        }
+    }
+
+    stage('Archiving') {
+
+    }
+}
