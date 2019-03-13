@@ -8,4 +8,6 @@ RUN apt-get update && apt-get install -y \
 COPY test_environment/requirements.txt test-requirements
 RUN pip install -r test-requirements
 
+COPY ./jenkins/swims/code_sign /managementconnector
+
 WORKDIR /management-connector

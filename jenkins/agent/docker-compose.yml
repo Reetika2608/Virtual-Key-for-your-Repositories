@@ -1,0 +1,24 @@
+version: '2'
+
+services:
+    fmc-builder-32:
+        image: containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave:latest
+        restart: always
+        ports:
+           - "32:22" 
+        labels:
+          # Force to run on this host so IP will remain the same
+          io.rancher.scheduler.affinity:host_label: crate.host.name=serene_gliscor
+
+
+    fmc-builder-33:
+        image: containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave:latest
+        restart: always
+        ports:
+           - "33:22"
+        labels:
+          # Force to run on this host so IP will remain the same, 
+          # and we'll have some redundancy between crate hosts,
+          # as the host name is different to the hostname above 
+          io.rancher.scheduler.affinity:host_label: crate.host.name=nostalgic_togekiss
+
