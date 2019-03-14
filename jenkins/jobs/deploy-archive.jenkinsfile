@@ -1,0 +1,137 @@
+#!/usr/bin/groovy
+
+RELEASE_CHANNEL=params.RELEASE_CHANNEL
+TLP_FILE = ''
+
+timestamps {
+    try {
+        stage('Copy FMC TLP') {
+            node('fmc-build') {
+                // TODO - change projectName
+                sh("rm -rf c_mgmt_*.tlp")
+                copyArtifacts(filter: '*.tlp',
+                              fingerprintArtifacts: true,
+                              flatten: true,
+                              projectName: 'cobarbou_top',
+                              selector: [$class: 'TriggeredBuildSelector',
+                                         allowUpstreamDependencies: false,
+                                         fallbackToLastSuccessful : true,
+                                         upstreamFilterStrategy   : 'UseGlobalSetting'])
+
+                TLP_FILE = sh(script: "ls c_mgmt_*.tlp", returnStdout: true).trim()
+            }
+        }
+
+        stage('Prepare Provisioning') {
+            node('fmc-build') {
+                checkout scm
+                // maven is the current approach for static url file storage of release channel tlp, for the binary
+                // deploy job, alternatively you could have a downstream jenkins job archiving all TLP also
+                print("Step 1. Publish c_mgmt.tlp to maven")
+                // TODO - Uncomment: Publish to maven
+                // sh("cp ${TLP_FILE} c_mgmt.tlp")
+                // def utils = load('jenkins/methods/utils.groovy')
+                // utils.uploadArtifactsToMaven('c_mgmt.tlp', "${RELEASE_CHANNEL}/")
+
+                print("Step 2. Trigger Binaries Deploy Job")
+                // TODO - Uncomment: Trigger Binaries Deploy
+                //def binary_job_url = "job/binaries/job/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
+                //def binary_build = build(binary_job_url)
+                //sh("rm -rf manifest.yaml*")
+                //copyArtifacts(filter: 'manifest.yaml', fingerprintArtifacts: true, flatten: true, projectName: binary_job_url, selector: "${binary_build.number}")
+
+                print("Step 3. Create provisioning JSON file")
+                createProvisioning(RELEASE_CHANNEL)
+            }
+        }
+
+        stage('Archiving') {
+            node('fmc-build') {
+                archiveArtifacts(artifacts: '*.tlp, *targeted.txt, *provisioning.txt, manifest.yaml')
+            }
+        }
+    }
+    finally{
+        node('fmc-build') {
+            print('Cleaning ws')
+            cleanWs()
+        }
+    }
+}
+
+/********************************************************************************/
+
+def getManifestUrl() {
+    print("Retrieving published url from manifest.yaml file for ${RELEASE_CHANNEL} from binaries-deploy-management-connector")
+    def data = readYaml(file: 'manifest.yaml')
+    print("Read manifest.yaml. Content: ${data}")
+    def published_url = data.results.published[0]
+    return published_url
+}
+
+def createProvisioning(String release) {
+    // TODO - Uncomment: getManifest artifact
+    //def published_url = getManifestUrl()
+    def published_url = "www.someexternallocation.com/c_mgmt.tlp"
+
+    def connector_version = getTlpVersionFromTLP(TLP_FILE)
+
+    createProvisioningJson(release, published_url, connector_version)
+}
+
+def getTlpVersionFromTLP(String tlp) {
+    def version = tlp.tokenize('_')[-1].replace('.tlp', '').trim()
+
+    print('TLP version from URL: ' + version)
+    return version
+}
+
+def createProvisioningJson(String release, String tlp_url, String version) {
+    def filename = "${release}_provisioning.txt"
+    def con_type = 'c_mgmt'
+    def dis_name = 'Management Connector'
+    def ser_id = 'squared-fusion-mgmt'
+    def con_desc = ''
+    def rel_notes = 'This Management Connector update includes ongoing improvements and minor bug fixes.'
+    def pkg_type = 'connector'
+    def rel_chn = release
+    def urgent = 'false'
+
+    def data = "{'tlp_url':'${tlp_url}', 'version':'${version}', 'connector_type': '${con_type}', 'display_name':'${dis_name}', " +
+            "'service_id':'${ser_id}', 'description':'${con_desc}', 'release_notes':'${rel_notes}', 'package_type':'${pkg_type}', " +
+            "'release_channel':'${rel_chn}', 'dependencies':[], 'targets':['c_mgmt'], 'urgent':'${urgent}'}"
+
+    def json_data = readJSON(text: data)
+
+    print("Creating ${filename} with content: ${json_data}")
+    writeJSON(file: filename, json: json_data)
+
+    if (release == 'latest') {
+        // Create a second file with urgent changed to true, and write it to latest_provisioning_targeted.txt
+        createTargetedProvisioningJson(tlp_url, version)
+    }
+}
+
+def createTargetedProvisioningJson(String tlp_url, String version){
+    def targeted_file = 'latest_provisioning_targeted.txt'
+    def cluster_id = '362ac799-8488-43ab-a215-5e58ae0aed0a'
+    def org_id = '8e52edcc-bb11-4721-babe-722ec8fba823'
+    def auto_upgrade = 'true'
+    def con_type = 'c_mgmt'
+    def dis_name = 'Management Connector'
+    def ser_id = 'squared-fusion-mgmt'
+    def con_desc = ''
+    def rel_notes = 'None'
+    def pkg_type = 'connector'
+    def rel_chn = 'latest'
+
+    def data = "{'tlp_url':'${tlp_url}', 'version':'${version}', 'connector_type': '${con_type}', 'display_name':'${dis_name}', " +
+            "'service_id':'${ser_id}', 'description':'${con_desc}', 'release_notes':'${rel_notes}', 'package_type':'${pkg_type}', " +
+            "'release_channel':'${rel_chn}', 'dependencies':[], 'targets':['c_mgmt'], 'cluster_id': '${cluster_id}', " +
+            "'organization_id':'${org_id}', 'auto_upgrade':'${auto_upgrade}'}"
+
+    def json_data = readJSON(text: data)
+
+    print("Creating ${targeted_file} with content: ${json_data}")
+    writeJSON(file: targeted_file, json: json_data)
+}
