@@ -9,6 +9,7 @@ from tests_integration.utils.common_methods import wait_until, is_connector_enti
     set_poll_time
 from tests_integration.utils.config import Config
 from tests_integration.utils import ci
+from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd, is_command_complete
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -111,7 +112,6 @@ class RequestsRegisterTest(unittest.TestCase):
                         self.config.exp_admin_pass(),
                         connector),
                     "Connector %s is not enabled on %s." % (connector, self.config.exp_hostname1()))
-
 
             # Verify that all connectors have the corrent number of running processes
             process_dict = {'c_cal': 'java',
@@ -317,3 +317,30 @@ class RequestsRegisterTest(unittest.TestCase):
 
                     self.assertIsNotNone(match, "User or permissions of %s are not correct. The actual values are %s."
                                          % (path, results))
+
+    def test_remote_dispatcher_ping_command(self):
+        """
+        Purpose: Verify that a connector can process a ping command from RemoteDispatcher
+        """
+        LOG.info("Running test: %s", self._testMethodName)
+        LOG.info(self.test_remote_dispatcher_ping_command.__doc__)
+        connector_id = "c_mgmt@" + \
+                       get_serialno(
+                           self.config.exp_hostname1(),
+                           self.config.exp_admin_user(),
+                           self.config.exp_admin_pass())
+
+        command_id = dispatch_command_to_rd(
+            self.config.org_id(),
+            connector_id,
+            self.config.rd_server(),
+            {"action": "ping"},
+            self.access_token)
+
+        self.assertTrue(wait_until(is_command_complete, 10, 1, *(
+            self.config.org_id(),
+            connector_id,
+            self.config.rd_server(),
+            command_id,
+            self.access_token)),
+                        "Command {} was not completed in time.".format(command_id))
