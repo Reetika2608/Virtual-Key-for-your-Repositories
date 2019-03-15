@@ -337,3 +337,9 @@ def get_serialno(hostname, admin_user, admin_pass):
 def set_poll_time(hostname, admin_user, admin_pass, poll_time):
     cdb_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_config_pollTime/"
     set_cdb_entry(hostname, admin_user, admin_pass, cdb_path, poll_time)
+
+
+def get_headers(token):
+    return {'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json; charset=UTF-8',
+            'Authorization': 'Bearer ' + token}

@@ -24,6 +24,7 @@ class Config(object):
     _client_id = None
     _client_secret = None
     _fms_server = None
+    _rd_server = None
     _ci_broker_server = None
     _expected_connectors = None
     _cluster_name = str(uuid.uuid4())
@@ -52,6 +53,7 @@ class Config(object):
         self._client_id = self.get_if_present("client_id")
         self._client_secret = self.get_if_present("client_secret")
         self._fms_server = self.get_if_present("fms_server")
+        self._rd_server = self.get_if_present("rd_server")
         self._ci_broker_server = self.get_if_present("ci_broker_server")
         self._expected_connectors = self.get_if_present("expected_connectors")
 
@@ -136,6 +138,12 @@ class Config(object):
             LOG.error("Config item (fms_server) to run test was not found in config file")
             assert False
         return self._fms_server
+
+    def rd_server(self):
+        if not self._rd_server:
+            LOG.error("Config item (rd_server) to run test was not found in config file")
+            assert False
+        return self._rd_server
 
     def ci_broker_server(self):
         if not self._ci_broker_server:

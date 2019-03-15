@@ -2,6 +2,7 @@ import logging
 import json
 import requests
 from tests_integration.api_based_tests.vcs_http import VCSHttpSession
+from common_methods import get_headers
 
 LOG = logging.getLogger(__name__)
 
@@ -126,12 +127,6 @@ def deregister_cluster(org_id, cluster_id, fms_server, token):
     full_url = 'https://' + fms_server + '/hercules/api/v2/organizations/' + org_id + '/clusters/' + cluster_id
     response = requests.delete(full_url, headers=get_headers(token), verify=False)
     LOG.info("DELETE cluster url: %s, response: %s" % (full_url, response))
-
-
-def get_headers(token):
-    return {'Content-Type': 'application/json; charset=UTF-8',
-            'Accept': 'application/json; charset=UTF-8',
-            'Authorization': 'Bearer ' + token}
 
 
 def get_connector(org_id, cluster_id, fms_server, connector_id, token):

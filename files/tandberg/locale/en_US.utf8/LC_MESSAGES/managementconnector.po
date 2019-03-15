@@ -26,7 +26,7 @@ msgid "fieldset.CLOUD_FUSION_SERVICES_SERVICE"
 msgstr "Connector management"
 
 msgid "lbl.FUSION_NOT_REGISTERED"
-msgstr "This [[PRODUCT]] is not yet registered with the Cisco Webex Cloud."
+msgstr "This Expressway is not yet registered with the Cisco Webex Cloud."
 
 msgid "lbl.FUSION_REVIVE_MAY_BE_REQUIRED"
 msgstr "There is an error in your connection to the Cisco Webex Cloud  "
@@ -62,7 +62,7 @@ msgid "lbl.PRECHECK_PROXY_BROKEN_%s"
 msgstr "Are your %s settings correct"
 
 msgid "lbl.FUSION_CA_EXPLANATION"
-msgstr "The [[PRODUCT]] must establish Certificate Authority trust with Cisco Webex Cloud."
+msgstr "The Expressway must establish Certificate Authority trust with Cisco Webex Cloud."
 
 msgid "btn.RETRY_FUSION_PRECHECK"
 msgstr "Retry connection"
@@ -71,16 +71,16 @@ msgid "err.CONNECTOR_RESTART_TIMED_OUT"
 msgstr "Connector failed to restart within time limit"
 
 msgid "lbl.FUSION_CA_CONFIRMATION_MESSAGE"
-msgstr "I want Cisco to manage the [[PRODUCT]] CA certificates required for this trust."
+msgstr "I want Cisco to manage the Expressway CA certificates required for this trust."
 
 msgid "lbl.FUSION_CA_GOOD_CONFIRMATION_MESSAGE"
-msgstr "I want Cisco Webex Cloud to add the required CA certificates to the [[PRODUCT]] trust list."
+msgstr "I want Cisco Webex Cloud to add the required CA certificates to the Expressway trust list."
 
 msgid "link.CISCO_CLOUD_CA_CERTIFICATES"
 msgstr "Cisco Cloud CA Certificates"
 
 msgid "err.NOT_FUSED_TITLE"
-msgstr "The [[PRODUCT]] is not registered with the Cisco Webex Cloud."
+msgstr "The Expressway is not registered with the Cisco Webex Cloud."
 
 msgid "err.USE_CA_TICKBOX_WHEN_REGISTERING"
 msgstr "To attain required CA certificates tick the relevant checkbox at registration."
@@ -92,16 +92,16 @@ msgid "link.ACKNOWLEDGE_ALARMS"
 msgstr "Acknowledge these alarms on the alarms page"
 
 msgid "lbl.FUSION_REGISTERED"
-msgstr "This [[PRODUCT]] cluster is registered with the Cisco Webex Cloud and is now ready for Hybrid Services."
+msgstr "This Expressway cluster is registered with the Cisco Webex Cloud and is now ready for Hybrid Services."
 
 msgid "lbl.FUSION_SERVICES_MESSAGE_%s"
 msgstr "%s - configure your hybrid services, enable users for features, manage your hybrid service clusters, and set upgrade schedules for connectors."
 
 msgid "lbl.FUSION_CERTS_ARE_ACCEPTED_%s"
-msgstr "%s -  you are currently allowing Cisco Webex Cloud to add required CA certificates to the [[PRODUCT]] trust list"
+msgstr "%s -  you are currently allowing Cisco Webex Cloud to add required CA certificates to the Expressway trust list"
 
 msgid "lbl.FUSION_CERTS_ARE_NOT_ACCEPTED_%s"
-msgstr "%s -  you are currently not allowing Cisco Webex Cloud to add required CA certificates to the [[PRODUCT]] trust list"
+msgstr "%s -  you are currently not allowing Cisco Webex Cloud to add required CA certificates to the Expressway trust list"
 
 msgid "err.SECURITY_REQUIREMENTS_NOT_MET_FOR_FUSION"
 msgstr "Security requirements not met for registration"
@@ -113,16 +113,16 @@ msgid "err.PASSWORD_HAS_DEFAULT_VALUE_SEE_ALARMS_%s"
 msgstr "Password is set to default value, see %s for details"
 
 msgid "err.PENULTIMATE_SUPPORTED_PRODUCT_VERSION_TEXT_%s"
-msgstr "This version of [[PRODUCT]] will soon be unsupported for Hybrid Services. %s."
+msgstr "This version of Expressway will soon be unsupported for Hybrid Services. %s."
 
 msgid "err.PENULTIMATE_SUPPORTED_PRODUCT_VERSION_%s"
-msgstr "[[PRODUCT]] version will soon be unsupported"
+msgstr "Expressway version will soon be unsupported"
 
 msgid "err.UNSUPPORTED_PRODUCT_VERSION_TEXT_%s"
-msgstr "This version of [[PRODUCT]] is no longer supported for Hybrid Services. %s."
+msgstr "This version of Expressway is no longer supported for Hybrid Services. %s."
 
 msgid "err.UNSUPPORTED_PRODUCT_VERSION_%s"
-msgstr "Unsupported [[PRODUCT]] version"
+msgstr "Unsupported Expressway version"
 
 msgid "link.PRODUCT_DOWNLOAD"
 msgstr "Read more, and download the new version."
@@ -165,7 +165,7 @@ msgid "err.CLOUD_MAINTENANCE_MODE_TITLE"
 msgstr "Cloud Maintenance Mode"
 
 msgid "err.CLOUD_MAINTENANCE_MODE"
-msgstr "Maintenance mode for Cisco Webex Hybrid Services is enabled on this [[PRODUCT]]."
+msgstr "Maintenance mode for Cisco Webex Hybrid Services is enabled on this Expressway."
 
 msgid "lbl.FUSION_STATUS_INSTRUCTIONS"
 msgstr "<i>Click a connector name below to view or modify the connector details.</i>"
@@ -238,10 +238,10 @@ msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.title"
 msgstr "[Hybrid services] Connection failed because the CA certificate was not found"
 
 msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.description"
-msgstr "Cannot securely connect to the Cisco Webex Cloud because the root CA that signed the certificate from %s is not in the [[PRODUCT]]'s trusted CA list."
+msgstr "Cannot securely connect to the Cisco Webex Cloud because the root CA that signed the certificate from %s is not in the Expressway's trusted CA list."
 
 msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.solution"
-msgstr "Update the [[PRODUCT]]'s trusted CA list to include the CA that signed the received certificate."
+msgstr "Update the Expressway's trusted CA list to include the CA that signed the received certificate."
 
 msgid "alm.635afce6-0ae8-4b84-90f5-837a2234002b.id"
 msgstr "60058"
@@ -268,10 +268,10 @@ msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.title"
 msgstr "[Hybrid services] Connection failed because the certificate was not validated"
 
 msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.description"
-msgstr "The [[PRODUCT]] could not validate the certificate from %s. This can happen because the [[PRODUCT]] does not trust the CA, or because the certificate is not currently valid."
+msgstr "The Expressway could not validate the certificate from %s. This can happen because the Expressway does not trust the CA, or because the certificate is not currently valid."
 
 msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.solution"
-msgstr "Check that the [[PRODUCT]] %s list contains the root certificate of the CA that signed the received certificate. Check that the CA certificate is current and has not been revoked. Check that the %s is configured and that the [[PRODUCT]] is synchronized. If you can rule out these potential causes and the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "Check that the Expressway %s list contains the root certificate of the CA that signed the received certificate. Check that the CA certificate is current and has not been revoked. Check that the %s is configured and that the Expressway is synchronized. If you can rule out these potential causes and the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.995ec68e-4c6a-4b16-a615-fdd6b6fe4b43.id"
 msgstr "60060"
@@ -286,7 +286,7 @@ msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.description"
 msgstr "Could not download %s because the certificate from %s was not validated. You may be configured for manual certificate management."
 
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.solution"
-msgstr "Check the [[PRODUCT]] %s list for the CA that signed the received certificate. If in manual certificate management mode, go to %s to get an up-to-date list of current certificates to install and to ensure your existing certs are still valid. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "Check the Expressway %s list for the CA that signed the received certificate. If in manual certificate management mode, go to %s to get an up-to-date list of current certificates to install and to ensure your existing certs are still valid. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.142f9bb1-74a5-460a-b609-7f33f8acdcaf.id"
 msgstr "60056"
@@ -337,7 +337,7 @@ msgid "alm.598ea3b8-00f9-4674-a90a-919668fec916.description"
 msgstr "%s"
 
 msgid "alm.598ea3b8-00f9-4674-a90a-919668fec916.solution"
-msgstr "Check the [[PRODUCT]]'s trusted CA list for the CA that signed the received certificate."
+msgstr "Check the Expressway's trusted CA list for the CA that signed the received certificate."
 
 msgid "alm.598ea3b8-00f9-4674-a90a-919668fec916.id"
 msgstr "60055"
@@ -367,7 +367,7 @@ msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.description"
 msgstr "HTTP error code %s from Cisco Webex Cloud (address: %s)"
 
 msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.solution"
-msgstr "Check Hybrid Services status on the [[PRODUCT]]-C. Check status.ciscospark.com for outages. If the error remains, go to admin.webex.com, click your admin username, and then click Feedback to open a case for further investigation."
+msgstr "Check Hybrid Services status on the Expressway. Check status.ciscospark.com for outages. If the error remains, go to admin.webex.com, click your admin username, and then click Feedback to open a case for further investigation."
 
 msgid "alm.cbbf0813-09cb-4e23-9182-f3996d24cc9e.id"
 msgstr "60051"
@@ -460,7 +460,7 @@ msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.description"
 msgstr "%s."
 
 msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.solution"
-msgstr "From [[PRODUCT]]-C, restart the connector. If that connector upgraded itself recently, roll it back to the previous connector. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
+msgstr "From Expressway, restart the connector. If that connector upgraded itself recently, roll it back to the previous connector. If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
 
 msgid "alm.47fd43b0-755a-463f-9899-63f589a2d882.id"
 msgstr "60064"
@@ -489,7 +489,7 @@ msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.title"
 msgstr "[Hybrid services] Routine authentication refresh failed"
 
 msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.description"
-msgstr "The [[PRODUCT]] periodically renews its authentication through %s, but did not succeed this time. The [[PRODUCT]] will retry in %s minutes."
+msgstr "The Expressway periodically renews its authentication through %s, but did not succeed this time. The Expressway will retry in %s minutes."
 
 msgid "alm.bb1cf2ca-20fd-43cc-9ae2-8a33206fb9fd.solution"
 msgstr "If the error remains, go to admin.webex.com, click your admin username, and then click 'Feedback' to open a case for further investigation."
@@ -504,7 +504,7 @@ msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.title"
 msgstr "[Hybrid services] Connectivity Error"
 
 msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.description"
-msgstr "Error when trying to access %s. The [[PRODUCT]] will try again in approximately %s seconds."
+msgstr "Error when trying to access %s. The Expressway will try again in approximately %s seconds."
 
 msgid "alm.233f0c18-9c8f-41ba-8800-93937540afe8.solution"
 msgstr "Check %s, and check for network issues if the error persists."
@@ -573,7 +573,7 @@ msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.description"
 msgstr "You registered for Hybrid Services but there are no service connectors installed. The Management Connector is active and is making unnecessary connections to the Cisco Webex Cloud."
 
 msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.solution"
-msgstr "Go to admin.webex.com and check that your organization is entitled to use one or more Hybrid Services. If you are not using any Hybrid Services, we strongly recommend that you %s this [[PRODUCT]]."
+msgstr "Go to admin.webex.com and check that your organization is entitled to use one or more Hybrid Services. If you are not using any Hybrid Services, we strongly recommend that you %s this Expressway."
 
 msgid "alm.a144127e-57a5-11e5-8ccb-3417ebbf769a.id"
 msgstr "60069"
@@ -583,13 +583,13 @@ msgstr "alert"
 
 
 msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.title"
-msgstr "[Hybrid services] Unsupported [[PRODUCT]]  version"
+msgstr "[Hybrid services] Unsupported Expressway  version"
 
 msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.description"
-msgstr "Your version of [[PRODUCT]] is no longer supported for Hybrid Services. To continue using Hybrid Services, you must upgrade to a newer version."
+msgstr "Your version of Expressway is no longer supported for Hybrid Services. To continue using Hybrid Services, you must upgrade to a newer version."
 
 msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.solution"
-msgstr "Please upgrade this [[PRODUCT]]. %s."
+msgstr "Please upgrade this Expressway. %s."
 
 msgid "alm.3e544328-598e-11e6-8b77-86f30ca893d3.id"
 msgstr "60072"
@@ -599,13 +599,13 @@ msgstr "alert"
 
 
 msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.title"
-msgstr "[Hybrid services] [[PRODUCT]] version will soon be unsupported"
+msgstr "[Hybrid services] Expressway version will soon be unsupported"
 
 msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.description"
-msgstr "A new version of Cisco [[PRODUCT]] was released. We advise that you upgrade to this version at your earliest convenience to use the latest features and avoid an unsupported Hybrid Services deployment when the next Expressway version is released.\nYour current version will be supported until the next [[PRODUCT]] release."
+msgstr "A new version of Cisco Expressway was released. We advise that you upgrade to this version at your earliest convenience to use the latest features and avoid an unsupported Hybrid Services deployment when the next Expressway version is released.\nYour current version will be supported until the next Expressway release."
 
 msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.solution"
-msgstr "Please upgrade this [[PRODUCT]]. %s."
+msgstr "Please upgrade this Expressway. %s."
 
 msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.id"
 msgstr "60073"
@@ -734,7 +734,7 @@ msgid "lbl.FUSION_PROXY_PASSWORD"
 msgstr "Password"
 
 msgid "doc.USE_FUSION_PROXY"
-msgstr "Select whether this [[PRODUCT]] registers through a proxy. <br/><br/><b>Yes</b>: Routes outbound requests to Cisco Webex Cloud through the specified proxy. <br/><br/><b>No</b>: The outbound requests to Cisco Webex Cloud will go directly."
+msgstr "Select whether this Expressway registers through a proxy. <br/><br/><b>Yes</b>: Routes outbound requests to Cisco Webex Cloud through the specified proxy. <br/><br/><b>No</b>: The outbound requests to Cisco Webex Cloud will go directly."
 
 msgid "doc.FUSION_PROXY_ADDRESS"
 msgstr "Address of your proxy server. Enter either IPv4 address, IPv6 address, or FQDN of the proxy."
@@ -833,7 +833,7 @@ msgid "err.ADD_FUSION_CERTS"
 msgstr "Added Cisco Cloud CA root certificates"
 
 msgid "lbl.FUSION_CERT_ADD_INSTRUCTIONS"
-msgstr "You are not receiving trusted CA certificates from Cisco Webex Cloud. You can choose to get them here, or you must manually update the [[PRODUCT]] trust list."
+msgstr "You are not receiving trusted CA certificates from Cisco Webex Cloud. You can choose to get them here, or you must manually update the Expressway trust list."
 
 msgid "btn.ADD_FUSION_CERTS"
 msgstr "Get certificates"
@@ -842,7 +842,7 @@ msgid "err.REMOVED_FUSION_CERTS"
 msgstr "Removed Cisco Webex Cloud CA root certificates"
 
 msgid "lbl.FUSION_CERT_REMOVE_INSTRUCTIONS"
-msgstr "You are accepting trusted CA certificates from Cisco Webex Cloud. If you remove them, you must manually update the [[PRODUCT]] trust list."
+msgstr "You are accepting trusted CA certificates from Cisco Webex Cloud. If you remove them, you must manually update the Expressway trust list."
 
 msgid "btn.REMOVE_FUSION_CERTS"
 msgstr "Remove certificates"
@@ -864,7 +864,7 @@ msgid "lbl.EXPRESSWAY_FUSION_CERT_ADD_INSTRUCTIONS"
 msgstr "For some hybrid services, the [[EXPRESSWAY]] needs to trust the CAs that sign the Collaboration Cloud certificates, and you can install them here."
 
 msgid "lbl.EXPRESSWAY_FUSION_CERT_REMOVE_INSTRUCTIONS"
-msgstr "If you do not want to use this [[EXPRESSWAY]] for hybrid services, remove Cisco Webex Cloud CA root certificates from the [[PRODUCT]] CA trust list."
+msgstr "If you do not want to use this [[EXPRESSWAY]] for hybrid services, remove Cisco Webex Cloud CA root certificates from the Expressway CA trust list."
 
 msgid "err.TIMED_OUT_ADDING_FUSION_CERTS"
 msgstr "Timed out while trying to add CA certificates"
@@ -918,7 +918,7 @@ msgid "btn.BOOTSTRAP_FMC"
 msgstr "Update software & verify connection"
 
 msgid "lbl.FUSION_BOOTSTRAP_TITLE"
-msgstr "Requirements for registering [[PRODUCT]] for Hybrid Services"
+msgstr "Requirements for registering Expressway for Hybrid Services"
 
 msgid "msg.C_MGMT_BOOTSTRAPPING"
 msgstr "Update & connection verification can take a few minutes to complete"
@@ -933,13 +933,13 @@ msgid "lbl.BOOTSTRAP_MISSING_TITLE"
 msgstr "Pre-registration not completed"
 
 msgid "lbl.BOOTSTRAP_MISSING"
-msgstr "You must first register your [[PRODUCT]] as a resource through Cisco Webex Control Hub at %s"
+msgstr "You must first register your Expressway as a resource through Cisco Webex Control Hub at %s"
 
 msgid "err.BOOTSTRAP_INSTALL_TIMEOUT"
 msgstr "Update failed to complete within time limit."
 
 msgid "lbl.FUSION_BOOTSTRAP_READY"
-msgstr "The Webex cloud handed out a token to the [[PRODUCT]]. Next you must meet the following requirements to continue the registration of this [[PRODUCT]] for Hybrid Services."
+msgstr "The Webex cloud handed out a token to the Expressway. Next you must meet the following requirements to continue the registration of this Expressway for Hybrid Services."
 
 msgid "lbl.FUSION_REGISTRATION_READY"
-msgstr "The latest software was successfully installed and all the prerequisites are met for this [[PRODUCT]] to be registered for Hybrid Services."
+msgstr "The latest software was successfully installed and all the prerequisites are met for this Expressway to be registered for Hybrid Services."

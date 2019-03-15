@@ -68,6 +68,34 @@ root@acdc32ee8df8:/management-connector# nosetests tests/managementconnector/
 root@acdc32ee8df8:/management-connector# ./build_and_upgrade.sh -c build
 ```
 
+### Pipeline
+FMC's pipeline is driven mainly from the Jenkins file in this repo. The Dockerfile is also used to create a docker image, which is the base of the Jenkins image. 
+Using the root Dockerfile we generate a jenkins agent image from the jenkins directory which is uploaded to `containers.cisco.com`.
+This image from containers.cisco.com is then leveraged by Cisco Crate (Containers as a service - CaaS) which allow us to adhere to the SQBU - BYOS (bring your own slaves) policy.
+
+
+#### Building the Builder images and pushing to Containers
+```
+docker build -t fmc-builder .
+cd jenkins/agent/
+docker build -t fmc-builder-base-ssh-slave .
+docker run fmc-builder-base-ssh-slave /bin/bash
+docker ps -l 
+docker commit <CONTAINER ID> containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave
+docker push containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave
+```
+
+#### Containers
+* [FMC - Jenkins Builder Docker image](containers.cisco.com/repository/hybridmanagement/fmc-builder-base-ssh-slave)
+
+#### Cisco Crate
+A crate enviroment has been setup to contain all Hybrid Management related containers, this was a one time thing completed with the sign-up link below, for reference. This environment was created in conjunction with the `hybrid-services-management` AD group
+
+A stack can be created in Cisco Crate by uploading a docker-compose.yml file, this file lives in the `jenkins/agent/` directory and will outline the machine nanes and ports in crate, which are then supplied to CCE, to create the corresponding jenkins agents.
+
+* [Hybrid Management Stacks](https://console.ciscocrate.com/env/1a2816697/apps/stacks)
+* [Crate - Wiki](https://engit.cisco.com/storage-and-compute/cisco-crate)
+* [Crate Environment sign-up](https://signup.ciscocrate.com/order)
 
 ### Security
 * Threat Model ID: [21796](https://wwwin-tb.cisco.com/www/threatBuilder.html?id=21796)
