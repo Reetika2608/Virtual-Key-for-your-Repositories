@@ -335,11 +335,85 @@ def get_serialno(hostname, admin_user, admin_pass):
 
 
 def set_poll_time(hostname, admin_user, admin_pass, poll_time):
+    """
+    Change how often management connector will poll FMS
+    :param hostname:
+    :param admin_user:
+    :param admin_pass:
+    :param poll_time:
+    """
     cdb_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_config_pollTime/"
     set_cdb_entry(hostname, admin_user, admin_pass, cdb_path, poll_time)
 
 
 def get_headers(token):
+    """
+    Wrap an access token in http header json
+    :param token:
+    :return: http headers
+    """
     return {'Content-Type': 'application/json; charset=UTF-8',
             'Accept': 'application/json; charset=UTF-8',
             'Authorization': 'Bearer ' + token}
+
+
+def get_machine_account_json(hostname, admin_user, admin_pass):
+    """
+    get the current machine account
+    :param hostname:
+    :param admin_user:
+    :param admin_pass:
+    """
+    machine_db_record = get_cdb_entry(
+        hostname,
+        admin_user,
+        admin_pass,
+        "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_oauthMachineAccountDetails/")
+    return json.loads(machine_db_record[0]["records"][0]["value"])
+
+
+def get_current_machine_account_password(hostname, admin_user, admin_pass):
+    """
+    get the current machine account password
+    :param hostname:
+    :param admin_user:
+    :param admin_pass:
+    """
+    return get_machine_account_json(hostname, admin_user, admin_pass)["password"]
+
+
+def set_machine_account_expiry(hostname, admin_user, admin_pass, days):
+    """
+    Change when the machine account thread in management will rotate its password
+    :param hostname:
+    :param admin_user:
+    :param admin_pass:
+    :param days:
+    :return:
+    """
+    poll_cdb = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_config_machineAccountExpiry/"
+    set_cdb_entry(hostname, admin_user, admin_pass, poll_cdb, days)
+
+
+def restart_connector(hostname, root_user, root_pass, connector_name):
+    """
+    Restart the supplied connector
+    :param hostname:
+    :param root_user:
+    :param root_pass:
+    :param connector_name:
+    """
+    command = "/etc/init.d/{} restart".format(connector_name)
+    run_ssh_command(hostname, root_user, root_pass, command)
+
+
+def has_machine_password_changed(hostname, admin_user, admin_pass, machine_password):
+    """
+    Check if the machine account password has changed from the supplied value
+    :param hostname:
+    :param admin_user:
+    :param admin_pass:
+    :param machine_password:
+    :return: True or False
+    """
+    return machine_password != get_current_machine_account_password(hostname, admin_user, admin_pass)
