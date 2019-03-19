@@ -1,3 +1,94 @@
+### FMC Overview
+
+The Fusion Management Connector, running on-premise on Expressway, has mainly 2 responsibilities:
+* Sending heartbeats to the cloud (FMS) and handling the hearbeat reply
+* Upgrade the other connectors running on the Expressway
+
+For the example commands below, please ssh using root user to the Expressway. 
+
+#### FMC database
+FMC uses the CDB (clustered database). FMC uses basically just 2 tables, and the entries persisted in the tables are JSON values.
+#### Templates & config generation
+Example: `cat /opt/c_mgmt/etc/config/c_mgmt.json`
+Templates are there to provide data access without reading from the database: as a developer, the template and config 
+generation provide a JSON file that can be read. The JSON file's data will be updated (via notifications) when the database is updated.
+
+New data members should be added to the template and read from the config JSON files. 
+
+#### Alarms 
+The alarm range is 60000 - 69999. Each service is given a range of 100 alarms.
+See for example `/var/run/connector_name/status.json`
+Alarms are defined in i.e. `/mnt/harddisk/current/fusion/manifest/c_cal.json`:
+```
+"alarms":
+    {
+        "start": "60050",
+        "end": "60099",
+        "suppress": ["60050","60051","60070","15004","15010","15011","15019"],
+        "external": ["15004", "15010", "15011", "15019"]
+    }
+```
+where alarms in the `suppress` list are not sent, whereas alarms in the `external` list *are* sent.
+
+To get details about alarms:
+`alarm list -a`
+#### Manifests
+TODO: add something here
+
+#### The package manager & installing debians
+TODO: add something here
+
+`dpkg -s c_mgmt`
+
+To figure out install problems: `vi /mnt/harddisk/log/packagesd.log`
+
+#### Firestarter & service startup
+TODO: add something here
+
+#### Xcommand & Xstatus
+Everything under `/files` will get stuffed into the Debian package
+
+`Xcommand cafe c_mgmt`//telling cafe to look import the c_mgmt.py module under  `/files`
+
+Expressway run on Python 2.7. For compiled Python, pyc files NEEDS to run on the same magic numbers. FMC now has its own Python 2.7.15. 
+
+We have wrappers so we can use i.e Python 3 in FMC, but still invoke the 2.7.15 commands on expressway. 
+Commands:
+`xCommand Cafe c_mgmt` to list commands. Example commands can be for example start and stop connectors
+
+The user interface uses Xstatus to build up values in the PHP.
+
+#### sbin requests & root escalation
+TODO: add something here
+#### PHP & the fuse flow
+TODO: add something here
+#### Certificate management
+Certs are inside the Debian, to make FMC able to talk with FMS, CI and other dependencies. Need admin approval to use those certs, this is done via a button in the UI. 
+
+The customer can add certs himself, if he chooses to not use the certs provided by Cisco.
+FMC is verifying the server certs. 
+
+#### CDB transforms
+TODO: add something here
+#### Thread lifecycle management
+There are 2 threads that do *not* run on a peer, only on master: U2C and the machine_runner thread
+
+The watchdog runner will keep and eye on the connector and restart if necessary.
+
+Default script to run all plugin services: `/etc/service_template`
+
+To start a service, for example cal: `/opt/c_cal/bin/c_cal.sh`. For specific start up behaviour, see the config files
+under `/etc/init.d/`, for example `/etc/init.d/c_mgmt`
+
+##### The main deploy / heartbeating thread
+Thread that does the install/upgrades and handles the heartbeats. Upgrades done in a separate thread (since FMC will send heartbeats even during an upgrade of a connector)
+##### Remote dispatcher thread & commands
+TODO: add something here
+##### U2C
+Thread that will talk with the U2C service every hour and get which URLs to use. If URLs are changed, this gets persisted in the database.
+##### Machine password rotation thread and oauth ojects
+Updates the machine account; every 60 days it updates the password.
+
 ### Running Unittests locally 
 
 `setup_test_environment.sh` is a script to set up a build environment capable of running the unit tests. This will:
@@ -102,3 +193,6 @@ A stack can be created in Cisco Crate by uploading a docker-compose.yml file, th
 * Threat Model Doc: [EDCS-1496496](https://docs.cisco.com/share/page/site/nextgen-edcs/document-details?nodeRef=workspace://SpacesStore/f12dde6e-2b99-4f02-9634-399d7f2858d9)
 * IP Central: https://ipcentral.cisco.com/ipcentral/jsp/ipcentral.jsp?component=ProjectView&entityId=126815985
 * Static Analysis: pylint is automatically run during the build process. Any new static analysis findings will cause the build to fail.
+
+### Other resources/links
+* [Fusion Management Connector (FMC) wiki page](https://wiki.cisco.com/pages/viewpage.action?pageId=114228940)

@@ -6,7 +6,8 @@ import unittest
 from tests_integration.utils import fms
 from tests_integration.utils.common_methods import wait_until, is_connector_entitled, is_connector_installed, \
     run_ssh_command, configure_connectors, enable_expressway_connector, file_exists, get_device_time, get_serialno, \
-    set_poll_time
+    set_poll_time, get_current_machine_account_password, set_machine_account_expiry, restart_connector, \
+    has_machine_password_changed
 from tests_integration.utils.config import Config
 from tests_integration.utils import ci
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd, is_command_complete
@@ -33,6 +34,11 @@ class RequestsRegisterTest(unittest.TestCase):
                                                                                    cls.config.org_admin_password())
 
         set_poll_time(cls.config.exp_hostname1(), cls.config.exp_admin_user(), cls.config.exp_admin_pass(), 9)
+        cls.connector_id = "c_mgmt@" + \
+                           get_serialno(
+                               cls.config.exp_hostname1(),
+                               cls.config.exp_admin_user(),
+                               cls.config.exp_admin_pass())
 
         cls.cluster_id = fms.enable_cloud_fusion(
             cls.config.org_id(),
@@ -214,13 +220,8 @@ class RequestsRegisterTest(unittest.TestCase):
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 "/sbin/alarm raise " + alarm_to_raise)
-            connector_id = "c_mgmt@" + \
-                           get_serialno(
-                               self.config.exp_hostname1(),
-                               self.config.exp_admin_user(),
-                               self.config.exp_admin_pass())
 
-            LOG.info("Checking for alarm %s from connector %s on expressway %s", alarm_to_raise, connector_id,
+            LOG.info("Checking for alarm %s from connector %s on expressway %s", alarm_to_raise, self.connector_id,
                      self.config.exp_hostname1())
 
             def is_alarm_raised_on_exp(alarm):
@@ -238,7 +239,7 @@ class RequestsRegisterTest(unittest.TestCase):
             self.assertTrue(wait_until(fms.is_alarm_raised, 30, 1, *(self.config.org_id(),
                                                                      self.cluster_id,
                                                                      self.config.fms_server(),
-                                                                     connector_id,
+                                                                     self.connector_id,
                                                                      alarm_to_raise,
                                                                      self.access_token)),
                             "Alarm {} was not raised in time.".format(alarm_to_raise))
@@ -324,23 +325,70 @@ class RequestsRegisterTest(unittest.TestCase):
         """
         LOG.info("Running test: %s", self._testMethodName)
         LOG.info(self.test_remote_dispatcher_ping_command.__doc__)
-        connector_id = "c_mgmt@" + \
-                       get_serialno(
-                           self.config.exp_hostname1(),
-                           self.config.exp_admin_user(),
-                           self.config.exp_admin_pass())
 
         command_id = dispatch_command_to_rd(
             self.config.org_id(),
-            connector_id,
+            self.connector_id,
             self.config.rd_server(),
             {"action": "ping"},
             self.access_token)
 
         self.assertTrue(wait_until(is_command_complete, 10, 1, *(
             self.config.org_id(),
-            connector_id,
+            self.connector_id,
             self.config.rd_server(),
             command_id,
             self.access_token)),
                         "Command {} was not completed in time.".format(command_id))
+
+    def test_machine_password_rotation(self):
+        """
+        Purpose: Verify that management connector can rotate its machine account password
+        """
+        LOG.info("Running test: %s", self._testMethodName)
+        LOG.info(self.test_machine_password_rotation.__doc__)
+        try:
+            current_password = get_current_machine_account_password(
+                self.config.exp_hostname1(),
+                self.config.exp_admin_user(),
+                self.config.exp_admin_pass())
+            LOG.info("Current machine account password: %s" % current_password)
+
+            # By default management connector will rotate its password when there are 45 days left until expiry. This
+            # number of days can be configured in the DB. Set it to something ludicrously high like 500 and restart
+            # the connector. The rotation logic should be triggered
+            LOG.info("Set the password rotation to 500 days and restart the connector")
+            set_machine_account_expiry(
+                self.config.exp_hostname1(),
+                self.config.exp_admin_user(),
+                self.config.exp_admin_pass(),
+                500)
+            restart_connector(
+                self.config.exp_hostname1(),
+                self.config.exp_root_user(),
+                self.config.exp_root_pass(),
+                "c_mgmt")
+
+            self.assertTrue(wait_until(has_machine_password_changed, 30, 1, *(
+                self.config.exp_hostname1(),
+                self.config.exp_admin_user(),
+                self.config.exp_admin_pass(),
+                current_password)),
+                            "Password {} was not changed in time.".format(current_password))
+
+            LOG.info("Password was successfully changed to %s" % get_current_machine_account_password(
+                self.config.exp_hostname1(),
+                self.config.exp_admin_user(),
+                self.config.exp_admin_pass()))
+        finally:
+            LOG.info("Set the password rotation back to 45 days and restart the connector")
+            set_machine_account_expiry(
+                self.config.exp_hostname1(),
+                self.config.exp_admin_user(),
+                self.config.exp_admin_pass(),
+                45)
+            restart_connector(
+                self.config.exp_hostname1(),
+                self.config.exp_root_user(),
+                self.config.exp_root_pass(),
+                "c_mgmt")

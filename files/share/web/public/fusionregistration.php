@@ -167,7 +167,6 @@ class CafePage extends ApplicationPage
          . "&client_id=$client_id"
          . "&redirect_uri=" . urlencode($atlas_url_prefix) . "%2F" . $action . "_redirect"
          . "&scope=Identity%3ASCIM%20Identity%3AOrganization%20squared-fusion-mgmt%3Amanagement%20spark%3Alogs_write"
-         . "&service=spark"
          . "&state=$state";
 
         return $link;
