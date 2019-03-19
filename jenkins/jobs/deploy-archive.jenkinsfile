@@ -12,7 +12,7 @@ timestamps {
                 copyArtifacts(filter: '*.tlp',
                               fingerprintArtifacts: true,
                               flatten: true,
-                              projectName: 'cobarbou_top',
+                              projectName: 'team/management-connector/pipeline/master',
                               selector: [$class: 'TriggeredBuildSelector',
                                          allowUpstreamDependencies: false,
                                          fallbackToLastSuccessful : true,
