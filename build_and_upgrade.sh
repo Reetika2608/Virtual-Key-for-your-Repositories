@@ -100,6 +100,28 @@ wait_for_install(){
     exit 1
 }
 
+build_tlp(){
+    echo "[build_tlp] Creating tlp"
+    DEBIAN=$1
+    PUBLICKEY=$2
+    TICKET=$3
+
+    BUILD_DIR=_build/c_mgmt
+    if [[ ! -d ${BUILD_DIR} ]]; then
+        mkdir -p ${BUILD_DIR}
+    fi
+
+    sign_debian ${DEBIAN} ${TICKET}
+    SIGNATURE=$DEBIAN.signature
+    if [[ ! -f ${SIGNATURE} ]]; then
+        echo "Signature not created. Has the SWIMs ticket expired?"
+        exit 1
+    fi
+
+    TMPDIR=./_build_tmp
+    package_tlp ${DEBIAN} ${TMPDIR} ${PUBLICKEY} ${SIGNATURE}>> ${BUILD_DIR}/log.txt 2>&1
+    tidyup_tlp ${DEBIAN} ${TMPDIR} ${PUBLICKEY} ${BUILD_DIR}
+}
 
 if [[ $# -eq 0 ]] ; then
     usage
@@ -148,4 +170,6 @@ elif [ "${CMD}" = "upgrade" ]; then
 elif [ "${CMD}" = "clean_install" ]; then
     [ -z "${TARGET}" ] && echo "Target must be set to install/upgrade: use option: -t" && usage && exit 1
     clean_install
+elif [ "${CMD}" = "build_tlp" ]; then
+    build_tlp $1 $2 $3
 fi
