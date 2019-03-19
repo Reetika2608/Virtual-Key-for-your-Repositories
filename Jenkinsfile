@@ -11,56 +11,73 @@ TLP_URL=""
 MAVEN_SERVER = "https://engci-maven-master.cisco.com/artifactory/"
 
 timestamps {
-    stage('Build') {
-        node('fmc-build') {
-            // Need to install the readYaml plugin, and ensure it's available on SQBU
-            script { config = readYaml(file: './tests_integration/configuration/default.yaml') }
-            script { TARGET = config.expressway.exp_hostname1.toString() }
-            echo "Expressway Target: ${TARGET}"
+    try {
+        stage('Build') {
+            node('fmc-build') {
+                checkout scm
 
-            print('static analysis')
-            sh "python setup.py pylint"
-            sh "test_environment/run_bandit.sh"
+                script { config = readYaml(file: './tests_integration/configuration/default.yaml') }
+                script { TARGET = config.expressway.exp_hostname1.toString() } //TODO investigate standardising this
+                print("Expressway Target: ${TARGET}")
 
-            print('unit test')
-            sh "nosetests tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml"
+                print('static analysis')
+                sh("python setup.py pylint")
+                sh("test_environment/run_bandit.sh")
 
-            // Archive unit tests results
-            junit allowEmptyResults: true, testResults: 'test-results.xml'
+                print('unit test')
+                sh("nosetests tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml")
 
-            sh "./build_and_upgrade.sh -c upgrade -v ${BUILD_ID} -t ${TARGET} -w;"
-            archiveArtifacts artifacts: 'debian/_build/c_mgmt.deb'
-        }
-    }
+                // Archive unit tests results
+                junit allowEmptyResults: true, testResults: 'test-results.xml'
 
-    stage('Build TLP') {
-        node('fmc-build') {
-            if (!params.tlpUrl) {
-            } else {
-                TLP_URL = params.tlpUrl
-                sh("rm -rf *.tlp")
-                sh "wget -q ${params.tlpUrl}"
-
-                archiveArtifacts('*.tlp')
-                tlp_name = sh(script: 'ls *.tlp', returnStdout: true).trim()
-                uploadArtifactsToMaven('*.tlp')
-                TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${tlp_name}"
+                sh("./build_and_upgrade.sh -c upgrade -v ${BUILD_ID} -t ${TARGET} -w;")
+                archiveArtifacts('debian/_build/c_mgmt.deb')
+                stash(includes: 'debian/_build/c_mgmt.deb', name: 'debian')
             }
         }
-    }
 
-    stage('system test'){
-        node('fmc-build') {
-            sh 'python -m unittest discover tests_integration/ "*_test.py"'
+        stage('Build TLP') {
+            node('fmc-build') {
+                checkout scm
+                unstash('debian')
+
+                // setup file locations
+                debian="c_mgmt.deb"
+                private_key="private.pem"
+
+                sh("mv ./debian/_build/c_mgmt.deb ${debian}")
+                folder_path = sh(script: 'pwd', returnStdout: true).trim()
+                sshagent(credentials: ['LYS-GIT']) {
+                    sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
+                }
+
+                withCredentials([file(credentialsId: 'SWIMS', variable: 'swims_ticket')]) {
+                    sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} ${swims_ticket}")
+                }
+
+                archiveArtifacts('_build/c_mgmt/*')
+                uploadArtifactsToMaven('_build/c_mgmt/*.tlp')
+                tlp_name = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
+                TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${tlp_name}"
+                stash(includes: '_build/c_mgmt/*.tlp', name: 'tlp')
+            }
+        }
+
+        stage('system test'){
+            node('fmc-build') {
+                sh('python -m unittest discover tests_integration/ "*_test.py"')
+            }
+        }
+
+        stage('Release tests') {
+            runOldPipeline(TLP_URL)
         }
     }
-
-    stage('Release tests') {
-        print(TLP_URL)
-        //runOldPipeline(TLP_URL)
-    }
-    always {
-        cleanWs()
+    finally {
+        node('fmc-build') {
+            print('Cleaning ws')
+            cleanWs()
+        }
     }
 }
 

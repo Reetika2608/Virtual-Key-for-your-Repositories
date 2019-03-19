@@ -246,3 +246,77 @@ audit_debian_contents(){
         fi
     done
 }
+
+package_tlp() {
+    if [[ $# -ne 4 ]]; then
+        echo "USAGE: $0 <source .deb file> <temp dir> <private key> <signature>"
+        exit 1
+    fi
+
+    SRCTAR=$1
+    TMPDIR=$2
+    PUBLICKEY=$3
+    SIGNEW=$4
+
+    if [[ -d ${TMPDIR} ]]; then
+        echo ERROR: Temp dir ${TMPDIR} exists
+        exit 1
+    fi
+
+    mkdir -p ${TMPDIR}
+
+    DEBIAN=$SRCTAR
+    PKGNAME=`dpkg-deb -f $SRCTAR Package`
+    VERSION=`dpkg-deb -f $SRCTAR Version`
+    ARCH=`dpkg-deb -f $SRCTAR Architecture`
+
+    dd if=/dev/urandom of=${TMPDIR}/passphrase.txt bs=512 count=1
+    mkdir -p ${TMPDIR}/pkg
+    mkdir -p ${TMPDIR}/pkg/.sigs
+    openssl enc -aes-128-cbc -salt -pass file:${TMPDIR}/passphrase.txt -in $SRCTAR -out ${TMPDIR}/pkg/pkg.enc
+    openssl rsautl -sign -inkey ${PUBLICKEY} -in ${TMPDIR}/passphrase.txt -out ${TMPDIR}/pkg/sig
+    cp $SRCTAR ${TMPDIR}/pkg/01-pkg.deb
+    cp $SIGNEW ${TMPDIR}/pkg/.sigs/fmc
+    tar cf ${PKGNAME}_${VERSION}_${ARCH}.tlp -C ${TMPDIR}/pkg .
+}
+
+sign_debian() {
+    if [[ $# -ne 2 ]]; then
+        echo "USAGE: $0 <source .deb file> <swims ticket>"
+        exit 1
+    fi
+    DEBIAN=$1
+    TICKET=$2
+
+    ./jenkins/swims/code_sign raw-sign --image_location ${DEBIAN} -p "Fusion_Management_Connector" -k RELEASE -K "FMC_KEY" -I "SW-VCS-8.X-K9" -A Ticket -T ${TICKET} -N "FMC signing"
+}
+
+tidyup_tlp() {
+    if [[ $# -ne 4 ]]; then
+        echo "USAGE: $0 <source .deb file> <temp dir> <private key> <build dir>"
+        exit 1
+    fi
+
+    DEBIAN=$1
+    TMPDIR=$2
+    PUBLICKEY=$3
+    BUILDDIR=$4
+
+    BASEFILENAME=`basename ${DEBIAN} .deb`
+    ORIGTLP=`ls -t ${BASEFILENAME}*.tlp | head -1`
+    TLPFILENAME=`echo ${ORIGTLP} | sed 's/_all//'`
+
+    mv ${ORIGTLP} ${BUILDDIR}/${TLPFILENAME}
+
+    # Tidy up. remove the temporary directory and the intermediate .deb file.
+    rm -rf ${TMPDIR}
+    rm -rf ${PUBLICKEY}
+
+    if [[ -f ${BUILDDIR}/${TLPFILENAME} ]]; then
+	    echo "Done. Package ${TLPFILENAME} created."
+	    exit 0
+    else
+	    echo "Package ${TLPFILENAME} not created."
+	    exit 1
+    fi
+}
