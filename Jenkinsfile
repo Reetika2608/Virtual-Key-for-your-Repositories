@@ -9,6 +9,7 @@ properties(
 TARGET=""
 TLP_URL=""
 MAVEN_SERVER = "https://engci-maven-master.cisco.com/artifactory/"
+DEB_VERSION = ''
 
 timestamps {
     try {
@@ -31,6 +32,7 @@ timestamps {
                 junit allowEmptyResults: true, testResults: 'test-results.xml'
 
                 sh("./build_and_upgrade.sh -c upgrade -v ${BUILD_ID} -t ${TARGET} -w;")
+                DEB_VERSION = sh(script: 'dpkg-deb --field debian/_build/c_mgmt.deb Version', returnStdout: true).trim()
                 archiveArtifacts('debian/_build/c_mgmt.deb')
                 stash(includes: 'debian/_build/c_mgmt.deb', name: 'debian')
             }
@@ -69,8 +71,35 @@ timestamps {
             }
         }
 
-        stage('Release tests') {
-            runOldPipeline(TLP_URL)
+        // Only allow Deploy Stages from the master
+        if (env.BRANCH_NAME == 'master') {
+
+            stage('Release tests') {
+                runOldPipeline(TLP_URL)
+            }
+
+            stage('Deploy to Latest') {
+                node('fmc-build') {
+                    // Setup provisioning data
+                    build('team/management-connector/deploy_files/provisioning_json_latest')
+                }
+                // TODO - Run deployAndIntTest
+            }
+
+            stage('Deploy to Alpha') {
+                // Generate and Deploy Provisioning Data to FMS
+                deploy('alpha', ['production', 'cfe'])
+            }
+
+            stage('Deploy to Beta') {
+                // Generate and Deploy Provisioning Data to FMS
+                deploy('beta', ['integration', 'production', 'cfe'])
+            }
+
+            stage('Deploy to Stable') {
+                // Generate and Deploy Provisioning Data to FMS
+                deploy('stable', ['integration', 'production', 'cfe'])
+            }
         }
     }
     finally {
@@ -95,6 +124,42 @@ def runOldPipeline(String tlpUrl) {
             sh("rm -rf jenkins-cli.jar*")
             sh("wget -q https://engci-private-gpk.cisco.com/jenkins/citg-expressway/jnlpJars/jenkins-cli.jar")
             sh("java -jar jenkins-cli.jar -auth ${cafe_user}:${cafe_pass} -s https://engci-private-gpk.cisco.com/jenkins/citg-expressway/ build '${job}' ${parameters} -s -v")
+        }
+    }
+}
+
+def deploy(String release, List<String> environments) {
+    checkpoint("Deploy to ${release}")
+    timeout(time: 20, unit: 'MINUTES') {
+        input "Deploy ${DEB_VERSION} to ${release} release channel?"
+    }
+    node('fmc-build') {
+        // Setup provisioning data
+        build("team/management-connector/deploy_files/provisioning_json_${release}")
+
+        // Deploy provisioning Data
+        try {
+            // Loop through for each environment
+            environments.each {
+                // 'it' is the implicit param for each element in the list
+                def environment = it
+                def deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}-${release}"
+
+                if ((release == "stable") && (environment == "cfe")) {
+                    deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}"
+                }
+                build(deploy_job)
+            }
+        } catch (Exception e) {
+            if (environment == "cfe"){
+                // Allow a failure in CFE deploy to be skipped
+                timeout(time: 5, unit: 'MINUTES') {
+                    input("Deploy to ${release}: CFE failed do you want to skip and continue?")
+                }
+            } else {
+                // Propagate failure for NON-CFE environments
+                throw e
+            }
         }
     }
 }

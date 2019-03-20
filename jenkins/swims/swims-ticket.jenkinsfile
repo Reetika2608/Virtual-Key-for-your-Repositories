@@ -1,0 +1,95 @@
+#!/usr/bin/groovy
+properties([parameters([string(name: 'creatorOTP', defaultValue: '', description: 'Used to create the ticket')])])
+
+timestamps {
+    stage('Create ticket') {
+        currentBuild.description = "Create SWIMs ticket"
+        creatorOTP = params.creatorOTP
+
+        node('fmc-build') {
+            checkout scm
+            // Get user who started the build
+            wrap([$class: 'BuildUser']) {
+                user_id = "${BUILD_USER_ID}"
+            }
+
+            currentBuild.description = "<a href=\"${BUILD_URL}input\">Ticket waiting for approval, Click here to approve ticket</a>"
+            send_to = get_approver_list(user_id)
+            echo "run command with User: ${user_id} to approvers: ${send_to}"
+            try {
+                sh("./jenkins/swims/code_sign swims ticket create -products Fusion_Management_Connector -ticketType RELEASE -approverNames ${send_to} -authType OTP -username1 ${user_id} -password1 ${creatorOTP} -reason 'FMC TLP Creation' > command_output.txt")
+                ticket = sh(returnStdout: true, script: "cat command_output.txt | sed -n 's/.*\"ticketId\": \\([0-9]*\\).*/\\1/p'")[0..-2]
+                print("Got Ticket ID: ${ticket}")
+
+                writeFile(file: 'swims_ticket.txt', text: """${ticket}""")
+                stash(name: "swims_ticket", includes: "swims_ticket.txt")
+                print("SWIMs ticket request created")
+            } catch (Exception exception) {
+                print("Failed to create SWIMs ticket request")
+            }
+        }
+    }
+
+    stage('Approve ticket') {
+        checkpoint 'Approve ticket'
+        approverOTPs = null
+        timeout(time: 4, unit: 'HOURS') {
+            currentBuild.description = "<a href=\"${BUILD_URL}input\">Ticket waiting for approval, Click here to approve ticket</a>"
+            approverOTPs = input(submitterParameter: 'user_id',
+                                 message: 'Enter two one-time password to first approve the ticket and then to download it',
+                                 parameters: [string(defaultValue: '', description: 'Used to approve ticket.', name: 'otp1'),
+                                              string(defaultValue: '', description: 'Used to download ticket.', name: 'otp2')])
+        }
+
+        node('fmc-build') {
+            checkout scm
+
+            unstash("swims_ticket")
+            ticket = sh(returnStdout: true, script: "cat swims_ticket.txt")
+            print("Run approve command with this username: ${approverOTPs.user_id} and the ticket ID: ${approverOTPs.otp1} to create tic file")
+            sh("rm -rf *.tic")
+            sh("./jenkins/swims/code_sign swims ticket approve -ticket ${ticket} -authType OTP -username1 ${approverOTPs.user_id} -password1 ${approverOTPs.otp1}")
+            sh("./jenkins/swims/code_sign swims ticket download -ticket ${ticket} -authType OTP -username1 ${approverOTPs.user_id} -password1 ${approverOTPs.otp2} -out FMC.tic.RELEASE")
+            sh("rm *output.txt")
+            print("SWIMS ticket ${ticket} was approved by ${approverOTPs.user_id}")
+            stash(name: "swims_ticket", includes: "FMC.tic.RELEASE")
+        }
+    }
+
+
+    stage('Validate ticket') {
+        checkpoint 'Validate ticket'
+        node('fmc-build') {
+            checkout scm
+            unstash("swims_ticket")
+            sh("./jenkins/swims/code_sign swims ticket status -authType Ticket -ticket FMC.tic.RELEASE")
+        }
+    }
+
+    stage('Update stored ticket') {
+        checkpoint 'Update ticket'
+        node('fmc-build') {
+            unstash('swims_ticket')
+            archiveArtifacts("FMC.tic.RELEASE")
+        }
+    }
+}
+
+
+def get_approver_list(user_id) {
+    def authorised_approvers = ["marnewel", "torjohan", "marolsdo"] as String[]
+    def skip = 0
+    for (int i = 0; i < authorised_approvers.size(); i++) {
+        if (user_id == authorised_approvers[i]) {
+            skip = i
+        }
+    }
+    def send_to_approvers_string = ""
+    for (int j = 0; j < authorised_approvers.size(); j++) {
+        if (j != skip) {
+            send_to_approvers_string = send_to_approvers_string + authorised_approvers[j] + ","
+        }
+    }
+    send_to_approvers_string = send_to_approvers_string[0..-2]
+    return send_to_approvers_string
+}
