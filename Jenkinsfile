@@ -55,7 +55,7 @@ timestamps {
                     sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
                 }
 
-                withCredentials([file(credentialsId: 'SWIMS', variable: 'swims_ticket')]) {
+                withCredentials([file(credentialsId: 'fmc-swims', variable: 'swims_ticket')]) {
                     sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} ${swims_ticket}")
                 }
 
