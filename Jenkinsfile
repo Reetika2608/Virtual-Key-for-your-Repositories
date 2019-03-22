@@ -50,13 +50,12 @@ timestamps {
                 private_key="private.pem"
 
                 sh("mv ./debian/_build/c_mgmt.deb ${debian}")
-                folder_path = sh(script: 'pwd', returnStdout: true).trim()
                 sshagent(credentials: ['LYS-GIT']) {
                     sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
                 }
 
                 withCredentials([file(credentialsId: 'fmc-swims', variable: 'swims_ticket')]) {
-                    sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} ${swims_ticket}")
+                    sh("./build_and_upgrade.sh -c build_tlp ${debian} ${private_key} '${swims_ticket}'")
                 }
 
                 archiveArtifacts('_build/c_mgmt/*')
