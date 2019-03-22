@@ -58,16 +58,17 @@ timestamps {
                     sh("./build_and_upgrade.sh -c build_tlp ${debian} ${private_key} '${swims_ticket}'")
                 }
 
-                tlp_name = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
+                tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
+                tlp_name = sh(script: "basename ${tlp_path}", returnStdout: true).trim()
 
                 archiveArtifacts('_build/c_mgmt/*')
 
                 utils = load('jenkins/methods/utils.groovy')
                 maven_tlp_dir = 'tlps/'
-                utils.uploadArtifactsToMaven("_build/c_mgmt/${tlp_name}", maven_tlp_dir)
+                utils.uploadArtifactsToMaven("${tlp_path}", maven_tlp_dir)
 
                 TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${tlp_name}"
-                stash(includes: "_build/c_mgmt/${tlp_name}", name: 'tlp')
+                stash(includes: "${tlp_path}", name: 'tlp')
             }
         }
 
