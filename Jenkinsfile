@@ -58,11 +58,16 @@ timestamps {
                     sh("./build_and_upgrade.sh -c build_tlp ${debian} ${private_key} '${swims_ticket}'")
                 }
 
-                archiveArtifacts('_build/c_mgmt/*')
-                uploadArtifactsToMaven('_build/c_mgmt/*.tlp')
                 tlp_name = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
+
+                archiveArtifacts('_build/c_mgmt/*')
+
+                utils = load('jenkins/methods/utils.groovy')
+                maven_tlp_dir = 'tlps/'
+                utils.uploadArtifactsToMaven("_build/c_mgmt/${tlp_name}", maven_tlp_dir)
+
                 TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${tlp_name}"
-                stash(includes: '_build/c_mgmt/*.tlp', name: 'tlp')
+                stash(includes: "_build/c_mgmt/${tlp_name}", name: 'tlp')
             }
         }
 
@@ -180,26 +185,5 @@ def deploy(String release, List<String> environments) {
                 throw e
             }
         }
-    }
-}
-
-def uploadArtifactsToMaven(String pattern) {
-    maven_repo = "team-cafe-release/sqbu-pipeline/tlps/"
-
-    upload_spec = """{
-        "files": [
-            {
-                "pattern": "${pattern}",
-                "target": "${maven_repo}",
-                "flat": "true"
-            }
-        ]
-    }"""
-
-    withCredentials([usernamePassword(credentialsId: 'cafefusion.gen-maven', usernameVariable: 'maven_username', passwordVariable: 'maven_password')]) {
-        // publish artifacts to maven
-        def server = Artifactory.newServer(url: MAVEN_SERVER, username: maven_username, password: maven_password)
-
-        server.upload(upload_spec)
     }
 }
