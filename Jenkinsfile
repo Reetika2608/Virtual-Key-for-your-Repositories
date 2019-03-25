@@ -48,7 +48,7 @@ timestamps {
                 // setup file locations
                 debian = "c_mgmt.deb"
                 private_key = "private.pem"
-                swims_ticket = "FMC.tic.RELEASE"
+                folder_path = pwd()
 
                 print("Gather required components - debian, key and swims ticket.")
                 sh("mv ./debian/_build/c_mgmt.deb ${debian}")
