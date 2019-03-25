@@ -46,21 +46,24 @@ timestamps {
                 unstash('debian')
 
                 // setup file locations
-                debian="c_mgmt.deb"
-                private_key="private.pem"
+                debian = "c_mgmt.deb"
+                private_key = "private.pem"
+                swims_ticket = "FMC.tic.RELEASE"
 
+                print("Gather required components - debian, key and swims ticket.")
                 sh("mv ./debian/_build/c_mgmt.deb ${debian}")
                 sshagent(credentials: ['LYS-GIT']) {
                     sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
                 }
 
+                print("Package debian into a TLP.")
                 withCredentials([file(credentialsId: 'fmc-swims', variable: 'swims_ticket')]) {
-                    sh("./build_and_upgrade.sh -c build_tlp ${debian} ${private_key} '${swims_ticket}'")
+                    sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} '${swims_ticket}'")
                 }
 
+                print("Set TLP name for subsequent stages.")
                 tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
                 tlp_name = sh(script: "basename ${tlp_path}", returnStdout: true).trim()
-
                 archiveArtifacts('_build/c_mgmt/*')
 
                 utils = load('jenkins/methods/utils.groovy')
