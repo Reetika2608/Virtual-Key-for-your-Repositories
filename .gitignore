@@ -28,7 +28,3 @@ setup_commands/*.pyc
 tests_integration/**/*.pyc
 tests/**/*.pyc
 src/**/*.pyc
-
-# Swims artifacts
-FMC_KEY_pubkey.der
-swims_client.log

@@ -17,11 +17,9 @@ timestamps {
             node('fmc-build') {
                 checkout scm
 
-                /* TODO - Uncomment, temporary remove the yaml configuration to get a TLP built from new pipeline
                 script { config = readYaml(file: './tests_integration/configuration/default.yaml') }
                 script { TARGET = config.expressway.exp_hostname1.toString() } //TODO investigate standardising this
                 print("Expressway Target: ${TARGET}")
-                */
 
                 print('static analysis')
                 sh("python setup.py pylint")
@@ -33,7 +31,7 @@ timestamps {
                 // Archive unit tests results
                 junit allowEmptyResults: true, testResults: 'test-results.xml'
 
-                sh("./build_and_upgrade.sh -c build -v ${BUILD_ID};")
+                sh("./build_and_upgrade.sh -c upgrade -v ${BUILD_ID} -t ${TARGET} -w;")
                 DEB_VERSION = sh(script: 'dpkg-deb --field debian/_build/c_mgmt.deb Version', returnStdout: true).trim()
                 archiveArtifacts('debian/_build/c_mgmt.deb')
                 stash(includes: 'debian/_build/c_mgmt.deb', name: 'debian')
@@ -46,42 +44,32 @@ timestamps {
                 unstash('debian')
 
                 // setup file locations
-                debian = "c_mgmt.deb"
-                private_key = "private.pem"
-                folder_path = pwd()
+                debian="c_mgmt.deb"
+                private_key="private.pem"
 
-                print("Gather required components - debian, key and swims ticket.")
                 sh("mv ./debian/_build/c_mgmt.deb ${debian}")
+                folder_path = sh(script: 'pwd', returnStdout: true).trim()
                 sshagent(credentials: ['LYS-GIT']) {
                     sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
                 }
 
-                print("Package debian into a TLP.")
-                withCredentials([file(credentialsId: 'fmc-swims', variable: 'swims_ticket')]) {
-                    sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} '${swims_ticket}'")
+                withCredentials([file(credentialsId: 'SWIMS', variable: 'swims_ticket')]) {
+                    sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} ${swims_ticket}")
                 }
 
-                print("Set TLP name for subsequent stages.")
-                tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
-                tlp_name = sh(script: "basename ${tlp_path}", returnStdout: true).trim()
                 archiveArtifacts('_build/c_mgmt/*')
-
-                utils = load('jenkins/methods/utils.groovy')
-                maven_tlp_dir = 'tlps/'
-                utils.uploadArtifactsToMaven("${tlp_path}", maven_tlp_dir)
-
+                uploadArtifactsToMaven('_build/c_mgmt/*.tlp')
+                tlp_name = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
                 TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${tlp_name}"
-                stash(includes: "${tlp_path}", name: 'tlp')
+                stash(includes: '_build/c_mgmt/*.tlp', name: 'tlp')
             }
         }
 
-        /* TODO - Uncomment when we want the new pipeline to be kicked
         stage('system test'){
             node('fmc-build') {
                 sh('python -m unittest discover tests_integration/ "*_test.py"')
             }
         }
-        */
 
         // Only allow Deploy Stages from the master
         if (env.BRANCH_NAME == 'master') {
@@ -90,16 +78,12 @@ timestamps {
                 runOldPipeline(TLP_URL)
             }
 
-            /* TODO - Uncomment when we want the new pipeline to be kicked
             stage('Deploy to Latest') {
                 node('fmc-build') {
                     // Setup provisioning data
                     build('team/management-connector/deploy_files/provisioning_json_latest')
-
-                    // TODO - Remove call to sqbu, and replace with local INT pipeline
-                    // Kicking Old INT pipeline
-                    runOldIntPipeline()
                 }
+                // TODO - Run deployAndIntTest
             }
 
             stage('Deploy to Alpha') {
@@ -116,7 +100,6 @@ timestamps {
                 // Generate and Deploy Provisioning Data to FMS
                 deploy('stable', ['integration', 'production', 'cfe'])
             }
-            */
         }
     }
     finally {
@@ -141,17 +124,6 @@ def runOldPipeline(String tlpUrl) {
             sh("rm -rf jenkins-cli.jar*")
             sh("wget -q https://engci-private-gpk.cisco.com/jenkins/citg-expressway/jnlpJars/jenkins-cli.jar")
             sh("java -jar jenkins-cli.jar -auth ${cafe_user}:${cafe_pass} -s https://engci-private-gpk.cisco.com/jenkins/citg-expressway/ build '${job}' ${parameters} -s -v")
-        }
-    }
-}
-
-// TODO: Export targeted deploy and INT pipeline tests from SQBU to SQBU-01
-def runOldIntPipeline() {
-    node('fmc-build') {
-        def job = "team/mgmt-connector/fusion-mgt-connector-pipeline-release-channels"
-
-        withCredentials([sshUserPrivateKey(credentialsId: "cafefusion.gen-ssh", keyFileVariable: 'private_key')]) {
-            sh("ssh -p 2022 -o StrictHostKeyChecking=no -i ${private_key} cafefusion.gen@sqbu-jenkins.cisco.com build '${job}'")
         }
     }
 }
@@ -189,5 +161,26 @@ def deploy(String release, List<String> environments) {
                 throw e
             }
         }
+    }
+}
+
+def uploadArtifactsToMaven(String pattern) {
+    maven_repo = "team-cafe-release/sqbu-pipeline/tlps/"
+
+    upload_spec = """{
+        "files": [
+            {
+                "pattern": "${pattern}",
+                "target": "${maven_repo}",
+                "flat": "true"
+            }
+        ]
+    }"""
+
+    withCredentials([usernamePassword(credentialsId: 'cafefusion.gen-maven', usernameVariable: 'maven_username', passwordVariable: 'maven_password')]) {
+        // publish artifacts to maven
+        def server = Artifactory.newServer(url: MAVEN_SERVER, username: maven_username, password: maven_password)
+
+        server.upload(upload_spec)
     }
 }
