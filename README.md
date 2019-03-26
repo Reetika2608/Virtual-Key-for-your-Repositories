@@ -164,6 +164,14 @@ FMC's pipeline is driven mainly from the Jenkins file in this repo. The Dockerfi
 Using the root Dockerfile we generate a jenkins agent image from the jenkins directory which is uploaded to `containers.cisco.com`.
 This image from containers.cisco.com is then leveraged by Cisco Crate (Containers as a service - CaaS) which allow us to adhere to the SQBU - BYOS (bring your own slaves) policy.
 
+#### Cisco Crate
+A crate enviroment has been setup to contain all Hybrid Management related containers, this was a one time thing completed with the sign-up link below, for reference. This environment was created in conjunction with the `hybrid-services-management` AD group
+
+A stack can be created in Cisco Crate by uploading a docker-compose.yml file, this file lives in the `jenkins/agent/` directory and will outline the machine nanes and ports in crate, which are then supplied to CCE, to create the corresponding jenkins agents.
+
+* [Hybrid Management Stacks](https://console.ciscocrate.com/env/1a2816697/apps/stacks)
+* [Crate - Wiki](https://engit.cisco.com/storage-and-compute/cisco-crate)
+* [Crate Environment sign-up](https://signup.ciscocrate.com/order)
 
 #### Building the Builder images and pushing to Containers
 ```
@@ -176,17 +184,17 @@ docker commit <CONTAINER ID> containers.cisco.com/hybridmanagement/fmc-builder-b
 docker push containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave
 ```
 
+#### Pulling the new images onto Crate
+Go to the [Hybrid Management](https://console.ciscocrate.com/env/1a2816697/apps/stacks) stack in Cisco Crate. Next to each agent there
+is a dotted menu with the option to upgrade:
+![Agent](docs/images/agent.png?raw=true)
+
+Click the upgarde option and on the next screen check the _Always pull image before creating_ option. Click upgrade and wait for crate to work:
+![Upgrade](docs/images/upgrade.png?raw=true)
+
+
 #### Containers
 * [FMC - Jenkins Builder Docker image](containers.cisco.com/repository/hybridmanagement/fmc-builder-base-ssh-slave)
-
-#### Cisco Crate
-A crate enviroment has been setup to contain all Hybrid Management related containers, this was a one time thing completed with the sign-up link below, for reference. This environment was created in conjunction with the `hybrid-services-management` AD group
-
-A stack can be created in Cisco Crate by uploading a docker-compose.yml file, this file lives in the `jenkins/agent/` directory and will outline the machine nanes and ports in crate, which are then supplied to CCE, to create the corresponding jenkins agents.
-
-* [Hybrid Management Stacks](https://console.ciscocrate.com/env/1a2816697/apps/stacks)
-* [Crate - Wiki](https://engit.cisco.com/storage-and-compute/cisco-crate)
-* [Crate Environment sign-up](https://signup.ciscocrate.com/order)
 
 ### Security
 * Threat Model ID: [21796](https://wwwin-tb.cisco.com/www/threatBuilder.html?id=21796)

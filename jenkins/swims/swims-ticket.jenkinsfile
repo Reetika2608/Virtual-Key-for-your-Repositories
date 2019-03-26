@@ -70,7 +70,22 @@ timestamps {
         checkpoint 'Update ticket'
         node('fmc-build') {
             unstash('swims_ticket')
-            archiveArtifacts("FMC.tic.RELEASE")
+
+            swims_ticket = "FMC.tic.RELEASE"
+
+            date = new Date().format('H:m, dd/MMM/yyyy')
+            content = readFile(file: swims_ticket)
+            withCredentials([sshUserPrivateKey(credentialsId: "cafefusion.gen-ssh", keyFileVariable: 'private_key')]) {
+                sh("""cat > credential.xml <<EOF
+<org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl plugin=\"plain-credentials\">
+  <id>fmc-swims</id>
+  <description>FMC SWIMS updated on $date</description>
+  <fileName>$swims_ticket</fileName>
+  <secretBytes>$content</secretBytes>
+</org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl>
+EOF""")
+                sh("ssh -p 2022 -o StrictHostKeyChecking=no -i ${private_key} cafefusion.gen@sqbu-jenkins-01.cisco.com update-credentials-by-xml folder::item::/team/management-connector/pipeline _ fmc-swims < credential.xml")
+            }
         }
     }
 }
