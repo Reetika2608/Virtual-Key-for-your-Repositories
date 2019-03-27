@@ -99,6 +99,8 @@ timestamps {
                 }
 
                 runOldPipeline(TLP_URL)
+
+                // since we are deploying from the old pipeline for now we do not want to continue
                 return
             }
 
@@ -156,8 +158,6 @@ def runOldPipeline(String tlpUrl) {
             sh("java -jar jenkins-cli.jar -auth ${cafe_user}:${cafe_pass} -s https://engci-private-gpk.cisco.com/jenkins/citg-expressway/ build '${job}' ${parameters}")
         }
     }
-    // since we are deploying from the old pipeline for now we do not want to continue
-    currentBuild.result = 'ABORTED'
 }
 
 // TODO: Export targeted deploy and INT pipeline tests from SQBU to SQBU-01
