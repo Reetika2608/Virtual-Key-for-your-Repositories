@@ -93,6 +93,11 @@ timestamps {
 
             stage('Release tests') {
                 checkpoint("We have a tlp. Let's run release tests.")
+                milestone()
+                timeout(time: 4, unit: 'HOURS') {
+                    input "Run release tests against ${TLP_URL}?"
+                }
+
                 runOldPipeline(TLP_URL)
                 return
             }
