@@ -41,6 +41,7 @@ timestamps {
         }
 
         stage('Build TLP') {
+            checkpoint("We have a debian. Let's create a TLP.")
             node('fmc-build') {
                 checkout scm
                 unstash('debian')
@@ -76,7 +77,8 @@ timestamps {
         }
 
         /* TODO - Uncomment when we want the new pipeline to be kicked
-        stage('system test'){
+        stage('system test') {
+            checkpoint("We have a tlp. Let's run system tests.")
             node('fmc-build') {
                 sh('python -m unittest discover tests_integration/ "*_test.py"')
             }
@@ -87,11 +89,13 @@ timestamps {
         if (env.BRANCH_NAME == 'master') {
 
             stage('Release tests') {
+                checkpoint("We have a tlp. Let's run release tests.")
                 runOldPipeline(TLP_URL)
             }
 
             /* TODO - Uncomment when we want the new pipeline to be kicked
             stage('Deploy to Latest') {
+                checkpoint("Deploy to latest")
                 node('fmc-build') {
                     // Setup provisioning data
                     build('team/management-connector/deploy_files/provisioning_json_latest')
