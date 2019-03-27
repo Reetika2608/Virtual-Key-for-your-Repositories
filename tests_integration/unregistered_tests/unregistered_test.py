@@ -49,13 +49,14 @@ class UnregisteredTest(unittest.TestCase):
                 "location": "/opt/c_mgmt",
                 "perms": [
                     (".", "drwxr-xr-x"),
-                    ("bin", "drwxr-xr-x"),
+                    ("bin", "lrwxrwxrwx"),
                     ("etc", "drwxr-xr-x"),
                     ("lib", "drwxr-xr-x"),
                     ("lib64", "drwxr-xr-x"),
                     ("plugins", "drwxr-xr-x"),
                     ("python", "drwxr-xr-x"),
                     ("src", "drwxr-xr-x"),
+                    ("usr", "drwxr-xr-x"),
                     ("xcommand", "drwxr-xr-x"),
                     ("xstatus", "drwxr-xr-x")
                 ]

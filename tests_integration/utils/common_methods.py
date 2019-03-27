@@ -417,3 +417,140 @@ def has_machine_password_changed(hostname, admin_user, admin_pass, machine_passw
     :return: True or False
     """
     return machine_password != get_current_machine_account_password(hostname, admin_user, admin_pass)
+
+
+def has_file_content_changed(hostname, root_user, root_pass, target_file, old_data):
+    if old_data == get_file_data(hostname, root_user, root_pass, target_file):
+        LOG.info("File contents at %s is unchanged" % target_file)
+        return False
+    else:
+        LOG.info("File contents at %s has changed" % target_file)
+        return True
+
+
+def has_connector_pid_changed(hostname, root_user, root_pass, connector, old_pid):
+    pid_file = "/var/run/{}/{}.pid".format(connector, connector)
+    if file_exists(hostname, root_user, root_pass, pid_file):
+        return has_file_content_changed(hostname, root_user, root_pass, pid_file, old_pid)
+    else:
+        LOG.info("No PID file found at %s. Should the connector be running?" % pid_file)
+        return False
+
+
+def get_connector_heartbeat(hostname, root_user, root_pass, connector):
+    heartbeat_file = "/var/run/c_mgmt/{}.heartbeat".format(connector)
+    if file_exists(hostname, root_user, root_pass, heartbeat_file):
+        try:
+            return json.loads(get_file_data(hostname, root_user, root_pass, heartbeat_file))
+        except ValueError:
+            LOG.info("Invalid JSON found at %s. Should the connector be running?" % heartbeat_file)
+    else:
+        LOG.info("No heartbeat file found at %s. Should the connector be running?" % heartbeat_file)
+    return {}
+
+
+def get_connector_heartbeat_start_time(hostname, root_user, root_pass, connector):
+    heartbeat = get_connector_heartbeat(hostname, root_user, root_pass, connector)
+    if "status" in heartbeat and "startTimestamp" in heartbeat["status"]:
+        return heartbeat["status"]["startTimestamp"]
+    else:
+        return None
+
+
+def has_connector_heartbeat_start_time_changed(hostname, root_user, root_pass, connector, old_heartbeat_start):
+    heartbeat_start_time = get_connector_heartbeat_start_time(hostname, root_user, root_pass, connector)
+    return heartbeat_start_time is not None and heartbeat_start_time != old_heartbeat_start
+
+
+def get_mercury_registration(hostname, root_user, root_pass):
+    mercury_file = "/var/run/c_mgmt/c_mgmt.mercury"
+    if file_exists(hostname, root_user, root_pass, mercury_file):
+        try:
+            return json.loads(get_file_data(hostname, root_user, root_pass, mercury_file))
+        except ValueError:
+            LOG.info("Invalid JSON found at %s. Should the connector be running?" % mercury_file)
+    else:
+        LOG.info("No mercury file found at %s. Should the connector be running?" % mercury_file)
+    return {}
+
+
+def get_mercury_device_route(hostname, root_user, root_pass):
+    mercury_registration = get_mercury_registration(hostname, root_user, root_pass)
+    if "route" in mercury_registration:
+        return mercury_registration["route"]
+    else:
+        return None
+
+
+def has_mercury_device_route_changed(hostname, root_user, root_pass, old_mercury_route):
+    mercury_route = get_mercury_device_route(hostname, root_user, root_pass)
+    return mercury_route is not None and mercury_route != old_mercury_route
+
+
+def get_remote_dispatcher_registration(hostname, root_user, root_pass):
+    remotedispatcher_file = "/var/run/c_mgmt/c_mgmt.remotedispatcher"
+    if file_exists(hostname, root_user, root_pass, remotedispatcher_file):
+        try:
+            return json.loads(get_file_data(hostname, root_user, root_pass, remotedispatcher_file))
+        except ValueError:
+            LOG.info("Invalid JSON found at %s. Should the connector be running?" % remotedispatcher_file)
+    else:
+        LOG.info("No RD file found at %s. Should the connector be running?" % remotedispatcher_file)
+    return {}
+
+
+def get_remote_dispatcher_device_id(hostname, root_user, root_pass):
+    rd_registration = get_remote_dispatcher_registration(hostname, root_user, root_pass)
+    if "deviceId" in rd_registration:
+        return rd_registration["deviceId"]
+    else:
+        return None
+
+
+def has_remote_dispatcher_device_id_changed(hostname, root_user, root_pass, old_rd_device):
+    device_id = get_remote_dispatcher_device_id(hostname, root_user, root_pass)
+    return device_id is not None and device_id != old_rd_device
+
+
+def get_and_log_management_connector_run_data(hostname, root_user, root_pass):
+    pid = get_file_data(hostname, root_user, root_pass,
+                        "/var/run/c_mgmt/c_mgmt.pid")
+    heartbeat_start_time = get_connector_heartbeat_start_time(hostname, root_user, root_pass, "c_mgmt")
+    mercury_route = get_mercury_device_route(hostname, root_user, root_pass)
+    rd_device = get_remote_dispatcher_device_id(hostname, root_user, root_pass)
+    LOG.info("Management connector run data. pid=%s, heartbeat_start_time=%s, mercury_route=%s, rd_device=%s"
+             % (pid, heartbeat_start_time, mercury_route, rd_device))
+    return pid, heartbeat_start_time, mercury_route, rd_device
+
+
+def run_full_management_connector_restart(hostname, root_user, root_pass):
+    starting_pid, starting_heartbeat_start_time, starting_mercury_route, starting_rd_device = \
+        get_and_log_management_connector_run_data(hostname, root_user, root_pass)
+
+    LOG.info("Restarting management connector...")
+    restart_connector(hostname, root_user, root_pass, "c_mgmt")
+    wait_until(has_connector_pid_changed, 10, 1,
+               *(hostname, root_user, root_pass, "c_mgmt", starting_pid))
+    wait_until(has_connector_heartbeat_start_time_changed, 20, 1,
+               *(hostname, root_user, root_pass, "c_mgmt", starting_heartbeat_start_time))
+    wait_until(has_mercury_device_route_changed, 10, 1,
+               *(hostname, root_user, root_pass, starting_mercury_route))
+    wait_until(has_remote_dispatcher_device_id_changed, 10, 1,
+               *(hostname, root_user, root_pass, starting_rd_device))
+    LOG.info("Restart of management connector is complete")
+    get_and_log_management_connector_run_data(hostname, root_user, root_pass)
+
+
+def get_full_blob_contents(hostname, admin_user, admin_pass):
+    blob = get_cdb_entry(
+        hostname,
+        admin_user,
+        admin_pass,
+        "/api/management/configuration/cafe/cafeblobconfiguration/")
+    if blob:
+        return blob[0]["records"]
+    return {}
+
+
+def is_blob_empty(hostname, admin_user, admin_pass):
+    return get_full_blob_contents(hostname, admin_user, admin_pass) == {}

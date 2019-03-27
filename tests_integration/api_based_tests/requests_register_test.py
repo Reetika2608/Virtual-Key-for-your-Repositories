@@ -6,8 +6,8 @@ import unittest
 from tests_integration.utils import fms
 from tests_integration.utils.common_methods import wait_until, is_connector_entitled, is_connector_installed, \
     run_ssh_command, configure_connectors, enable_expressway_connector, file_exists, get_device_time, get_serialno, \
-    set_poll_time, get_current_machine_account_password, set_machine_account_expiry, restart_connector, \
-    has_machine_password_changed
+    set_poll_time, get_current_machine_account_password, set_machine_account_expiry, has_machine_password_changed, \
+    run_full_management_connector_restart, is_blob_empty
 from tests_integration.utils.config import Config
 from tests_integration.utils import ci
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd, is_command_complete
@@ -67,11 +67,17 @@ class RequestsRegisterTest(unittest.TestCase):
                                    cls.config.fms_server(),
                                    cls.access_token)
 
-        # Clean up any token we got at the start
+        # Clean up any tokens we got at the start
         if cls.access_token:
             ci.delete_ci_access_token(cls.access_token)
         if cls.refresh_token:
             ci.delete_ci_refresh_token(cls.refresh_token)
+
+        LOG.info("Cluster has been de-registered. Wait for cleanup to complete on %s" % cls.config.exp_hostname1())
+        wait_until(is_blob_empty, 60, 5, *(
+            cls.config.exp_hostname1(),
+            cls.config.exp_admin_user(),
+            cls.config.exp_admin_pass()))
 
     def test_connectors_can_be_enabled_with_correct_process_count(self):
         """
@@ -333,7 +339,7 @@ class RequestsRegisterTest(unittest.TestCase):
             {"action": "ping"},
             self.access_token)
 
-        self.assertTrue(wait_until(is_command_complete, 10, 1, *(
+        self.assertTrue(wait_until(is_command_complete, 20, 1, *(
             self.config.org_id(),
             self.connector_id,
             self.config.rd_server(),
@@ -363,11 +369,10 @@ class RequestsRegisterTest(unittest.TestCase):
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass(),
                 500)
-            restart_connector(
+            run_full_management_connector_restart(
                 self.config.exp_hostname1(),
                 self.config.exp_root_user(),
-                self.config.exp_root_pass(),
-                "c_mgmt")
+                self.config.exp_root_pass())
 
             self.assertTrue(wait_until(has_machine_password_changed, 30, 1, *(
                 self.config.exp_hostname1(),
@@ -381,14 +386,9 @@ class RequestsRegisterTest(unittest.TestCase):
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass()))
         finally:
-            LOG.info("Set the password rotation back to 45 days and restart the connector")
+            LOG.info("Set the password rotation back to 45 days")
             set_machine_account_expiry(
                 self.config.exp_hostname1(),
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass(),
                 45)
-            restart_connector(
-                self.config.exp_hostname1(),
-                self.config.exp_root_user(),
-                self.config.exp_root_pass(),
-                "c_mgmt")
