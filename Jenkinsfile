@@ -49,6 +49,7 @@ timestamps {
                 // setup file locations
                 debian = "c_mgmt.deb"
                 private_key = "private.pem"
+                swims_ticket = "FMC.tic.RELEASE"
                 folder_path = pwd()
 
                 print("Gather required components - debian, key and swims ticket.")
@@ -58,8 +59,10 @@ timestamps {
                 }
 
                 print("Package debian into a TLP.")
-                withCredentials([file(credentialsId: 'fmc-swims', variable: 'swims_ticket')]) {
-                    sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} '${swims_ticket}'")
+                withCredentials([string(credentialsId: 'fmc-swims', variable: 'swims_content')]) {
+                    sh("echo ${swims_content} >> ${swims_ticket}")
+                    sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} ${folder_path}/${swims_ticket}")
+                    sh("rm -rf ${folder_path}/${swims_ticket}")
                 }
 
                 print("Set TLP name for subsequent stages.")
