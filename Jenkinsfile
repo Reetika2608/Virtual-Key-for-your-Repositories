@@ -91,6 +91,7 @@ timestamps {
             stage('Release tests') {
                 checkpoint("We have a tlp. Let's run release tests.")
                 runOldPipeline(TLP_URL)
+                return
             }
 
             /* TODO - Uncomment when we want the new pipeline to be kicked
@@ -144,9 +145,11 @@ def runOldPipeline(String tlpUrl) {
             echo "Triggering old pipeline on https://engci-private-gpk.cisco.com/jenkins/"
             sh("rm -rf jenkins-cli.jar*")
             sh("wget -q https://engci-private-gpk.cisco.com/jenkins/citg-expressway/jnlpJars/jenkins-cli.jar")
-            sh("java -jar jenkins-cli.jar -auth ${cafe_user}:${cafe_pass} -s https://engci-private-gpk.cisco.com/jenkins/citg-expressway/ build '${job}' ${parameters} -s -v")
+            sh("java -jar jenkins-cli.jar -auth ${cafe_user}:${cafe_pass} -s https://engci-private-gpk.cisco.com/jenkins/citg-expressway/ build '${job}' ${parameters}")
         }
     }
+    // since we are deploying from the old pipeline for now we do not want to continue
+    currentBuild.result = 'ABORTED'
 }
 
 // TODO: Export targeted deploy and INT pipeline tests from SQBU to SQBU-01
