@@ -2,7 +2,6 @@ import json
 import logging
 import requests
 
-from common_methods import get_headers
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -49,3 +48,9 @@ def get_command_from_rd(org_id, connector_id, rd_server, command_id, token):
     if response.ok:
         LOG.info("RD returned a command. Response=%s" % json.loads(response.content))
     return json.loads(response.content)
+
+
+def get_headers(token):
+    return {'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json; charset=UTF-8',
+            'Authorization': 'Bearer ' + token}

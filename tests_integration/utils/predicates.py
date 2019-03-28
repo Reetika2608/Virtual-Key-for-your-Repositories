@@ -2,6 +2,7 @@ import logging
 
 from tests_integration.utils.cdb_methods import get_full_blob_contents, get_current_machine_account_password, \
     get_entitled_list_from_expressway
+from tests_integration.utils.fms import get_connector_raised_alarm_ids
 from tests_integration.utils.remote_dispatcher import get_command_from_rd
 from tests_integration.utils.ssh_methods import run_ssh_commands, get_file_data, file_exists, \
     get_connector_heartbeat_start_time, get_mercury_device_route, get_remote_dispatcher_device_id
@@ -99,3 +100,7 @@ def has_remote_dispatcher_device_id_changed(hostname, root_user, root_pass, old_
 def is_command_complete(org_id, connector_id, rd_server, command_id, token):
     """ Get the command that matches the supplied id and see has it completed """
     return get_command_from_rd(org_id, connector_id, rd_server, command_id, token)["status"] == "complete"
+
+
+def is_alarm_raised(org_id, cluster_id, fms_server, connector_id, alarm_id, token):
+    return alarm_id in get_connector_raised_alarm_ids(org_id, cluster_id, fms_server, connector_id, token)

@@ -3,10 +3,11 @@ import datetime
 import logging
 import re
 import unittest
-from tests_integration.utils import fms
+
 from tests_integration.utils.common_methods import wait_until, run_full_management_connector_restart
+from tests_integration.utils.fms import enable_cloud_fusion, deregister_cluster
 from tests_integration.utils.predicates import is_blob_empty, has_machine_password_changed, are_connectors_entitled, \
-    is_connector_installed, is_command_complete
+    is_connector_installed, is_command_complete, is_alarm_raised
 from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
     set_poll_time, get_current_machine_account_password, set_machine_account_expiry
 from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists
@@ -42,7 +43,7 @@ class RequestsRegisterTest(unittest.TestCase):
                                cls.config.exp_admin_user(),
                                cls.config.exp_admin_pass())
 
-        cls.cluster_id = fms.enable_cloud_fusion(
+        cls.cluster_id = enable_cloud_fusion(
             cls.config.org_id(),
             cls.config.cluster_name(),
             cls.config.fms_server(),
@@ -64,10 +65,10 @@ class RequestsRegisterTest(unittest.TestCase):
     def tearDownClass(cls):
         LOG.info("Running: tearDownClass")
         if cls.config and cls.access_token:
-            fms.deregister_cluster(cls.config.org_id(),
-                                   cls.cluster_id,
-                                   cls.config.fms_server(),
-                                   cls.access_token)
+            deregister_cluster(cls.config.org_id(),
+                               cls.cluster_id,
+                               cls.config.fms_server(),
+                               cls.access_token)
 
         # Clean up any tokens we got at the start
         if cls.access_token:
@@ -244,12 +245,12 @@ class RequestsRegisterTest(unittest.TestCase):
             self.assertTrue(wait_until(is_alarm_raised_on_exp, 5, 1, alarm_to_raise),
                             "Alarm {} was not raised in time on the Expressway.".format(alarm_to_raise))
 
-            self.assertTrue(wait_until(fms.is_alarm_raised, 30, 1, *(self.config.org_id(),
-                                                                     self.cluster_id,
-                                                                     self.config.fms_server(),
-                                                                     self.connector_id,
-                                                                     alarm_to_raise,
-                                                                     self.access_token)),
+            self.assertTrue(wait_until(is_alarm_raised, 30, 1, *(self.config.org_id(),
+                                                                 self.cluster_id,
+                                                                 self.config.fms_server(),
+                                                                 self.connector_id,
+                                                                 alarm_to_raise,
+                                                                 self.access_token)),
                             "Alarm {} was not raised in time.".format(alarm_to_raise))
         finally:
             run_ssh_command(

@@ -39,17 +39,6 @@ def create_log_directory():
     return os.path.abspath(logs_dir)
 
 
-def get_headers(token):
-    """
-    Wrap an access token in http header json
-    :param token:
-    :return: http headers
-    """
-    return {'Content-Type': 'application/json; charset=UTF-8',
-            'Accept': 'application/json; charset=UTF-8',
-            'Authorization': 'Bearer ' + token}
-
-
 def run_full_management_connector_restart(hostname, root_user, root_pass):
     starting_pid, starting_heartbeat_start_time, starting_mercury_route, starting_rd_device = \
         get_and_log_management_connector_run_data(hostname, root_user, root_pass)

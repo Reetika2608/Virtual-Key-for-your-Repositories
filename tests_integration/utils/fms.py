@@ -3,7 +3,6 @@ import logging
 
 import requests
 
-from common_methods import get_headers
 from tests_integration.api_based_tests.vcs_http import VCSHttpSession
 
 logging.basicConfig(level=logging.INFO)
@@ -151,5 +150,7 @@ def get_connector_raised_alarm_ids(org_id, cluster_id, fms_server, connector_id,
     return raised_alarms
 
 
-def is_alarm_raised(org_id, cluster_id, fms_server, connector_id, alarm_id, token):
-    return alarm_id in get_connector_raised_alarm_ids(org_id, cluster_id, fms_server, connector_id, token)
+def get_headers(token):
+    return {'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json; charset=UTF-8',
+            'Authorization': 'Bearer ' + token}
