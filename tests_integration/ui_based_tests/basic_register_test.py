@@ -1,12 +1,12 @@
 """ Basic UI Based Registration Test """
-import unittest
-import sys
 import logging
-import re
+import sys
+import unittest
 
+from tests_integration.utils.cdb_methods import configure_connectors
+from tests_integration.utils.common_methods import create_log_directory, wait_until
+from tests_integration.utils.predicates import are_connectors_entitled, is_connector_installed
 from tests_integration.utils.config import Config
-from tests_integration.utils.common_methods import configure_connectors, run_ssh_command, is_connector_installed, \
-    create_log_directory, wait_until, is_connector_entitled
 from tests_integration.utils.web_methods import register_expressway, deregister_expressway, create_web_driver, \
     is_in_page_source, is_visible, login_expressway, navigate_expressway_menus, enable_expressway_connector
 
@@ -66,10 +66,10 @@ class BasicRegisterTest(unittest.TestCase):
         LOG.info(self.test_01_connectors_can_be_enabled.__doc__)
 
         # Verify all connectors are entitled in the database
-        self.assertTrue(wait_until(is_connector_entitled, 60, 5, *(self.config.exp_hostname1(),
-                                                                   self.config.exp_admin_user(),
-                                                                   self.config.exp_admin_pass(),
-                                                                   self.config.expected_connectors())),
+        self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname1(),
+                                                                     self.config.exp_admin_user(),
+                                                                     self.config.exp_admin_pass(),
+                                                                     self.config.expected_connectors())),
                         "%s does not have the full list of entitled connectors (%s)."
                         % (self.config.exp_hostname1(), str(self.config.expected_connectors())))
 

@@ -1,9 +1,12 @@
 import json
 import logging
 import requests
+
 from common_methods import get_headers
 
+logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 
 def dispatch_command_to_rd(org_id, connector_id, rd_server, command, token):
@@ -17,7 +20,7 @@ def dispatch_command_to_rd(org_id, connector_id, rd_server, command, token):
     :return:
     """
     LOG.info("dispatch_command_to_rd")
-    rd_url = "https://" + rd_server + "/remote-dispatcher/api/v1/commands/{}/connectors/{}/command"\
+    rd_url = "https://" + rd_server + "/remote-dispatcher/api/v1/commands/{}/connectors/{}/command" \
         .format(org_id, connector_id)
 
     LOG.info("Dispatching command=%s to RD URL=%s" % (json.dumps(command), rd_url))
@@ -46,16 +49,3 @@ def get_command_from_rd(org_id, connector_id, rd_server, command_id, token):
     if response.ok:
         LOG.info("RD returned a command. Response=%s" % json.loads(response.content))
     return json.loads(response.content)
-
-
-def is_command_complete(org_id, connector_id, rd_server, command_id, token):
-    """
-    Get the command that matches the supplied id and see has it completed
-    :param org_id:
-    :param connector_id:
-    :param rd_server:
-    :param command_id:
-    :param token:
-    :return:
-    """
-    return get_command_from_rd(org_id, connector_id, rd_server, command_id, token)["status"] == "complete"

@@ -1,15 +1,14 @@
-import logging
+import os.path
 import uuid
 import yaml
-import os.path
-
+import logging
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 
 class Config(object):
-
     config_dict = {}
     _exp_hostname1 = None
     _exp_hostname2 = None

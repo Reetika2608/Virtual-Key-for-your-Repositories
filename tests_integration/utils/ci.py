@@ -2,12 +2,15 @@
 import json
 import logging
 import re
+from random import randint
+
 import requests
 
-from random import randint
 from tests_integration.utils.config import Config
 
+logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 CONFIG = Config()
 ID_BROKER_HOST = 'https://' + CONFIG.ci_broker_server() + '/idb/'
@@ -135,7 +138,8 @@ def get_cis_access_token(auth_code, cis_url, client_id, client_secret):
     """
     # Generate an access token
     access_token_url = ("https://" + cis_url + "/idb/oauth2/v1/access_token")
-    access_token_body = {"code": auth_code, "redirect_uri": "urn:ietf:wg:oauth:2.0:oob", "grant_type": "authorization_code"}
+    access_token_body = {"code": auth_code, "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+                         "grant_type": "authorization_code"}
 
     LOG.info("reqTokenUrl: %s", access_token_url)
     LOG.info("inputData: %s", access_token_body)

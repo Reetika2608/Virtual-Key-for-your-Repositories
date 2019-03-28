@@ -1,17 +1,20 @@
 import logging
 import time
 
-from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import Select
 
-from tests_integration.utils.common_methods import get_cluster_id_from_expressway, get_entitled_list_from_expressway, wait_until, \
-    is_connector_uninstalled, run_ssh_command
+from tests_integration.utils.cdb_methods import get_entitled_list_from_expressway, get_cluster_id_from_expressway
+from tests_integration.utils.common_methods import wait_until
+from tests_integration.utils.predicates import is_connector_uninstalled
+from tests_integration.utils.ssh_methods import run_ssh_command
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 
 def deregister_expressway(exp_hostname, admin_user, admin_pass, org_admin_user, org_admin_pass):
@@ -155,4 +158,3 @@ def enable_expressway_connector(web_driver, exp_hostname, admin_user, admin_pass
     select.select_by_visible_text('Enabled')
     web_driver.find_element_by_id('save_button').click()
     return "<b>Success</b>: Saved" in web_driver.page_source
-

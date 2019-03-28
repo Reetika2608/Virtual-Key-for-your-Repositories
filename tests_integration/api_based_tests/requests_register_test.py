@@ -4,13 +4,15 @@ import logging
 import re
 import unittest
 from tests_integration.utils import fms
-from tests_integration.utils.common_methods import wait_until, is_connector_entitled, is_connector_installed, \
-    run_ssh_command, configure_connectors, enable_expressway_connector, file_exists, get_device_time, get_serialno, \
-    set_poll_time, get_current_machine_account_password, set_machine_account_expiry, has_machine_password_changed, \
-    run_full_management_connector_restart, is_blob_empty
+from tests_integration.utils.common_methods import wait_until, run_full_management_connector_restart
+from tests_integration.utils.predicates import is_blob_empty, has_machine_password_changed, are_connectors_entitled, \
+    is_connector_installed, is_command_complete
+from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
+    set_poll_time, get_current_machine_account_password, set_machine_account_expiry
+from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists
 from tests_integration.utils.config import Config
 from tests_integration.utils import ci
-from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd, is_command_complete
+from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -92,10 +94,10 @@ class RequestsRegisterTest(unittest.TestCase):
         LOG.info("Running test: %s", self._testMethodName)
         LOG.info(self.test_connectors_can_be_enabled_with_correct_process_count.__doc__)
 
-        self.assertTrue(wait_until(is_connector_entitled, 60, 5, *(self.config.exp_hostname1(),
-                                                                   self.config.exp_admin_user(),
-                                                                   self.config.exp_admin_pass(),
-                                                                   self.config.expected_connectors())),
+        self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname1(),
+                                                                     self.config.exp_admin_user(),
+                                                                     self.config.exp_admin_pass(),
+                                                                     self.config.expected_connectors())),
                         "%s does not have the full list of entitled connectors (%s)."
                         % (self.config.exp_hostname1(), str(self.config.expected_connectors())))
 

@@ -1,13 +1,18 @@
-import logging
 import json
+import logging
+
 import requests
-from tests_integration.api_based_tests.vcs_http import VCSHttpSession
+
 from common_methods import get_headers
+from tests_integration.api_based_tests.vcs_http import VCSHttpSession
 
+logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 
-def enable_cloud_fusion(org_id, cluster_name, fms_server, exp_hostname, exp_admin_user, exp_admin_pass, connectors, token, session):
+def enable_cloud_fusion(org_id, cluster_name, fms_server, exp_hostname, exp_admin_user, exp_admin_pass, connectors,
+                        token, session):
     """
     Preregister with FMC, creating/provisioning a cluster, and register
     """
@@ -130,7 +135,7 @@ def deregister_cluster(org_id, cluster_id, fms_server, token):
 
 
 def get_connector(org_id, cluster_id, fms_server, connector_id, token):
-    full_url = 'https://' + fms_server + '/hercules/api/v2/organizations/' + org_id + '/clusters/'\
+    full_url = 'https://' + fms_server + '/hercules/api/v2/organizations/' + org_id + '/clusters/' \
                + cluster_id + '/connectors/' + connector_id + '?fields=@wide'
     response = requests.get(full_url, headers=get_headers(token), verify=False)
     return json.loads(response.content)

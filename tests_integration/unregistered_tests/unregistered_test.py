@@ -5,7 +5,8 @@ import re
 import time
 import requests
 
-from tests_integration.utils.common_methods import delete_cdb_entry, get_file_data, run_ssh_command
+from tests_integration.utils.cdb_methods import delete_cdb_entry
+from tests_integration.utils.ssh_methods import get_file_data, run_ssh_command
 from tests_integration.utils.config import Config
 
 logging.basicConfig(level=logging.INFO)
