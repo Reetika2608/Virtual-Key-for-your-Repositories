@@ -93,8 +93,7 @@ timestamps {
 
             stage('Release tests') {
                 checkpoint("We have a tlp. Let's run release tests.")
-                milestone()
-                timeout(time: 4, unit: 'HOURS') {
+                timeout(time: 5, unit: 'MINUTES') {
                     input "Run release tests against ${TLP_URL}?"
                 }
 
