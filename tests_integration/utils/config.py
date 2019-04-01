@@ -10,9 +10,8 @@ logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 class Config(object):
     config_dict = {}
-    _exp_hostname1 = None
-    _exp_hostname2 = None
-    _exp_hostname3 = None
+    _exp_hostname_primary = None
+    _exp_hostname_secondary = None
     _exp_admin_user = None
     _exp_admin_pass = None
     _exp_root_user = None
@@ -28,10 +27,14 @@ class Config(object):
     _expected_connectors = None
     _cluster_name = str(uuid.uuid4())
 
-    def __init__(self, file_names=None):
-        if file_names is None:
+    def __init__(self):
+        config_file = os.environ.get("CONFIG_FILE")
+        if config_file is None:
             file_names = ["../configuration/default.yaml",
                           "tests_integration/configuration/default.yaml"]
+        else:
+            file_names = [config_file]
+
         for config_file in file_names:
             if os.path.isfile(config_file):
                 with open(config_file, 'r') as ymlfile:
@@ -39,9 +42,8 @@ class Config(object):
                     for section in cfg:
                         self.config_dict.update(cfg[section])
 
-        self._exp_hostname1 = self.get_if_present("exp_hostname1")
-        self._exp_hostname2 = self.get_if_present("exp_hostname2")
-        self._exp_hostname3 = self.get_if_present("exp_hostname3")
+        self._exp_hostname_primary = self.get_if_present("exp_hostname_primary")
+        self._exp_hostname_secondary = self.get_if_present("exp_hostname_secondary")
         self._exp_admin_user = self.get_if_present("exp_admin_user")
         self._exp_admin_pass = self.get_if_present("exp_admin_pass")
         self._exp_root_user = self.get_if_present("exp_root_user")
@@ -60,65 +62,95 @@ class Config(object):
         if item in self.config_dict:
             return self.config_dict[item]
 
-    def exp_hostname1(self):
-        if not self._exp_hostname1:
-            LOG.error("Config item (exp_hostname1) to run test was not found in config file")
+    def exp_hostname_primary(self):
+        hostname = os.environ.get("EXP_HOSTNAME_PRIMARY")
+        if hostname:
+            return hostname
+        elif self._exp_hostname_primary:
+            return self._exp_hostname_primary
+        else:
+            LOG.error("Config item (exp_hostname_primary) to run test was not found in env var nor config file")
             assert False
-        return self._exp_hostname1
 
-    def exp_hostname2(self):
-        if not self._exp_hostname2:
-            LOG.error("Config item (exp_hostname2) to run test was not found in config file")
+    def exp_hostname_secondary(self):
+        hostname = os.environ.get("EXP_HOSTNAME_SECONDARY")
+        if hostname:
+            return hostname
+        elif self._exp_hostname_secondary:
+            return self._exp_hostname_secondary
+        else:
+            LOG.error("Config item (exp_hostname_secondary) to run test was not found in env var nor config file")
             assert False
-        return self._exp_hostname2
-
-    def exp_hostname3(self):
-        if not self._exp_hostname3:
-            LOG.error("Config item (exp_hostname3) to run test was not found in config file")
-            assert False
-        return self._exp_hostname3
 
     def exp_admin_user(self):
-        if not self._exp_admin_user:
+        user = os.environ.get("EXP_ADMIN_USER")
+        if user:
+            return user
+        elif self._exp_admin_user:
+            return self._exp_admin_user
+        else:
             LOG.error("Config item (exp_admin_user) to run test was not found in config file")
             assert False
-        return self._exp_admin_user
 
     def exp_admin_pass(self):
-        if not self._exp_admin_pass:
+        password = os.environ.get("EXP_ADMIN_PASS")
+        if password:
+            return password
+        elif self._exp_admin_pass:
+            return self._exp_admin_pass
+        else:
             LOG.error("Config item (exp_admin_pass) to run test was not found in config file")
             assert False
-        return self._exp_admin_pass
 
     def exp_root_user(self):
-        if not self._exp_root_user:
+        user = os.environ.get("EXP_ROOT_USER")
+        if user:
+            return user
+        elif self._exp_root_user:
+            return self._exp_root_user
+        else:
             LOG.error("Config item (exp_root_user) to run test was not found in config file")
             assert False
-        return self._exp_root_user
 
     def exp_root_pass(self):
-        if not self._exp_root_pass:
+        password = os.environ.get("EXP_ROOT_PASS")
+        if password:
+            return password
+        elif self._exp_root_pass:
+            return self._exp_root_pass
+        else:
             LOG.error("Config item (exp_root_pass) to run test was not found in config file")
             assert False
-        return self._exp_root_pass
 
     def org_id(self):
-        if not self._org_id:
+        user = os.environ.get("ORG_ID")
+        if user:
+            return user
+        elif self._org_id:
+            return self._org_id
+        else:
             LOG.error("Config item (org_id) to run test was not found in config file")
             assert False
-        return self._org_id
 
     def org_admin_user(self):
-        if not self._org_admin_user:
+        user = os.environ.get("ORG_ADMIN_USER")
+        if user:
+            return user
+        elif self._org_admin_user:
+            return self._org_admin_user
+        else:
             LOG.error("Config item (org_admin_user) to run test was not found in config file")
             assert False
-        return self._org_admin_user
 
     def org_admin_password(self):
-        if not self._org_admin_password:
+        password = os.environ.get("ORG_ADMIN_PASSWORD")
+        if password:
+            return password
+        elif self._org_admin_password:
+            return self._org_admin_password
+        else:
             LOG.error("Config item (org_admin_password) to run test was not found in config file")
             assert False
-        return self._org_admin_password
 
     def client_id(self):
         if not self._client_id:

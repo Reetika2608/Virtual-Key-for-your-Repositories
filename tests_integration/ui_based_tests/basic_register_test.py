@@ -23,7 +23,7 @@ class BasicRegisterTest(unittest.TestCase):
         LOG.info("Running: setUpClass")
         cls.config = Config()
         register_expressway(
-            cls.config.exp_hostname1(),
+            cls.config.exp_hostname_primary(),
             cls.config.exp_admin_user(),
             cls.config.exp_admin_pass(),
             cls.config.org_admin_user(),
@@ -32,7 +32,7 @@ class BasicRegisterTest(unittest.TestCase):
 
         for connector in cls.config.expected_connectors():
             wait_until(is_connector_installed, 240, 10,
-                       *(cls.config.exp_hostname1(),
+                       *(cls.config.exp_hostname_primary(),
                          cls.config.exp_root_user(),
                          cls.config.exp_root_pass(),
                          connector))
@@ -66,38 +66,38 @@ class BasicRegisterTest(unittest.TestCase):
         LOG.info(self.test_01_connectors_can_be_enabled.__doc__)
 
         # Verify all connectors are entitled in the database
-        self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname1(),
+        self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname_primary(),
                                                                      self.config.exp_admin_user(),
                                                                      self.config.exp_admin_pass(),
                                                                      self.config.expected_connectors())),
                         "%s does not have the full list of entitled connectors (%s)."
-                        % (self.config.exp_hostname1(), str(self.config.expected_connectors())))
+                        % (self.config.exp_hostname_primary(), str(self.config.expected_connectors())))
 
         # Verify Connectors are entitled/visible in the Hybrid Services connector table
         login_expressway(
             self.web_driver,
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_admin_user(),
             self.config.exp_admin_pass())
         navigate_expressway_menus(self.web_driver, ["Applications", "Hybrid Services", "Connector Management"])
 
         for expected_display in self.config.expected_connectors().values():
             self.assertTrue(self.web_driver.find_element_by_partial_link_text(expected_display),
-                            "%s is not displaying on the UI of %s." % (expected_display, self.config.exp_hostname1()))
+                            "%s is not displaying on the UI of %s." % (expected_display, self.config.exp_hostname_primary()))
 
         # Verify connectors are installed
         for connector in self.config.expected_connectors():
             self.assertTrue(wait_until(is_connector_installed, 180, 10,
-                                       *(self.config.exp_hostname1(),
+                                       *(self.config.exp_hostname_primary(),
                                          self.config.exp_root_user(),
                                          self.config.exp_root_pass(),
                                          connector)),
-                            "%s does not have the connector %s installed." % (self.config.exp_hostname1(), connector))
+                            "%s does not have the connector %s installed." % (self.config.exp_hostname_primary(), connector))
 
         # Verify connectors are visible on the Components page
         login_expressway(
             self.web_driver,
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_admin_user(),
             self.config.exp_admin_pass())
         navigate_expressway_menus(self.web_driver, ["Maintenance", "Upgrade"])
@@ -105,11 +105,11 @@ class BasicRegisterTest(unittest.TestCase):
         for expected_display in self.config.expected_connectors().values():
             self.assertTrue(self.web_driver.find_element_by_xpath(("//*[contains(text(), '%s')]" % expected_display)),
                             "%s does not show the connector %s on the UI." % (
-                                self.config.exp_hostname1(), expected_display))
+                                self.config.exp_hostname_primary(), expected_display))
 
         # Configure the feature connectors so that they can be enabled
         configure_connectors(
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_admin_user(),
             self.config.exp_admin_pass(),
             self.config.exp_root_user(),
@@ -121,11 +121,11 @@ class BasicRegisterTest(unittest.TestCase):
                 self.assertTrue(
                     enable_expressway_connector(
                         self.web_driver,
-                        self.config.exp_hostname1(),
+                        self.config.exp_hostname_primary(),
                         self.config.exp_admin_user(),
                         self.config.exp_admin_pass(),
                         expected_display),
-                    "Connector %s is not enabled on %s." % (expected_display, self.config.exp_hostname1()))
+                    "Connector %s is not enabled on %s." % (expected_display, self.config.exp_hostname_primary()))
 
     def test_08_check_defuse(self):
         """
@@ -139,18 +139,18 @@ class BasicRegisterTest(unittest.TestCase):
         LOG.info("Running test: %s", self._testMethodName)
         LOG.info(self.test_08_check_defuse.__doc__)
 
-        deregister_expressway(self.config.exp_hostname1(), self.config.exp_admin_user(), self.config.exp_admin_pass(),
+        deregister_expressway(self.config.exp_hostname_primary(), self.config.exp_admin_user(), self.config.exp_admin_pass(),
                               self.config.org_admin_user(), self.config.org_admin_password())
 
         login_expressway(
             self.web_driver,
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_admin_user(),
             self.config.exp_admin_pass())
         navigate_expressway_menus(self.web_driver, ["Applications", "Hybrid Services", "Connector Management"])
         self.assertTrue(wait_until(is_in_page_source, 120, 5,
                                    *(self.web_driver, " is not yet registered with the Cisco Webex Cloud.")),
-                        "%s did not defuse successfully." % self.config.exp_hostname1())
+                        "%s did not defuse successfully." % self.config.exp_hostname_primary())
 
         navigate_expressway_menus(self.web_driver, ["Maintenance", "Upgrade"])
 
@@ -158,4 +158,4 @@ class BasicRegisterTest(unittest.TestCase):
             if expected_display != "Management Connector":
                 self.assertFalse(is_visible(self.web_driver, "//*[contains(text(), '%s')]" % expected_display),
                                  "Connector %s was not successfully uninstalled from %s."
-                                 % (expected_display, self.config.exp_hostname1()))
+                                 % (expected_display, self.config.exp_hostname_primary()))

@@ -1,4 +1,6 @@
 #!/usr/bin/groovy
+@Library('sparkPipeline') _
+
 properties(
         [
             parameters([
@@ -16,12 +18,6 @@ timestamps {
         stage('Build') {
             node('fmc-build') {
                 checkout scm
-
-                /* TODO - Uncomment, temporary remove the yaml configuration to get a TLP built from new pipeline
-                script { config = readYaml(file: './tests_integration/configuration/default.yaml') }
-                script { TARGET = config.expressway.exp_hostname1.toString() } //TODO investigate standardising this
-                print("Expressway Target: ${TARGET}")
-                */
 
                 print('static analysis')
                 sh("python setup.py pylint")
@@ -79,14 +75,117 @@ timestamps {
             }
         }
 
-        /* TODO - Uncomment when we want the new pipeline to be kicked
-        stage('system test') {
+        stage('System tests') {
             checkpoint("We have a tlp. Let's run system tests.")
             node('fmc-build') {
-                sh('python -m unittest discover tests_integration/ "*_test.py"')
+                checkout scm
+                unstash('tlp')
+
+                tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
+                config = readYaml(file: './jenkins/test_resources/lysaker_resources.yaml') // TODO: Should this be a parameter?
+                expresswayGroups = config.expressway.resource_groups
+
+                print("Found ${expresswayGroups.size()} sets of test resources")
+
+                // We keep a separate set of resources for the master branch, in order to prevent PRs from blocking a master build
+                if (isMasterBranch() || expresswayGroups.size() == 1) { // If we only have one set of Expressways, we'll have to use that one
+                    resources = expresswayGroups[0]
+                } else if (isPullRequest()) { // If we have multiple Expressway groups, split them among PRs
+                    PRNumber = env.BRANCH_NAME.reverse().take(1).toInteger()
+                    resources = expresswayGroups[1 + (PRNumber % (expresswayGroups.size() - 1))]
+                } else {
+                    print("*** Warning: Testing with \"PR-1\" testbed even though I am not a pull request!")
+                    resources = expresswayGroups[1]
+                }
+
+                parallel (
+                    'Unregistered tests': {
+                        lock(resource: resources.exp_hostname_unreg_1) {
+                            print("Installing .tlp...")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${tlp_path}")
+                            print("Performing unregistered tests")
+                            sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                             nosetests --with-xunit --xunit-file=unregistered-test-results.xml tests_integration/unregistered_tests""".stripIndent())
+
+                            junit allowEmptyResults: true, testResults: 'unregistered-test-results.xml'
+                        }
+                     },
+                    'API registration tests (unclustered)': {
+                        lock(resource: resources.exp_hostname_unreg_2) {
+                            print("Installing .tlp...")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${tlp_path}")
+                            print("Performing API tests")
+
+                            withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
+                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                 ORG_ID=${config.org.org_id} \
+                                 ORG_ADMIN_USER=${org_admin_user} \
+                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                nosetests --with-xunit --xunit-file=api-based-test-results.xml tests_integration/api_based_tests""".stripIndent())
+                            }
+
+                            junit allowEmptyResults: true, testResults: 'api-based-test-results.xml'
+                        }
+                    },
+                    'UI registration tests (clustered)': {
+                        // The plugin is unable to handle locking of multiple resources
+                        // (without using label, which would require admin access or a custom Jenkins job).
+                        // We therefore lock only the primary cluster node, even though we use both
+                        lock(resource: resources.exp_hostname_unreg_cluster_1) {
+                            print("Installing .tlps in parallel")
+                            parallel(
+                                'Upgrade node 1': {
+                                    print("Installing .tlp...")
+                                    sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_1} -w ${tlp_path}")
+                                },
+                                'Upgrade node 2': {
+                                    print("Installing .tlp...")
+                                    sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_2} -w ${tlp_path}")
+                                }
+                            )
+
+                            print("Performing UI tests")
+                            // TODO: UI registration tests here
+                        }
+                    },
+                    'Upgrade tests (unclustered)': {
+                        lock(resource: resources.exp_hostname_reg) {
+                            print("Installing .tlp...")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg} -w ${tlp_path} ")
+                            print("Performing unclustered upgrade tests")
+                            // TODO: Upgrade tests here
+                        }
+                    },
+                    'Upgrade tests (clustered)': {
+                        lock(resource: resources.exp_hostname_reg_cluster_1) {
+                            print("Installing .tlp in parallel")
+                            parallel(
+                                'Upgrade node 1': {
+                                    print("Installing .tlp...")
+                                    sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_1} -w ${tlp_path}")
+                                },
+                                'Upgrade node 2': {
+                                    print("Installing .tlp...")
+                                    sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_2} -w ${tlp_path}")
+                                }
+                            )
+
+                            print("Performing upgrade tests")
+                            // TODO: Upgrade tests here
+                        }
+                    }
+                )
             }
         }
-        */
 
         // Only allow Deploy Stages from the master
         if (env.BRANCH_NAME == 'master') {

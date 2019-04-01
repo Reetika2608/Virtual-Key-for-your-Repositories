@@ -61,12 +61,16 @@ class UnregisteredTest(unittest.TestCase):
                     ("xcommand", "drwxr-xr-x"),
                     ("xstatus", "drwxr-xr-x")
                 ]
-            }
+            },
+            {
+                "location": "/usr",
+                "perms": [("bin", "drwxr-xr-x")]
+            },
         ]
         user = "root"
         for checkpoint in checkpoints:
             result = run_ssh_command(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 "ls -lah " + checkpoint["location"])
@@ -97,21 +101,21 @@ class UnregisteredTest(unittest.TestCase):
 
         try:
             # Step. 1
-            requests.post('https://' + self.config.exp_hostname1() + full_path, data='level=DEBUG',
+            requests.post('https://' + self.config.exp_hostname_primary() + full_path, data='level=DEBUG',
                           auth=(self.config.exp_admin_user(), self.config.exp_admin_pass()), verify=False)
 
             # wait for Log Level to propagate to ttlog.conf"
             time.sleep(3)
 
             # Step. 2
-            ttlog_file_contents = get_file_data(self.config.exp_hostname1(),
+            ttlog_file_contents = get_file_data(self.config.exp_hostname_primary(),
                                                 self.config.exp_root_user(), self.config.exp_root_pass(), ttlog_file)
             self.assertTrue(test_debug_log in ttlog_file_contents,
                             msg="{} not in ttlog file".format(test_debug_log))
 
         finally:
             # Step. 3
-            delete_cdb_entry(self.config.exp_hostname1(), self.config.exp_admin_user(), self.config.exp_admin_pass(),
+            delete_cdb_entry(self.config.exp_hostname_primary(), self.config.exp_admin_user(), self.config.exp_admin_pass(),
                              hybrid_log_level_path + "name" + "/" + name)
 
     def test_03_alarm_onboarding(self):
@@ -136,7 +140,7 @@ class UnregisteredTest(unittest.TestCase):
 
         for alarm in known_alarm_ids:
             result = run_ssh_command(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 "alarm query %s" % alarm)
@@ -148,7 +152,7 @@ class UnregisteredTest(unittest.TestCase):
         LOG.info("Checking full c_mgmt alarm range(60050-60099) for unknown alarms")
         for alarm in c_mgmt_alarm_range:
             result = run_ssh_command(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 "alarm query %s" % alarm)
@@ -191,7 +195,7 @@ class UnregisteredTest(unittest.TestCase):
                        "*** https://wiki.cisco.com/display/WX2/Adding+New+Certificates+to+FMC"
 
         files_str = run_ssh_command(
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_root_user(),
             self.config.exp_root_pass(),
             "ls {}".format(certs_path))
@@ -202,7 +206,7 @@ class UnregisteredTest(unittest.TestCase):
 
         for path in paths:
             contents = get_file_data(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 path)

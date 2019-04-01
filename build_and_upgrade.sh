@@ -64,9 +64,20 @@ clean_install(){
     install
 }
 
+install_prebuilt(){
+    echo "[install_prebuilt] Installing: ${TARGET} with version ${VERSION}"
+    add_to_known_hosts
+    install $1
+}
+
 install(){
     echo "[install] Starting install on ${TARGET}"
-    sshpass -p ${TARGET_PASSWORD} scp ./debian/_build/c_mgmt.deb root@${TARGET}:/tmp/pkgs/new/
+    if [[ $# -eq 0 ]]; then
+        pkg="./debian/_build/c_mgmt.deb"
+    else
+        pkg=$1
+    fi
+    sshpass -p ${TARGET_PASSWORD} scp ${pkg} root@${TARGET}:/tmp/pkgs/new/
     if [[ ${WAIT_FOR_INSTALL} == true ]]; then
         wait_for_install
     fi
@@ -172,4 +183,7 @@ elif [ "${CMD}" = "clean_install" ]; then
     clean_install
 elif [ "${CMD}" = "build_tlp" ]; then
     build_tlp $1 $2 $3
+elif [ "${CMD}" = "install_prebuilt" ]; then
+    [ -z "${TARGET}" ] && echo "Target must be set to install/upgrade: use option: -t" && usage && exit 1
+    install_prebuilt $1
 fi

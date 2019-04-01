@@ -1,14 +1,3 @@
-expressway:
-  exp_hostname_primary:
-  exp_hostname_secondary:
-  exp_admin_user: admin
-  exp_admin_pass: x
-  exp_root_user: root
-  exp_root_pass: x
-org:
-  org_id: bb9e6b5d-1383-40ed-938a-cbefc6d5b868
-  org_admin_user: admin@marneweltest.int
-  org_admin_password: some_sample_password
 urls:
   fms_server: hercules-intb.ciscospark.com
   rd_server: remote-dispatcher-intb.ciscospark.com

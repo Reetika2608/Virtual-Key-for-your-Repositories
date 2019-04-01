@@ -36,10 +36,10 @@ class RequestsRegisterTest(unittest.TestCase):
         cls.access_token, cls.refresh_token, cls.session = ci.get_new_access_token(cls.config.org_admin_user(),
                                                                                    cls.config.org_admin_password())
 
-        set_poll_time(cls.config.exp_hostname1(), cls.config.exp_admin_user(), cls.config.exp_admin_pass(), 9)
+        set_poll_time(cls.config.exp_hostname_primary(), cls.config.exp_admin_user(), cls.config.exp_admin_pass(), 9)
         cls.connector_id = "c_mgmt@" + \
                            get_serialno(
-                               cls.config.exp_hostname1(),
+                               cls.config.exp_hostname_primary(),
                                cls.config.exp_admin_user(),
                                cls.config.exp_admin_pass())
 
@@ -47,7 +47,7 @@ class RequestsRegisterTest(unittest.TestCase):
             cls.config.org_id(),
             cls.config.cluster_name(),
             cls.config.fms_server(),
-            cls.config.exp_hostname1(),
+            cls.config.exp_hostname_primary(),
             cls.config.exp_admin_user(),
             cls.config.exp_admin_pass(),
             cls.config.expected_connectors(),
@@ -56,7 +56,7 @@ class RequestsRegisterTest(unittest.TestCase):
 
         for connector in cls.config.expected_connectors():
             wait_until(is_connector_installed, 240, 10,
-                       *(cls.config.exp_hostname1(),
+                       *(cls.config.exp_hostname_primary(),
                          cls.config.exp_root_user(),
                          cls.config.exp_root_pass(),
                          connector))
@@ -76,9 +76,9 @@ class RequestsRegisterTest(unittest.TestCase):
         if cls.refresh_token:
             ci.delete_ci_refresh_token(cls.refresh_token)
 
-        LOG.info("Cluster has been de-registered. Wait for cleanup to complete on %s" % cls.config.exp_hostname1())
+        LOG.info("Cluster has been de-registered. Wait for cleanup to complete on %s" % cls.config.exp_hostname_primary())
         wait_until(is_blob_empty, 60, 5, *(
-            cls.config.exp_hostname1(),
+            cls.config.exp_hostname_primary(),
             cls.config.exp_admin_user(),
             cls.config.exp_admin_pass()))
 
@@ -95,23 +95,23 @@ class RequestsRegisterTest(unittest.TestCase):
         LOG.info("Running test: %s", self._testMethodName)
         LOG.info(self.test_connectors_can_be_enabled_with_correct_process_count.__doc__)
 
-        self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname1(),
+        self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname_primary(),
                                                                      self.config.exp_admin_user(),
                                                                      self.config.exp_admin_pass(),
                                                                      self.config.expected_connectors())),
                         "%s does not have the full list of entitled connectors (%s)."
-                        % (self.config.exp_hostname1(), str(self.config.expected_connectors())))
+                        % (self.config.exp_hostname_primary(), str(self.config.expected_connectors())))
 
         for connector in self.config.expected_connectors():
             self.assertTrue(wait_until(is_connector_installed, 180, 10,
-                                       *(self.config.exp_hostname1(),
+                                       *(self.config.exp_hostname_primary(),
                                          self.config.exp_root_user(),
                                          self.config.exp_root_pass(),
                                          connector)),
-                            "%s does not have the connector %s installed." % (self.config.exp_hostname1(), connector))
+                            "%s does not have the connector %s installed." % (self.config.exp_hostname_primary(), connector))
 
         configure_connectors(
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_admin_user(),
             self.config.exp_admin_pass(),
             self.config.exp_root_user(),
@@ -122,11 +122,11 @@ class RequestsRegisterTest(unittest.TestCase):
             if connector != "c_mgmt":
                 self.assertTrue(
                     enable_expressway_connector(
-                        self.config.exp_hostname1(),
+                        self.config.exp_hostname_primary(),
                         self.config.exp_admin_user(),
                         self.config.exp_admin_pass(),
                         connector),
-                    "Connector %s is not enabled on %s." % (connector, self.config.exp_hostname1()))
+                    "Connector %s is not enabled on %s." % (connector, self.config.exp_hostname_primary()))
 
             # Verify that all connectors have the corrent number of running processes
             process_dict = {'c_cal': 'java',
@@ -141,17 +141,17 @@ class RequestsRegisterTest(unittest.TestCase):
 
             cmd = "ps aux | grep %s | grep %s | grep -v grep | wc -l" % (connector, connector_binary)
             results = run_ssh_command(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 cmd)
             count = int(results[0])
-            LOG.info("%s output from %s: %d", cmd, self.config.exp_hostname1(), count)
+            LOG.info("%s output from %s: %d", cmd, self.config.exp_hostname_primary(), count)
             self.assertLessEqual(
                 count,
                 1,
                 "The number of processes for connector %s on %s is %s. It should be not be greater than 1"
-                % (connector, self.config.exp_hostname1(), count))
+                % (connector, self.config.exp_hostname_primary(), count))
 
     def test_heartbeat_file_write(self):
         """
@@ -176,7 +176,7 @@ class RequestsRegisterTest(unittest.TestCase):
 
         LOG.info("Step 1: Ensure Connectors Heartbeat file exists, connector=%s", connector)
         self.assertTrue(file_exists(
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_root_user(),
             self.config.exp_root_pass(),
             heartbeat_file))
@@ -186,17 +186,17 @@ class RequestsRegisterTest(unittest.TestCase):
         cat_heartbeat = "su _{} -s /bin/bash -c 'cat {}'".format(connector, heartbeat_file)
 
         results = run_ssh_command(
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_root_user(),
             self.config.exp_root_pass(),
             cat_heartbeat)
         self.assertTrue(results, msg="No Content found in the .heartbeat file: {}".format(heartbeat_file))
 
         LOG.info("Step 3: Ensure Connectors heartbeat file is up to date")
-        current_utc = get_device_time(self.config.exp_hostname1(), self.config.exp_root_user(),
+        current_utc = get_device_time(self.config.exp_hostname_primary(), self.config.exp_root_user(),
                                       self.config.exp_root_pass())
         heartbeat_epoch = run_ssh_command(
-            self.config.exp_hostname1(),
+            self.config.exp_hostname_primary(),
             self.config.exp_root_user(),
             self.config.exp_root_pass(),
             'stat -c %Y ' + heartbeat_file)
@@ -225,17 +225,17 @@ class RequestsRegisterTest(unittest.TestCase):
 
         try:
             run_ssh_command(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 "/sbin/alarm raise " + alarm_to_raise)
 
             LOG.info("Checking for alarm %s from connector %s on expressway %s", alarm_to_raise, self.connector_id,
-                     self.config.exp_hostname1())
+                     self.config.exp_hostname_primary())
 
             def is_alarm_raised_on_exp(alarm):
                 """ exp alarm raised predicate """
-                alarm_list = run_ssh_command(self.config.exp_hostname1(),
+                alarm_list = run_ssh_command(self.config.exp_hostname_primary(),
                                              self.config.exp_root_user(),
                                              self.config.exp_root_pass(),
                                              "/sbin/alarm list")
@@ -254,7 +254,7 @@ class RequestsRegisterTest(unittest.TestCase):
                             "Alarm {} was not raised in time.".format(alarm_to_raise))
         finally:
             run_ssh_command(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 "/sbin/alarm lower " + alarm_to_raise)
@@ -284,7 +284,7 @@ class RequestsRegisterTest(unittest.TestCase):
                 LOG.info('Check init.d script permissions')
 
                 results = run_ssh_command(
-                    self.config.exp_hostname1(),
+                    self.config.exp_hostname_primary(),
                     self.config.exp_root_user(),
                     self.config.exp_root_pass(),
                     'ls -lah /etc/init.d/%s' % connector)
@@ -303,7 +303,7 @@ class RequestsRegisterTest(unittest.TestCase):
                 LOG.info("Check opt user permissions")
 
                 results = run_ssh_command(
-                    self.config.exp_hostname1(),
+                    self.config.exp_hostname_primary(),
                     self.config.exp_root_user(),
                     self.config.exp_root_pass(),
                     'ls -lah /mnt/harddisk/current/opt/%s' % connector)
@@ -358,7 +358,7 @@ class RequestsRegisterTest(unittest.TestCase):
         LOG.info(self.test_machine_password_rotation.__doc__)
         try:
             current_password = get_current_machine_account_password(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass())
             LOG.info("Current machine account password: %s" % current_password)
@@ -368,30 +368,30 @@ class RequestsRegisterTest(unittest.TestCase):
             # the connector. The rotation logic should be triggered
             LOG.info("Set the password rotation to 500 days and restart the connector")
             set_machine_account_expiry(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass(),
                 500)
             run_full_management_connector_restart(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass())
 
             self.assertTrue(wait_until(has_machine_password_changed, 30, 1, *(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass(),
                 current_password)),
                             "Password {} was not changed in time.".format(current_password))
 
             LOG.info("Password was successfully changed to %s" % get_current_machine_account_password(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass()))
         finally:
             LOG.info("Set the password rotation back to 45 days")
             set_machine_account_expiry(
-                self.config.exp_hostname1(),
+                self.config.exp_hostname_primary(),
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass(),
                 45)
