@@ -141,17 +141,10 @@ timestamps {
                         // (without using label, which would require admin access or a custom Jenkins job).
                         // We therefore lock only the primary cluster node, even though we use both
                         lock(resource: resources.exp_hostname_unreg_cluster_1) {
-                            print("Installing .tlps in parallel")
-                            parallel(
-                                'Upgrade node 1': {
-                                    print("Installing .tlp...")
-                                    sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_1} -w ${tlp_path}")
-                                },
-                                'Upgrade node 2': {
-                                    print("Installing .tlp...")
-                                    sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_2} -w ${tlp_path}")
-                                }
-                            )
+                            print("Installing .tlp on node 1...")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_1} -w ${tlp_path}")
+                            print("Installing .tlp on node 2...")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_2} -w ${tlp_path}")
 
                             print("Performing UI tests")
                             // TODO: UI registration tests here
@@ -167,17 +160,10 @@ timestamps {
                     },
                     'Upgrade tests (clustered)': {
                         lock(resource: resources.exp_hostname_reg_cluster_1) {
-                            print("Installing .tlp in parallel")
-                            parallel(
-                                'Upgrade node 1': {
-                                    print("Installing .tlp...")
-                                    sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_1} -w ${tlp_path}")
-                                },
-                                'Upgrade node 2': {
-                                    print("Installing .tlp...")
-                                    sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_2} -w ${tlp_path}")
-                                }
-                            )
+                            print("Installing .tlp on node 1...")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_1} -w ${tlp_path}")
+                            print("Installing .tlp on node 2...")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_2} -w ${tlp_path}")
 
                             print("Performing upgrade tests")
                             // TODO: Upgrade tests here
