@@ -7,7 +7,6 @@ timestamps {
     try {
         stage('Copy FMC TLP') {
             node('fmc-build') {
-                // TODO - change projectName
                 sh("rm -rf c_mgmt_*.tlp")
                 copyArtifacts(filter: '*.tlp',
                               fingerprintArtifacts: true,
@@ -28,17 +27,15 @@ timestamps {
                 // maven is the current approach for static url file storage of release channel tlp, for the binary
                 // deploy job, alternatively you could have a downstream jenkins job archiving all TLP also
                 print("Step 1. Publish c_mgmt.tlp to maven")
-                // TODO - Uncomment: Publish to maven
-                // sh("cp ${TLP_FILE} c_mgmt.tlp")
-                // def utils = load('jenkins/methods/utils.groovy')
-                // utils.uploadArtifactsToMaven('c_mgmt.tlp', "${RELEASE_CHANNEL}/")
+                sh("cp ${TLP_FILE} c_mgmt.tlp")
+                def utils = load('jenkins/methods/utils.groovy')
+                utils.uploadArtifactsToMaven('c_mgmt.tlp', "${RELEASE_CHANNEL}/")
 
                 print("Step 2. Trigger Binaries Deploy Job")
-                // TODO - Uncomment: Trigger Binaries Deploy
-                //def binary_job_url = "job/binaries/job/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
-                //def binary_build = build(binary_job_url)
-                //sh("rm -rf manifest.yaml*")
-                //copyArtifacts(filter: 'manifest.yaml', fingerprintArtifacts: true, flatten: true, projectName: binary_job_url, selector: "${binary_build.number}")
+                def binary_job_url = "job/binaries/job/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
+                def binary_build = build(binary_job_url)
+                sh("rm -rf manifest.yaml*")
+                copyArtifacts(filter: 'manifest.yaml', fingerprintArtifacts: true, flatten: true, projectName: binary_job_url, selector: "${binary_build.number}")
 
                 print("Step 3. Create provisioning JSON file")
                 createProvisioning(RELEASE_CHANNEL)
@@ -70,9 +67,7 @@ def getManifestUrl() {
 }
 
 def createProvisioning(String release) {
-    // TODO - Uncomment: getManifest artifact
-    //def published_url = getManifestUrl()
-    def published_url = "www.someexternallocation.com/c_mgmt.tlp"
+    def published_url = getManifestUrl()
 
     def connector_version = getTlpVersionFromTLP(TLP_FILE)
 
@@ -82,7 +77,7 @@ def createProvisioning(String release) {
 def getTlpVersionFromTLP(String tlp) {
     def version = tlp.tokenize('_')[-1].replace('.tlp', '').trim()
 
-    print('TLP version from URL: ' + version)
+    print("TLP version from URL: ${version}")
     return version
 }
 
