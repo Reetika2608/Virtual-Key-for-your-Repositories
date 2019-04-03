@@ -4,16 +4,17 @@ import logging
 import re
 import unittest
 
-from tests_integration.utils.common_methods import wait_until, run_full_management_connector_restart
+from tests_integration.utils import ci
+from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
+    set_poll_time, get_current_machine_account_password, set_machine_account_expiry
+from tests_integration.utils.common_methods import wait_until, run_full_management_connector_restart, \
+    wait_for_connectors_to_install
+from tests_integration.utils.config import Config
 from tests_integration.utils.fms import enable_cloud_fusion, deregister_cluster
 from tests_integration.utils.predicates import is_blob_empty, has_machine_password_changed, are_connectors_entitled, \
     is_connector_installed, is_command_complete, is_alarm_raised
-from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
-    set_poll_time, get_current_machine_account_password, set_machine_account_expiry
-from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists
-from tests_integration.utils.config import Config
-from tests_integration.utils import ci
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
+from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -54,12 +55,11 @@ class RequestsRegisterTest(unittest.TestCase):
             cls.access_token,
             cls.session)
 
-        for connector in cls.config.expected_connectors():
-            wait_until(is_connector_installed, 240, 10,
-                       *(cls.config.exp_hostname_primary(),
-                         cls.config.exp_root_user(),
-                         cls.config.exp_root_pass(),
-                         connector))
+        wait_for_connectors_to_install(
+            cls.config.exp_hostname_primary(),
+            cls.config.exp_root_user(),
+            cls.config.exp_root_pass(),
+            cls.config.expected_connectors())
 
     @classmethod
     def tearDownClass(cls):
@@ -128,7 +128,7 @@ class RequestsRegisterTest(unittest.TestCase):
                         connector),
                     "Connector %s is not enabled on %s." % (connector, self.config.exp_hostname_primary()))
 
-            # Verify that all connectors have the corrent number of running processes
+            # Verify that all connectors have the correct number of running processes
             process_dict = {'c_cal': 'java',
                             'c_ucmc': 'CSI',
                             'c_mgmt': 'managementconnectormain',
@@ -140,12 +140,12 @@ class RequestsRegisterTest(unittest.TestCase):
             self.assertIsNotNone(connector_binary, "No binary defined for " + connector)
 
             cmd = "ps aux | grep %s | grep %s | grep -v grep | wc -l" % (connector, connector_binary)
-            results = run_ssh_command(
+            result = run_ssh_command(
                 self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass(),
                 cmd)
-            count = int(results[0])
+            count = int(result.strip())
             LOG.info("%s output from %s: %d", cmd, self.config.exp_hostname_primary(), count)
             self.assertLessEqual(
                 count,

@@ -154,3 +154,19 @@ def get_headers(token):
     return {'Content-Type': 'application/json; charset=UTF-8',
             'Accept': 'application/json; charset=UTF-8',
             'Authorization': 'Bearer ' + token}
+
+
+def enable_maintenance_mode(org_id, serial, fms_server, token):
+    requests.patch(
+        'https://' + fms_server + '/hercules/api/v2/organizations/' + org_id + '/hosts/' + serial,
+        headers=get_headers(token),
+        data=json.dumps({'maintenanceMode': 'on'}),
+        verify=False)
+
+
+def disable_maintenance_mode(org_id, serial, fms_server, token):
+    requests.patch(
+        'https://' + fms_server + '/hercules/api/v2/organizations/' + org_id + '/hosts/' + serial,
+        headers=get_headers(token),
+        data=json.dumps({'maintenanceMode': 'off'}),
+        verify=False)

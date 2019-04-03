@@ -1,11 +1,15 @@
 import logging
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 from tests_integration.utils.cdb_methods import get_full_blob_contents, get_current_machine_account_password, \
     get_entitled_list_from_expressway
 from tests_integration.utils.fms import get_connector_raised_alarm_ids
 from tests_integration.utils.remote_dispatcher import get_command_from_rd
 from tests_integration.utils.ssh_methods import run_ssh_commands, get_file_data, file_exists, \
-    get_connector_heartbeat_start_time, get_mercury_device_route, get_remote_dispatcher_device_id
+    get_connector_heartbeat_start_time, get_mercury_device_route, get_remote_dispatcher_device_id, \
+    get_maintenance_mode_state
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -104,3 +108,31 @@ def is_command_complete(org_id, connector_id, rd_server, command_id, token):
 
 def is_alarm_raised(org_id, cluster_id, fms_server, connector_id, alarm_id, token):
     return alarm_id in get_connector_raised_alarm_ids(org_id, cluster_id, fms_server, connector_id, token)
+
+
+def is_text_on_page(expressway, admin_user, admin_pass, page, text):
+    with requests.Session() as session:
+        retries = Retry(total=5,
+                        backoff_factor=0.1,
+                        status_forcelist=[500, 502, 503, 504])
+
+        session.mount('http://', HTTPAdapter(max_retries=retries))
+        session.mount('https://', HTTPAdapter(max_retries=retries))
+        session.post(
+            "https://" + expressway + "/login",
+            data={"username": admin_user, "password": admin_pass},
+            verify=False)
+        page_data = session.get("https://" + expressway + "/" + page, verify=False)
+        return text in page_data.text
+
+
+def is_maintenance_mode_enabled(hostname, root_user, root_pass):
+    maintenance_mode = get_maintenance_mode_state(hostname, root_user, root_pass)
+    LOG.info("%s maintenance mode state is %s" % (hostname, maintenance_mode))
+    return maintenance_mode is not None and maintenance_mode == "on"
+
+
+def is_maintenance_mode_disabled(hostname, root_user, root_pass):
+    maintenance_mode = get_maintenance_mode_state(hostname, root_user, root_pass)
+    LOG.info("%s maintenance mode state is %s" % (hostname, maintenance_mode))
+    return maintenance_mode is not None and maintenance_mode == "off"

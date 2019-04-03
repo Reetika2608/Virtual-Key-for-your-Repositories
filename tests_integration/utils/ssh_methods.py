@@ -118,6 +118,14 @@ def get_connector_heartbeat_start_time(hostname, root_user, root_pass, connector
         return None
 
 
+def get_maintenance_mode_state(hostname, root_user, root_pass):
+    heartbeat = get_connector_heartbeat(hostname, root_user, root_pass, "c_mgmt")
+    if "provisioning" in heartbeat and "maintenanceMode" in heartbeat["provisioning"]:
+        return heartbeat["provisioning"]["maintenanceMode"]
+    else:
+        return None
+
+
 def get_mercury_registration(hostname, root_user, root_pass):
     mercury_file = "/var/run/c_mgmt/c_mgmt.mercury"
     if file_exists(hostname, root_user, root_pass, mercury_file):

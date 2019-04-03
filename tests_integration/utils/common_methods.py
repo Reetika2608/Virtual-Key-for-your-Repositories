@@ -8,7 +8,8 @@ import time
 import urllib3
 
 from tests_integration.utils.predicates import has_connector_pid_changed, has_connector_heartbeat_start_time_changed, \
-    has_mercury_device_route_changed, has_remote_dispatcher_device_id_changed
+    has_mercury_device_route_changed, has_remote_dispatcher_device_id_changed, is_connector_installed, \
+    is_connector_uninstalled, is_blob_empty
 from tests_integration.utils.ssh_methods import get_and_log_management_connector_run_data, restart_connector
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -55,3 +56,19 @@ def run_full_management_connector_restart(hostname, root_user, root_pass):
                *(hostname, root_user, root_pass, starting_rd_device))
     LOG.info("Restart of management connector is complete")
     get_and_log_management_connector_run_data(hostname, root_user, root_pass)
+
+
+def wait_for_connectors_to_install(hostname, root_user, root_pass, connectors):
+    for connector in connectors:
+        wait_until(is_connector_installed, 240, 10,
+                   *(hostname,
+                     root_user,
+                     root_pass,
+                     connector))
+
+
+def wait_for_defuse_to_finish(hostname, root_user, root_pass, admin_user, admin_pass, connectors):
+    wait_until(is_blob_empty, 60, 5, *(hostname, admin_user, admin_pass))
+    for connector in connectors:
+        if connector != "c_mgmt":
+            wait_until(is_connector_uninstalled, 300, 10, *(hostname, root_user, root_pass, connector))

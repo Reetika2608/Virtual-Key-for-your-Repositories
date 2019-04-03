@@ -148,7 +148,10 @@ def enable_expressway_connector(exp_hostname, admin_user, admin_pass, connector)
 def get_serialno(hostname, admin_user, admin_pass):
     """ get expressway serial number """
     status = get_cdb_entry(hostname, admin_user, admin_pass, "/api/management/status/system/")
-    return status[0]['records'][0]['hardware_serial_number']
+    for entry in status:
+        if entry["local_peer"]:
+            return entry['records'][0]['hardware_serial_number']
+    return ""  # Should not be possible
 
 
 def set_poll_time(hostname, admin_user, admin_pass, poll_time):
@@ -187,3 +190,23 @@ def get_full_blob_contents(hostname, admin_user, admin_pass):
     if blob:
         return blob[0]["records"]
     return {}
+
+
+def set_prevent_upgrade_flag(hostname, admin_user, admin_pass, value):
+    prevent_update = \
+        "/api/management/configuration/cafe/cafestaticconfiguration/name/c_mgmt_config_preventMgmtConnUpgrade/"
+
+    # Manual post as prevent upgrade is in an awkward format
+    try:
+        requests.post('https://' + hostname + prevent_update, data={"value": value},
+                      auth=(admin_user, admin_pass), verify=False)
+    except:
+        LOG.error("CDB Set failed: path {} and entry: {}".format(prevent_update, value))
+
+
+def disable_fmc_upgrades(hostname, admin_user, admin_pass):
+    set_prevent_upgrade_flag(hostname, admin_user, admin_pass, "on")
+
+
+def enable_fmc_upgrades(hostname, admin_user, admin_pass):
+    set_prevent_upgrade_flag(hostname, admin_user, admin_pass, "off")
