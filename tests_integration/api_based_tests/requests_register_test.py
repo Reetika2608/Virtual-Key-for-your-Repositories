@@ -3,16 +3,18 @@ import datetime
 import logging
 import re
 import unittest
+import uuid
 
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
-    set_poll_time, get_current_machine_account_password, set_machine_account_expiry
+    set_poll_time, get_current_machine_account_password, set_machine_account_expiry, set_logging_entry_to_blob, \
+    get_logging_host_url
 from tests_integration.utils.common_methods import wait_until, run_full_management_connector_restart, \
-    wait_for_connectors_to_install
+    wait_for_connectors_to_install, get_log_data_from_atlas
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import enable_cloud_fusion, deregister_cluster
 from tests_integration.utils.predicates import is_blob_empty, has_machine_password_changed, are_connectors_entitled, \
-    is_connector_installed, is_command_complete, is_alarm_raised
+    is_connector_installed, is_command_complete, is_alarm_raised, is_connector_uninstalled
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
 from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists
 
@@ -77,10 +79,13 @@ class RequestsRegisterTest(unittest.TestCase):
             ci.delete_ci_refresh_token(cls.refresh_token)
 
         LOG.info("Cluster has been de-registered. Wait for cleanup to complete on %s" % cls.config.exp_hostname_primary())
-        wait_until(is_blob_empty, 60, 5, *(
-            cls.config.exp_hostname_primary(),
-            cls.config.exp_admin_user(),
-            cls.config.exp_admin_pass()))
+
+        for connector in cls.config.expected_connectors():
+            wait_until(is_connector_uninstalled, 300, 10, *(
+                cls.config.exp_hostname_primary(), cls.config.exp_root_user(), cls.config.exp_root_pass(), connector))
+
+        wait_until(is_blob_empty, 60, 5,
+                   *(cls.config.exp_hostname_primary(), cls.config.exp_admin_user(), cls.config.exp_admin_pass()))
 
     def test_connectors_can_be_enabled_with_correct_process_count(self):
         """
@@ -108,7 +113,8 @@ class RequestsRegisterTest(unittest.TestCase):
                                          self.config.exp_root_user(),
                                          self.config.exp_root_pass(),
                                          connector)),
-                            "%s does not have the connector %s installed." % (self.config.exp_hostname_primary(), connector))
+                            "%s does not have the connector %s installed." % (
+                            self.config.exp_hostname_primary(), connector))
 
         configure_connectors(
             self.config.exp_hostname_primary(),
@@ -395,3 +401,37 @@ class RequestsRegisterTest(unittest.TestCase):
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass(),
                 45)
+
+    def test_log_push(self):
+        """
+        Purpose: Verify that management connector can archive and push logs to the cloud
+        """
+        LOG.info("Running test: %s", self._testMethodName)
+        LOG.info(self.test_log_push.__doc__)
+
+        search_uuid = str(uuid.uuid4())
+        serial_number = get_serialno(self.config.exp_hostname_primary(), self.config.exp_admin_user(), self.config.exp_admin_pass())
+        atlas_logging_url = get_logging_host_url(self.config.exp_hostname_primary(), self.config.exp_admin_user(), self.config.exp_root_pass())
+
+        # Trigger log push by injecting a UUID in the CDB
+        set_logging_entry_to_blob(self.config.exp_hostname_primary(), self.config.exp_admin_user(),
+                                  self.config.exp_admin_pass(), search_uuid)
+
+        def logging_metadata_available(logging_url):
+            """
+                Wait for atlas logs to be available.
+            """
+            log_resp = get_log_data_from_atlas(logging_url, search_uuid, self.access_token)
+            LOG.info("get_log_data_from_atlas resp: %s", log_resp)
+            LOG.info("get_log_data_from_atlas text: %s", log_resp.text)
+            updated = True if 'metadataList' in log_resp.json() and log_resp.json()['metadataList'] else False
+
+            return updated
+
+        wait_until(logging_metadata_available, 120, 5, atlas_logging_url)
+
+        response = get_log_data_from_atlas(atlas_logging_url, search_uuid, self.access_token)
+        log_meta_list = response.json()['metadataList'][0]
+
+        self.assertEquals(search_uuid, log_meta_list['meta']['fusion'])
+        self.assertEquals(serial_number, log_meta_list['meta']['locusid'])

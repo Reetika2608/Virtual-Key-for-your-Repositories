@@ -4,6 +4,7 @@ import errno
 import logging
 import os
 import time
+import requests
 
 import urllib3
 
@@ -56,6 +57,22 @@ def run_full_management_connector_restart(hostname, root_user, root_pass):
                *(hostname, root_user, root_pass, starting_rd_device))
     LOG.info("Restart of management connector is complete")
     get_and_log_management_connector_run_data(hostname, root_user, root_pass)
+
+
+def get_log_data_from_atlas(atlas_url, log_uuid, token):
+    """ get log data from atlas """
+
+    search_url = atlas_url + "/logs?search=" + str(log_uuid)
+
+    log_headers = {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+    }
+
+    LOG.info("log search url for debug purposes: %s", search_url)
+    data = requests.get(search_url, headers=log_headers, verify=False)
+
+    return data
 
 
 def wait_for_connectors_to_install(hostname, root_user, root_pass, connectors):

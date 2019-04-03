@@ -192,6 +192,23 @@ def get_full_blob_contents(hostname, admin_user, admin_pass):
     return {}
 
 
+def set_logging_entry_to_blob(hostname, admin_user, admin_pass, uuid):
+    """ Add logging entry to blob to initiate log POST. """
+    cdb_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_identifier/"
+    set_cdb_entry(hostname, admin_user, admin_pass, cdb_path, {"uuid": uuid})
+
+
+def get_logging_host_url(hostname, admin_user, admin_pass):
+    """ get the logging host url  """
+    logging_url = get_cdb_entry(
+        hostname,
+        admin_user,
+        admin_pass,
+        "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_host_u2c/")
+
+    return json.loads(logging_url[0]["records"][0]["value"])
+
+
 def set_prevent_upgrade_flag(hostname, admin_user, admin_pass, value):
     prevent_update = \
         "/api/management/configuration/cafe/cafestaticconfiguration/name/c_mgmt_config_preventMgmtConnUpgrade/"
