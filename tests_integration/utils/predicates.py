@@ -1,15 +1,16 @@
 import logging
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
 from tests_integration.utils.cdb_methods import get_full_blob_contents, get_current_machine_account_password, \
-    get_entitled_list_from_expressway
+    get_entitled_list_from_expressway, get_rollback_blacklist
 from tests_integration.utils.fms import get_connector_raised_alarm_ids
 from tests_integration.utils.remote_dispatcher import get_command_from_rd
-from tests_integration.utils.ssh_methods import run_ssh_commands, get_file_data, file_exists, \
+from tests_integration.utils.ssh_methods import file_exists, \
     get_connector_heartbeat_start_time, get_mercury_device_route, get_remote_dispatcher_device_id, \
-    get_maintenance_mode_state
+    get_maintenance_mode_state, get_connector_status, get_connector_pid, get_installed_connector_version
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -44,46 +45,18 @@ def are_connectors_entitled(hostname, username, password, connectors=None):
         return False
 
 
-def is_connector_installed(exp_hostname, exp_root_user, exp_root_pass, connector):
-    cmds = ["dpkg -l | grep %s" % connector,
-            "dpkg -s %s | grep Status" % connector,
-            "test -e /var/run/c_mgmt/installing_status.json  && echo Found || echo Not found"]
-
-    results = run_ssh_commands(exp_hostname, exp_root_user, exp_root_pass, cmds)
-
-    if "ii  " not in results[0]:
-        LOG.info('"ii" not in  %s' % results)
-        return False
-    elif 'Status: install ok installed' not in results[1]:
-        LOG.info('"Status: install ok installed" not in  %s' % results)
-        return False
-    elif "Found" in results[2]:
-        LOG.info('"Found" not in %s' % results)
-        # since the tlp could be installed with a new version downloading wait until everything is installed
-        return False
-    return True
+def is_connector_installed(hostname, root_user, root_pass, connector):
+    connector_status = get_connector_status(hostname, root_user, root_pass, connector)
+    return connector_status is not None and connector_status == "install ok installed"
 
 
 def is_connector_uninstalled(exp_hostname, exp_root_user, exp_root_pass, connector):
     return not is_connector_installed(exp_hostname, exp_root_user, exp_root_pass, connector)
 
 
-def has_file_content_changed(hostname, root_user, root_pass, target_file, old_data):
-    if old_data == get_file_data(hostname, root_user, root_pass, target_file):
-        LOG.info("File contents at %s is unchanged" % target_file)
-        return False
-    else:
-        LOG.info("File contents at %s has changed" % target_file)
-        return True
-
-
 def has_connector_pid_changed(hostname, root_user, root_pass, connector, old_pid):
-    pid_file = "/var/run/{}/{}.pid".format(connector, connector)
-    if file_exists(hostname, root_user, root_pass, pid_file):
-        return has_file_content_changed(hostname, root_user, root_pass, pid_file, old_pid)
-    else:
-        LOG.info("No PID file found at %s. Should the connector be running?" % pid_file)
-        return False
+    current_pid = get_connector_pid(hostname, root_user, root_pass, connector)
+    return current_pid is not None and current_pid != old_pid
 
 
 def has_connector_heartbeat_start_time_changed(hostname, root_user, root_pass, connector, old_heartbeat_start):
@@ -108,6 +81,18 @@ def is_command_complete(org_id, connector_id, rd_server, command_id, token):
 
 def is_alarm_raised(org_id, cluster_id, fms_server, connector_id, alarm_id, token):
     return alarm_id in get_connector_raised_alarm_ids(org_id, cluster_id, fms_server, connector_id, token)
+
+
+def can_connector_be_rolled_back(hostname, root_user, root_pass, connector):
+    current_connector_search = "/mnt/harddisk/persistent/fusion/currentversions/" + connector + "*.tlp"
+    previous_connector_search = "/mnt/harddisk/persistent/fusion/previousversions/" + connector + "*.tlp"
+    return file_exists(hostname, root_user, root_pass, current_connector_search) and \
+           file_exists(hostname, root_user, root_pass, previous_connector_search)
+
+
+def has_version_changed(hostname, root_user, root_pass, connector, old_version):
+    installed_version = get_installed_connector_version(hostname, root_user, root_pass, connector)
+    return installed_version is not None and installed_version != old_version
 
 
 def is_text_on_page(expressway, admin_user, admin_pass, page, text):
@@ -136,3 +121,7 @@ def is_maintenance_mode_disabled(hostname, root_user, root_pass):
     maintenance_mode = get_maintenance_mode_state(hostname, root_user, root_pass)
     LOG.info("%s maintenance mode state is %s" % (hostname, maintenance_mode))
     return maintenance_mode is not None and maintenance_mode == "off"
+
+
+def is_blacklist_empty(hostname, admin_user, admin_pass):
+    return get_rollback_blacklist(hostname, admin_user, admin_pass) == {}

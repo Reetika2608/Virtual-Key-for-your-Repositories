@@ -113,8 +113,8 @@ class RequestsRegisterTest(unittest.TestCase):
                                          self.config.exp_root_user(),
                                          self.config.exp_root_pass(),
                                          connector)),
-                            "%s does not have the connector %s installed." % (
-                            self.config.exp_hostname_primary(), connector))
+                            "%s does not have the connector %s installed."
+                            % (self.config.exp_hostname_primary(), connector))
 
         configure_connectors(
             self.config.exp_hostname_primary(),

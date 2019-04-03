@@ -115,7 +115,9 @@ class UnregisteredTest(unittest.TestCase):
 
         finally:
             # Step. 3
-            delete_cdb_entry(self.config.exp_hostname_primary(), self.config.exp_admin_user(), self.config.exp_admin_pass(),
+            delete_cdb_entry(self.config.exp_hostname_primary(),
+                             self.config.exp_admin_user(),
+                             self.config.exp_admin_pass(),
                              hybrid_log_level_path + "name" + "/" + name)
 
     def test_03_alarm_onboarding(self):

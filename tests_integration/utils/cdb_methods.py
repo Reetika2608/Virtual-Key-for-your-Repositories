@@ -192,6 +192,28 @@ def get_full_blob_contents(hostname, admin_user, admin_pass):
     return {}
 
 
+def get_rollback_blacklist(hostname, admin_user, admin_pass):
+    LOG.info("Clearing the rollback blacklist on %s", hostname)
+    blacklist_location = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_installed_blacklist/"
+    blacklist = get_cdb_entry(hostname,
+                              admin_user,
+                              admin_pass,
+                              blacklist_location)
+    if blacklist:
+        return json.loads(blacklist[0]["records"][0]["value"])
+    else:
+        return {}
+
+
+def clear_rollback_blacklist(hostname, admin_user, admin_pass):
+    LOG.info("Clearing the rollback blacklist on %s", hostname)
+    blacklist_location = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_installed_blacklist/"
+    delete_cdb_entry(hostname,
+                     admin_user,
+                     admin_pass,
+                     blacklist_location)
+
+
 def set_logging_entry_to_blob(hostname, admin_user, admin_pass, uuid):
     """ Add logging entry to blob to initiate log POST. """
     cdb_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_identifier/"
