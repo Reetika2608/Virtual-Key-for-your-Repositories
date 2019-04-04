@@ -1,20 +1,22 @@
 """ Management Connector Tests not requiring Registration """
 import logging
-import unittest
 import re
-import time
+import unittest
+
 import requests
 
 from tests_integration.utils.cdb_methods import delete_cdb_entry
-from tests_integration.utils.ssh_methods import get_file_data, run_ssh_command
+from tests_integration.utils.common_methods import wait_until
 from tests_integration.utils.config import Config
+from tests_integration.utils.predicates import has_log_configuration_updated
+from tests_integration.utils.ssh_methods import get_file_data, run_ssh_command
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 
 
 class UnregisteredTest(unittest.TestCase):
-    """ UnregisteredTest """
+    """ UnregisteredTest: tests that can be run against an expressway that has not been registered to the cloud """
     cluster_id = None
 
     @classmethod
@@ -22,16 +24,8 @@ class UnregisteredTest(unittest.TestCase):
         LOG.info("Running: setUpClass")
         cls.config = Config()
 
-    @classmethod
-    def tearDownClass(cls):
-        LOG.info("Running: tearDownClass")
-
-    def tearDown(self):
-        LOG.info("Running: tearDown")
-
-    def test_01_mc_permissions(self):
+    def test_management_connector_file_permissions(self):
         """
-        User Story: US10808: Operation Cost Reduction & Quality Improvements - phase 3
         Purpose: Verify management connector is created with correct permissions/owner
         Steps:
         1. Validate owner and permissions of /etc/init.d script.
@@ -39,7 +33,7 @@ class UnregisteredTest(unittest.TestCase):
         Notes:
         """
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_01_mc_permissions.__doc__)
+        LOG.info(self.test_management_connector_file_permissions.__doc__)
 
         checkpoints = [
             {
@@ -80,39 +74,32 @@ class UnregisteredTest(unittest.TestCase):
                 self.assertIsNotNone(regex.search(result), "User or permissions of %s are not correct. "
                                                            "The actual values are %s." % (path, result))
 
-    def test_02_hybrid_service_log_level(self):
+    def test_hybrid_service_log_level(self):
         """
-        User Story: US9311: Platform Logging
         Purpose: Verify Hybrid services log levels are propagated to ttlog.conf
         Steps:
         1. Write to hybrid services log level table.
-        2. Validate entry has propogated to ttlog.conf.
+        2. Validate entry has propagated to ttlog.conf.
         3. Cleanup
         Notes:
         """
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_02_hybrid_service_log_level.__doc__)
+        LOG.info(self.test_hybrid_service_log_level.__doc__)
 
-        ttlog_file = "/tandberg/etc/ttlog.conf"
         hybrid_log_level_path = "/api/management/configuration/hybridserviceslogger/"
         name = "hybridservices.cafe.test"
         full_path = hybrid_log_level_path + "name/" + name
-        test_debug_log = "log4j.logger.hybridservices.cafe.test=DEBUG"
 
         try:
             # Step. 1
             requests.post('https://' + self.config.exp_hostname_primary() + full_path, data='level=DEBUG',
                           auth=(self.config.exp_admin_user(), self.config.exp_admin_pass()), verify=False)
 
-            # wait for Log Level to propagate to ttlog.conf"
-            time.sleep(3)
-
-            # Step. 2
-            ttlog_file_contents = get_file_data(self.config.exp_hostname_primary(),
-                                                self.config.exp_root_user(), self.config.exp_root_pass(), ttlog_file)
-            self.assertTrue(test_debug_log in ttlog_file_contents,
-                            msg="{} not in ttlog file".format(test_debug_log))
-
+            self.assertTrue(wait_until(has_log_configuration_updated, 5, 1, *(
+                self.config.exp_hostname_primary(),
+                self.config.exp_root_user(),
+                self.config.exp_root_pass())),
+                            "Log configuration did not propagate from CDB to config file")
         finally:
             # Step. 3
             delete_cdb_entry(self.config.exp_hostname_primary(),
@@ -120,9 +107,8 @@ class UnregisteredTest(unittest.TestCase):
                              self.config.exp_admin_pass(),
                              hybrid_log_level_path + "name" + "/" + name)
 
-    def test_03_alarm_onboarding(self):
+    def test_alarm_onboarding(self):
         """
-        User story: DE1586 Upgrade of Management connector does not add new alarms in TLP
         Purpose: Test Alarm onboarding either through tlp install or vcs install.
         Steps:
         1. Ensure select set of Alarms are onboarded.
@@ -131,7 +117,7 @@ class UnregisteredTest(unittest.TestCase):
            user telling them where to add the alarm details to source control then fail.
         """
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_03_alarm_onboarding.__doc__)
+        LOG.info(self.test_alarm_onboarding.__doc__)
 
         alarm_id_limit = 60073
 
@@ -166,14 +152,13 @@ class UnregisteredTest(unittest.TestCase):
                     LOG.error(
                         "New alarms must be added to xlib GIT: example: https://bitbucket-eng-gpk1.cisco.com"
                         "/bitbucket/projects/XLIB/repos/xlib/pull-requests/114/overview")
-                    LOG.error("New alarms must be added to wood GIT: product/c_mgmt/scripts/deb/postinst")
-                    LOG.error("New alarms must be added to wood GIT: product/c_mgmt/scripts/deb/prerm")
+                    LOG.error("New alarms must be added to management-connector GIT: debian/controlpostinst")
+                    LOG.error("New alarms must be added to management-connector GIT: debian/control/prerm")
 
-        self.assertEqual(known_alarm_ids, onboard_alarms)
+        self.assertEqual(known_alarm_ids, onboard_alarms, "Alarms on the server did not match the expected list")
 
-    def test_04_actual_cert_format(self):
+    def test_certificate_format(self):
         """
-        US10196: Calendar Team Require the Addition of Office 365 Certificate.
         Purpose: Verify all real certs being added in FMC are a valid format
         Steps:
                 1. Loop through all certs in FMC
@@ -181,7 +166,7 @@ class UnregisteredTest(unittest.TestCase):
                 3. Assert the files do not have dos newline
         """
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_04_actual_cert_format.__doc__)
+        LOG.info(self.test_certificate_format.__doc__)
 
         LOG.info("test_2_actual_cert_format: looping through certs checking format")
         certs_path = "/opt/c_mgmt/etc/certs/"
@@ -214,5 +199,6 @@ class UnregisteredTest(unittest.TestCase):
                 path)
 
             self.assertTrue(org in contents or common_name in contents,
-                            "Description Info not in {}".format(path) + fail_message)
-            self.assertTrue(dos_newline not in contents, "DOS newline in {}".format(path) + fail_message)
+                            "Description Info not in {}\n{}\n{}".format(path, fail_message, contents))
+            self.assertTrue(dos_newline not in contents,
+                            "DOS newline in {}\n{}\n{}".format(path, fail_message, contents))

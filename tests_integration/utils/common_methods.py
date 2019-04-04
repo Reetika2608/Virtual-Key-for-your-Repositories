@@ -4,13 +4,13 @@ import errno
 import logging
 import os
 import time
-import requests
 
+import requests
 import urllib3
 
 from tests_integration.utils.predicates import has_connector_pid_changed, has_connector_heartbeat_start_time_changed, \
     has_mercury_device_route_changed, has_remote_dispatcher_device_id_changed, is_connector_installed, \
-    is_connector_uninstalled, is_blob_empty
+    is_node_clean_after_defuse
 from tests_integration.utils.ssh_methods import get_and_log_management_connector_run_data, restart_connector
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -85,7 +85,19 @@ def wait_for_connectors_to_install(hostname, root_user, root_pass, connectors):
 
 
 def wait_for_defuse_to_finish(hostname, root_user, root_pass, admin_user, admin_pass, connectors):
-    wait_until(is_blob_empty, 60, 5, *(hostname, admin_user, admin_pass))
+    wait_until(is_node_clean_after_defuse, 300, 5, *(hostname,
+                                                     root_user,
+                                                     root_pass,
+                                                     admin_user,
+                                                     admin_pass,
+                                                     connectors))
+
+
+def number_of_connectors_installed(hostname, root_user, root_pass, connectors=None):
+    if connectors is None:
+        connectors = ['c_mgmt']
+    number_installed = 0
     for connector in connectors:
-        if connector != "c_mgmt":
-            wait_until(is_connector_uninstalled, 300, 10, *(hostname, root_user, root_pass, connector))
+        if is_connector_installed(hostname, root_user, root_pass, connector):
+            number_installed = number_installed + 1
+    return number_installed

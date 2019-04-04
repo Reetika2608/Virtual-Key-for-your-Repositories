@@ -1,5 +1,6 @@
 import json
 import logging
+
 import requests
 
 from tests_integration.utils.ssh_methods import run_ssh_command
@@ -175,6 +176,11 @@ def get_current_machine_account_password(hostname, admin_user, admin_pass):
     return get_machine_account_json(hostname, admin_user, admin_pass)["password"]
 
 
+def get_cluster_id(hostname, admin_user, admin_pass):
+    """ get the current machine account password """
+    return get_machine_account_json(hostname, admin_user, admin_pass)["cluster_id"]
+
+
 def set_machine_account_expiry(hostname, admin_user, admin_pass, days):
     """ Change when the machine account thread in management will rotate its password """
     poll_cdb = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_config_machineAccountExpiry/"
@@ -245,7 +251,3 @@ def set_prevent_upgrade_flag(hostname, admin_user, admin_pass, value):
 
 def disable_fmc_upgrades(hostname, admin_user, admin_pass):
     set_prevent_upgrade_flag(hostname, admin_user, admin_pass, "on")
-
-
-def enable_fmc_upgrades(hostname, admin_user, admin_pass):
-    set_prevent_upgrade_flag(hostname, admin_user, admin_pass, "off")

@@ -4,7 +4,7 @@ import unittest
 
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
-    set_poll_time, disable_fmc_upgrades, enable_fmc_upgrades
+    set_poll_time, disable_fmc_upgrades
 from tests_integration.utils.common_methods import wait_until, wait_for_connectors_to_install, wait_for_defuse_to_finish
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import enable_cloud_fusion, deregister_cluster, enable_maintenance_mode, \
@@ -76,10 +76,11 @@ class ClusterSmokeTest(unittest.TestCase):
                                cls.config.fms_server(),
                                cls.access_token)
 
-        enable_fmc_upgrades(
-            cls.config.exp_hostname_primary(),
-            cls.config.exp_admin_user(),
-            cls.config.exp_admin_pass())
+        # Clean up any tokens we got at the start
+        if cls.access_token:
+            ci.delete_ci_access_token(cls.access_token)
+        if cls.refresh_token:
+            ci.delete_ci_refresh_token(cls.refresh_token)
 
         LOG.info(
             "Cluster has been de-registered. Wait for cleanup to complete on nodes: %s & %s"
@@ -94,12 +95,6 @@ class ClusterSmokeTest(unittest.TestCase):
                 cls.config.exp_admin_user(),
                 cls.config.exp_admin_pass(),
                 cls.config.expected_connectors())
-
-        # Clean up any tokens we got at the start
-        if cls.access_token:
-            ci.delete_ci_access_token(cls.access_token)
-        if cls.refresh_token:
-            ci.delete_ci_refresh_token(cls.refresh_token)
 
     def test_cluster_registration_smoke_test(self):
         """

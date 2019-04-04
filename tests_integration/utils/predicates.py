@@ -10,7 +10,7 @@ from tests_integration.utils.fms import get_connector_raised_alarm_ids
 from tests_integration.utils.remote_dispatcher import get_command_from_rd
 from tests_integration.utils.ssh_methods import file_exists, \
     get_connector_heartbeat_start_time, get_mercury_device_route, get_remote_dispatcher_device_id, \
-    get_maintenance_mode_state, get_connector_status, get_connector_pid, get_installed_connector_version
+    get_maintenance_mode_state, get_connector_status, get_connector_pid, get_installed_connector_version, get_file_data
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -125,3 +125,24 @@ def is_maintenance_mode_disabled(hostname, root_user, root_pass):
 
 def is_blacklist_empty(hostname, admin_user, admin_pass):
     return get_rollback_blacklist(hostname, admin_user, admin_pass) == {}
+
+
+def has_log_configuration_updated(hostname, root_user, root_pass):
+    ttlog_file_contents = get_file_data(hostname,
+                                        root_user,
+                                        root_pass,
+                                        "/tandberg/etc/ttlog.conf")
+    return "log4j.logger.hybridservices.cafe.test=DEBUG" in ttlog_file_contents
+
+
+def feature_connectors_are_uninstalled(hostname, root_user, root_pass, connectors=None):
+    for connector in connectors:
+        if connector != "c_mgmt":
+            if is_connector_installed(hostname, root_user, root_pass, connector):
+                return False
+    return True
+
+
+def is_node_clean_after_defuse(hostname, root_user, root_pass, admin_user, admin_pass, connectors):
+    return is_blob_empty(hostname, admin_user, admin_pass) \
+           and feature_connectors_are_uninstalled(hostname, root_user, root_pass, connectors)

@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+
 import paramiko
 
 logging.basicConfig(level=logging.INFO)
@@ -33,6 +34,17 @@ def get_exit_code(hostname, username, password, command):
 
 def run_ssh_command(hostname, username, password, command):
     """ ssh to remote machine and run command  """
+    raw_output = ""
+    attempt = 0
+    max_attempts = 3
+    while raw_output == "" and attempt < max_attempts:
+        raw_output = paramiko_ssh_command(hostname, username, password, command)
+        attempt = attempt + 1
+    return raw_output
+
+
+def paramiko_ssh_command(hostname, username, password, command):
+    """ ssh to remote machine and run command  """
     nbytes = 4096
     port = 22
 
@@ -54,33 +66,6 @@ def run_ssh_command(hostname, username, password, command):
     session.close()
     client.close()
     return ''.join(stdout_data)
-
-
-def run_ssh_commands(hostname, username, password, commands):
-    nbytes = 4096
-    port = 22
-
-    client = paramiko.Transport((hostname, port))
-    client.connect(username=username, password=password)
-
-    stdout_results = []
-    for command in commands:
-        stdout_data = []
-        stderr_data = []
-        session = client.open_channel(kind='session')
-        session.exec_command(command)
-        while True:
-            if session.recv_ready():
-                stdout_data.append(session.recv(nbytes))
-            if session.recv_stderr_ready():
-                stderr_data.append(session.recv_stderr(nbytes))
-            if session.exit_status_ready():
-                stdout_results.append(''.join(stdout_data))
-                break
-        session.close()
-
-    client.close()
-    return stdout_results
 
 
 def get_device_time(hostname, username, password):
