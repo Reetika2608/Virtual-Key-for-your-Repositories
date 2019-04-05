@@ -5,13 +5,15 @@ import unittest
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
     set_poll_time, disable_fmc_upgrades
-from tests_integration.utils.common_methods import wait_until, wait_for_connectors_to_install, wait_for_defuse_to_finish
+from tests_integration.utils.common_methods import wait_until_true, wait_for_defuse_to_finish, \
+    wait_for_connectors_to_install
 from tests_integration.utils.config import Config
-from tests_integration.utils.fms import enable_cloud_fusion, deregister_cluster, enable_maintenance_mode, \
-    disable_maintenance_mode
+from tests_integration.utils.fms import enable_maintenance_mode, \
+    disable_maintenance_mode, enable_cloud_fusion, deregister_cluster
 from tests_integration.utils.predicates import are_connectors_entitled, \
-    is_connector_installed, is_text_on_page, is_maintenance_mode_enabled, is_maintenance_mode_disabled
-from tests_integration.utils.ssh_methods import run_ssh_command
+    is_connector_installed, is_text_on_page, is_maintenance_mode_enabled, is_maintenance_mode_disabled, \
+    is_connector_running
+from tests_integration.utils.ssh_methods import get_process_count
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -105,7 +107,8 @@ class ClusterSmokeTest(unittest.TestCase):
         3. Verify connectors have been installed
         4. Verify that the connectors are displayed on all nodes UI
         5. Configure, and Enable connectors
-        6. Verify that connectors are running with correct number of processes
+        6. Verify that connectors are running with no more than one process
+        7. Verify that at least one connector was successfully started (not all as bad connector pushes would hurt us)
         """
 
         LOG.info("Running test: %s", self._testMethodName)
@@ -124,21 +127,21 @@ class ClusterSmokeTest(unittest.TestCase):
 
         # 2. Verify connectors are entitled in the DB
         for expressway in self.cluster_nodes:
-            self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(expressway,
-                                                                         self.config.exp_admin_user(),
-                                                                         self.config.exp_admin_pass(),
-                                                                         self.config.expected_connectors())),
+            self.assertTrue(wait_until_true(are_connectors_entitled, 60, 5, *(expressway,
+                                                                              self.config.exp_admin_user(),
+                                                                              self.config.exp_admin_pass(),
+                                                                              self.config.expected_connectors())),
                             "%s does not have the full list of entitled connectors (%s)."
                             % (expressway, str(self.config.expected_connectors())))
 
         # 3. Verify connectors have been installed
         for expressway in self.cluster_nodes:
             for connector in self.config.expected_connectors():
-                self.assertTrue(wait_until(is_connector_installed, 180, 10,
-                                           *(expressway,
-                                             self.config.exp_root_user(),
-                                             self.config.exp_root_pass(),
-                                             connector)),
+                self.assertTrue(wait_until_true(is_connector_installed, 180, 10,
+                                                *(expressway,
+                                                  self.config.exp_root_user(),
+                                                  self.config.exp_root_pass(),
+                                                  connector)),
                                 "%s does not have the connector %s installed."
                                 % (expressway, connector))
 
@@ -162,42 +165,35 @@ class ClusterSmokeTest(unittest.TestCase):
             self.config.exp_root_user(),
             self.config.exp_root_pass())
 
-        for connector in self.config.expected_connectors():
-            if connector != "c_mgmt":
-                self.assertTrue(
-                    enable_expressway_connector(
-                        self.config.exp_hostname_primary(),
-                        self.config.exp_admin_user(),
-                        self.config.exp_admin_pass(),
-                        connector),
-                    "Connector %s is not enabled on %s." % (connector, self.config.exp_hostname_primary()))
+        for expressway in self.cluster_nodes:
+            running_connectors = []
+            for connector in self.config.expected_connectors():
+                if connector != "c_mgmt":
+                    enable_expressway_connector(self.config.exp_hostname_primary(),
+                                                self.config.exp_admin_user(),
+                                                self.config.exp_admin_pass(),
+                                                connector)
+                    # Soft wait for the connector to start up
+                    wait_until_true(is_connector_running, 10, 1,
+                                    *(expressway, self.config.exp_root_user(), self.config.exp_root_pass(), connector))
 
-            process_dict = {'c_cal': 'java',
-                            'c_ucmc': 'CSI',
-                            'c_mgmt': 'managementconnectormain',
-                            'c_imp': 'java'}
-
-            connector_binary = None
-            if connector in process_dict:
-                connector_binary = process_dict[connector]
-            self.assertIsNotNone(connector_binary, "No binary defined for " + connector)
-
-            # 6. Verify that connectors are running with correct number of processes
-            cmd = "ps aux | grep %s | grep %s | grep -v grep | wc -l" % (connector, connector_binary)
-            for expressway in self.cluster_nodes:
-                result = run_ssh_command(
-                    expressway,
-                    self.config.exp_root_user(),
-                    self.config.exp_root_pass(),
-                    cmd)
-                LOG.info("RAW: %s output from %s: %s", cmd, expressway, result)
-                count = int(result.strip())
-                LOG.info("%s output from %s: %d", cmd, expressway, count)
+                # 6. Verify that connectors are running with correct number of processes
+                process_count = get_process_count(expressway,
+                                                  self.config.exp_root_user(),
+                                                  self.config.exp_root_pass(),
+                                                  connector)
+                if process_count > 0:
+                    running_connectors.append(connector)
                 self.assertLessEqual(
-                    count,
+                    process_count,
                     1,
-                    "The number of processes for connector %s on %s is %s. It should be not be greater than 1"
-                    % (connector, expressway, count))
+                    "The number of processes for connector %s on %s is %s. It should be not be greater than 1" % (
+                        connector, expressway, process_count))
+            LOG.info("%s has running processes for %s out of the expected list of %s",
+                     expressway, running_connectors, self.config.expected_connectors())
+            self.assertNotEqual(running_connectors, ["c_mgmt"],
+                                "No feature connectors have running process on {}. Has starting of services broken?"
+                                .format(expressway))
 
     def test_smoke_test_hybrid_maintenance_mode(self):
         """
@@ -225,7 +221,7 @@ class ClusterSmokeTest(unittest.TestCase):
         enable_maintenance_mode(self.config.org_id(), serial, self.config.fms_server(), self.access_token)
 
         # 2. Wait for maintenance mode to be passed down to management connector in the heartbeat provisioning
-        self.assertTrue(wait_until(is_maintenance_mode_enabled, 45, 1, *(
+        self.assertTrue(wait_until_true(is_maintenance_mode_enabled, 45, 1, *(
             random_expressway,
             self.config.exp_root_user(),
             self.config.exp_root_pass())),
@@ -258,7 +254,7 @@ class ClusterSmokeTest(unittest.TestCase):
         LOG.info("Disabling maintenance mode on %s", random_expressway)
         disable_maintenance_mode(self.config.org_id(), serial, self.config.fms_server(), self.access_token)
         # 5. Wait for the disable be passed down to management connector in the heartbeat provisioning
-        self.assertTrue(wait_until(is_maintenance_mode_disabled, 45, 1, *(
+        self.assertTrue(wait_until_true(is_maintenance_mode_disabled, 45, 1, *(
             random_expressway,
             self.config.exp_root_user(),
             self.config.exp_root_pass())),

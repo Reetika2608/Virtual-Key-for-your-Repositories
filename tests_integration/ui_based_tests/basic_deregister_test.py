@@ -4,7 +4,7 @@ import sys
 import unittest
 
 from tests_integration.utils.cdb_methods import configure_connectors, get_cluster_id_from_expressway
-from tests_integration.utils.common_methods import create_log_directory, wait_until
+from tests_integration.utils.common_methods import create_log_directory, wait_until_true, wait_until_false
 from tests_integration.utils.config import Config
 from tests_integration.utils.predicates import is_connector_installed, is_connector_uninstalled, \
     are_supplied_connectors_installed
@@ -35,11 +35,11 @@ class BasicDeRegisterTest(unittest.TestCase):
                             cls.config.exp_admin_pass())
 
         for connector in cls.config.expected_connectors():
-            wait_until(is_connector_installed, 240, 10,
-                       *(cls.config.exp_hostname_primary(),
-                         cls.config.exp_root_user(),
-                         cls.config.exp_root_pass(),
-                         connector))
+            wait_until_true(is_connector_installed, 240, 10,
+                            *(cls.config.exp_hostname_primary(),
+                              cls.config.exp_root_user(),
+                              cls.config.exp_root_pass(),
+                              connector))
 
         # Configure the feature connectors so that they can be enabled
         configure_connectors(cls.config.exp_hostname_primary(),
@@ -77,7 +77,7 @@ class BasicDeRegisterTest(unittest.TestCase):
             self.web_driver.save_screenshot('%s/%s_%s.png' % (self.log_directory, class_name, self._testMethodName))
         self.web_driver.quit()
 
-    def test_deregister(self):
+    def test_deactivate_and_deregister(self):
         """
         Purpose: Check Deregister
         Steps:
@@ -89,7 +89,7 @@ class BasicDeRegisterTest(unittest.TestCase):
         """
 
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_deregister.__doc__)
+        LOG.info(self.test_deactivate_and_deregister.__doc__)
 
         LOG.info("Deactivate a service in control hub")
         deactivate_service(self.config.control_hub(),
@@ -97,13 +97,13 @@ class BasicDeRegisterTest(unittest.TestCase):
                            self.config.org_admin_password(),
                            self.cluster_id)
 
-        self.assertTrue(wait_until(are_supplied_connectors_installed, 60, 5, *(
+        self.assertFalse(wait_until_false(are_supplied_connectors_installed, 60, 5, *(
             self.config.exp_hostname_primary(),
             self.config.exp_root_user(),
             self.config.exp_root_pass(),
             self.config.expected_connectors())),
-                        "%s still has full list of entitled connectors (%s) installed."
-                        % (self.config.exp_hostname_primary(), str(self.config.expected_connectors())))
+                         "%s still has full list of entitled connectors (%s) installed."
+                         % (self.config.exp_hostname_primary(), str(self.config.expected_connectors())))
 
         deregister_expressway(self.config.control_hub(),
                               self.config.org_admin_user(),
@@ -116,17 +116,17 @@ class BasicDeRegisterTest(unittest.TestCase):
                          self.config.exp_admin_pass())
 
         navigate_expressway_menus(self.web_driver, ["Applications", "Hybrid Services", "Connector Management"])
-        self.assertTrue(wait_until(is_in_page_source, 120, 5,
-                                   *(self.web_driver, " is not yet registered with the Cisco Webex Cloud.")),
+        self.assertTrue(wait_until_true(is_in_page_source, 120, 5,
+                                        *(self.web_driver, " is not yet registered with the Cisco Webex Cloud.")),
                         "%s did not defuse successfully." % self.config.exp_hostname_primary())
 
         for connector in self.config.expected_connectors():
             if connector != "c_mgmt":
-                wait_until(is_connector_uninstalled, 360, 10,
-                           *(self.config.exp_hostname_primary(),
-                             self.config.exp_root_user(),
-                             self.config.exp_root_pass(),
-                             connector))
+                wait_until_true(is_connector_uninstalled, 360, 10,
+                                *(self.config.exp_hostname_primary(),
+                                  self.config.exp_root_user(),
+                                  self.config.exp_root_pass(),
+                                  connector))
 
         navigate_expressway_menus(self.web_driver, ["Maintenance", "Upgrade"])
 

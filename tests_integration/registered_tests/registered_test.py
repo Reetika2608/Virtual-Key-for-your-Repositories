@@ -7,15 +7,15 @@ import uuid
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import clear_rollback_blacklist, get_serialno, get_logging_host_url, \
     set_logging_entry_to_blob, set_machine_account_expiry, get_current_machine_account_password, get_cluster_id
-from tests_integration.utils.common_methods import wait_until, get_log_data_from_atlas, \
+from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
     run_full_management_connector_restart
 from tests_integration.utils.config import Config
 from tests_integration.utils.predicates import is_connector_installed, can_connector_be_rolled_back, \
     has_version_changed, is_blob_empty, has_connector_pid_changed, is_blacklist_empty, is_alarm_raised, \
     is_command_complete, has_machine_password_changed
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
-from tests_integration.utils.ssh_methods import rollback_connector, get_installed_connector_version, get_connector_pid, \
-    run_ssh_command, get_device_time, file_exists
+from tests_integration.utils.ssh_methods import rollback_connector, get_installed_connector_version, \
+    get_connector_pid, run_ssh_command, get_device_time, file_exists
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -78,11 +78,11 @@ class RegisteredTest(unittest.TestCase):
                                        self.config.exp_admin_pass()),
                          "cafeblobconfiguration is empty in CDB. Is %s fused?" % self.config.exp_hostname_primary())
         for connector in self.config.expected_connectors():
-            self.assertTrue(wait_until(is_connector_installed, 10, 1,
-                                       *(self.config.exp_hostname_primary(),
-                                         self.config.exp_root_user(),
-                                         self.config.exp_root_pass(),
-                                         connector)),
+            self.assertTrue(wait_until_true(is_connector_installed, 10, 1,
+                                            *(self.config.exp_hostname_primary(),
+                                              self.config.exp_root_user(),
+                                              self.config.exp_root_pass(),
+                                              connector)),
                             "%s does not have the connector %s installed." %
                             (self.config.exp_hostname_primary(), connector))
         self.assertTrue(can_connector_be_rolled_back(self.config.exp_hostname_primary(),
@@ -116,22 +116,22 @@ class RegisteredTest(unittest.TestCase):
             #     a. The installed version changes
             #     b. The connector reaches a fully installed state
             #     c. The PID changes
-            self.assertTrue(wait_until(has_version_changed, 30, 1, *(self.config.exp_hostname_primary(),
-                                                                     self.config.exp_root_user(),
-                                                                     self.config.exp_root_pass(),
-                                                                     "c_mgmt",
-                                                                     current_version)),
+            self.assertTrue(wait_until_true(has_version_changed, 30, 1, *(self.config.exp_hostname_primary(),
+                                                                          self.config.exp_root_user(),
+                                                                          self.config.exp_root_pass(),
+                                                                          "c_mgmt",
+                                                                          current_version)),
                             "c_mgmt did not roll back in time and is still running version %s" % current_version)
-            self.assertTrue(wait_until(is_connector_installed, 45, 1, *(self.config.exp_hostname_primary(),
-                                                                        self.config.exp_root_user(),
-                                                                        self.config.exp_root_pass(),
-                                                                        "c_mgmt")),
+            self.assertTrue(wait_until_true(is_connector_installed, 45, 1, *(self.config.exp_hostname_primary(),
+                                                                             self.config.exp_root_user(),
+                                                                             self.config.exp_root_pass(),
+                                                                             "c_mgmt")),
                             "c_mgmt did not install in time and is still not ready")
-            self.assertTrue(wait_until(has_connector_pid_changed, 30, 1, *(self.config.exp_hostname_primary(),
-                                                                           self.config.exp_root_user(),
-                                                                           self.config.exp_root_pass(),
-                                                                           "c_mgmt",
-                                                                           current_pid)),
+            self.assertTrue(wait_until_true(has_connector_pid_changed, 30, 1, *(self.config.exp_hostname_primary(),
+                                                                                self.config.exp_root_user(),
+                                                                                self.config.exp_root_pass(),
+                                                                                "c_mgmt",
+                                                                                current_pid)),
                             "c_mgmt PID did not change in time and is still %s" % current_pid)
 
             # 4. Get the new installed version and PID and clear the rollback blacklist to let the connector upgrade
@@ -158,22 +158,22 @@ class RegisteredTest(unittest.TestCase):
             #     a. The installed version changes
             #     b. The connector reaches a fully installed state
             #     c. The PID changes
-            self.assertTrue(wait_until(has_version_changed, 60, 1, *(self.config.exp_hostname_primary(),
-                                                                     self.config.exp_root_user(),
-                                                                     self.config.exp_root_pass(),
-                                                                     "c_mgmt",
-                                                                     rollback_version)),
+            self.assertTrue(wait_until_true(has_version_changed, 60, 1, *(self.config.exp_hostname_primary(),
+                                                                          self.config.exp_root_user(),
+                                                                          self.config.exp_root_pass(),
+                                                                          "c_mgmt",
+                                                                          rollback_version)),
                             "c_mgmt did not upgrade in time and is still running version %s" % rollback_version)
-            self.assertTrue(wait_until(is_connector_installed, 45, 1, *((self.config.exp_hostname_primary(),
-                                                                         self.config.exp_root_user(),
-                                                                         self.config.exp_root_pass(),
-                                                                         "c_mgmt"))),
+            self.assertTrue(wait_until_true(is_connector_installed, 45, 1, *((self.config.exp_hostname_primary(),
+                                                                              self.config.exp_root_user(),
+                                                                              self.config.exp_root_pass(),
+                                                                              "c_mgmt"))),
                             "c_mgmt upgrade did not install in time and is still not ready")
-            self.assertTrue(wait_until(has_connector_pid_changed, 90, 1, *(self.config.exp_hostname_primary(),
-                                                                           self.config.exp_root_user(),
-                                                                           self.config.exp_root_pass(),
-                                                                           "c_mgmt",
-                                                                           rollback_pid)),
+            self.assertTrue(wait_until_true(has_connector_pid_changed, 90, 1, *(self.config.exp_hostname_primary(),
+                                                                                self.config.exp_root_user(),
+                                                                                self.config.exp_root_pass(),
+                                                                                "c_mgmt",
+                                                                                rollback_pid)),
                             "c_mgmt upgrade PID did not change in time and is still %s" % rollback_pid)
             upgraded_version = get_installed_connector_version(self.config.exp_hostname_primary(),
                                                                self.config.exp_root_user(),
@@ -206,10 +206,10 @@ class RegisteredTest(unittest.TestCase):
 
             # Note the absurdly long wait time in this assertion. This is to handle the failure case disaster
             # recovery mentioned just above. In the happy path this should take a few seconds.
-            self.assertTrue(wait_until(can_connector_be_rolled_back, 300, 1, *(self.config.exp_hostname_primary(),
-                                                                               self.config.exp_root_user(),
-                                                                               self.config.exp_root_pass(),
-                                                                               "c_mgmt")),
+            self.assertTrue(wait_until_true(can_connector_be_rolled_back, 300, 1, *(self.config.exp_hostname_primary(),
+                                                                                    self.config.exp_root_user(),
+                                                                                    self.config.exp_root_pass(),
+                                                                                    "c_mgmt")),
                             "Upgrade did not repopulate the rollback TLPs")
 
     def test_alarm_post(self):
@@ -248,15 +248,15 @@ class RegisteredTest(unittest.TestCase):
                 LOG.info("alarm raised: %s", alarm_to_raise in alarm_list)
                 return alarm in alarm_list
 
-            self.assertTrue(wait_until(is_alarm_raised_on_exp, 5, 1, alarm_to_raise),
+            self.assertTrue(wait_until_true(is_alarm_raised_on_exp, 5, 1, alarm_to_raise),
                             "Alarm {} was not raised in time on the Expressway.".format(alarm_to_raise))
 
-            self.assertTrue(wait_until(is_alarm_raised, 30, 1, *(self.config.org_id(),
-                                                                 self.cluster_id,
-                                                                 self.config.fms_server(),
-                                                                 self.connector_id,
-                                                                 alarm_to_raise,
-                                                                 self.access_token)),
+            self.assertTrue(wait_until_true(is_alarm_raised, 30, 1, *(self.config.org_id(),
+                                                                      self.cluster_id,
+                                                                      self.config.fms_server(),
+                                                                      self.connector_id,
+                                                                      alarm_to_raise,
+                                                                      self.access_token)),
                             "Alarm {} was not raised in time.".format(alarm_to_raise))
         finally:
             run_ssh_command(
@@ -279,7 +279,7 @@ class RegisteredTest(unittest.TestCase):
             {"action": "ping"},
             self.access_token)
 
-        self.assertTrue(wait_until(is_command_complete, 20, 1, *(
+        self.assertTrue(wait_until_true(is_command_complete, 20, 1, *(
             self.config.org_id(),
             self.connector_id,
             self.config.rd_server(),
@@ -319,7 +319,7 @@ class RegisteredTest(unittest.TestCase):
 
             return updated
 
-        wait_until(logging_metadata_available, 120, 5, atlas_logging_url)
+        wait_until_true(logging_metadata_available, 120, 5, atlas_logging_url)
 
         response = get_log_data_from_atlas(atlas_logging_url, search_uuid, self.access_token)
         log_meta_list = response.json()['metadataList'][0]
@@ -476,7 +476,7 @@ class RegisteredTest(unittest.TestCase):
                 self.config.exp_root_user(),
                 self.config.exp_root_pass())
 
-            self.assertTrue(wait_until(has_machine_password_changed, 30, 1, *(
+            self.assertTrue(wait_until_true(has_machine_password_changed, 30, 1, *(
                 self.config.exp_hostname_primary(),
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass(),

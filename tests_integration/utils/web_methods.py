@@ -9,7 +9,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import Select
 
-from tests_integration.utils.common_methods import wait_until
+from tests_integration.utils.common_methods import wait_until_true
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
     web_driver.find_element_by_name('formbutton').click()
     web_driver.find_element_by_id('checkbox1').send_keys(' ')
     web_driver.find_element_by_css_selector('button[ng-click="vm.confirm()"]').click()
-    wait_until(is_in_page_source, 120, 5, *(web_driver, " is registered with the Cisco Webex Cloud"))
+    wait_until_true(is_in_page_source, 120, 5, *(web_driver, " is registered with the Cisco Webex Cloud"))
     web_driver.quit()
 
 
@@ -167,7 +167,8 @@ def enable_expressway_connector(web_driver, exp_hostname, admin_user, admin_pass
     try:
         web_driver.find_element_by_partial_link_text("%s" % connector).click()
     except StaleElementReferenceException:
-        # The Ajax connector status table changed causing selenium to think that the object it has found is different. Retrying.
+        # The Ajax connector status table changed causing selenium to think that the object it has found is different.
+        # Retrying.
         web_driver.find_element_by_partial_link_text("%s" % connector).click()
     select = Select(web_driver.find_element_by_id('enable_service'))
     select.select_by_visible_text('Enabled')

@@ -4,7 +4,7 @@ import sys
 import unittest
 
 from tests_integration.utils.cdb_methods import configure_connectors, get_cluster_id_from_expressway
-from tests_integration.utils.common_methods import create_log_directory, wait_until, wait_for_defuse_to_finish
+from tests_integration.utils.common_methods import create_log_directory, wait_until_true, wait_for_defuse_to_finish
 from tests_integration.utils.config import Config
 from tests_integration.utils.predicates import are_connectors_entitled, is_connector_installed
 from tests_integration.utils.web_methods import register_expressway, deregister_expressway, create_web_driver, \
@@ -33,11 +33,11 @@ class BasicRegisterTest(unittest.TestCase):
                             cls.config.exp_admin_pass())
 
         for connector in cls.config.expected_connectors():
-            wait_until(is_connector_installed, 240, 10,
-                       *(cls.config.exp_hostname_primary(),
-                         cls.config.exp_root_user(),
-                         cls.config.exp_root_pass(),
-                         connector))
+            wait_until_true(is_connector_installed, 240, 10,
+                            *(cls.config.exp_hostname_primary(),
+                              cls.config.exp_root_user(),
+                              cls.config.exp_root_pass(),
+                              connector))
 
         # Get cluster id
         cls.cluster_id = get_cluster_id_from_expressway(cls.config.exp_hostname_primary(),
@@ -84,10 +84,10 @@ class BasicRegisterTest(unittest.TestCase):
         LOG.info(self.test_connectors_can_be_enabled.__doc__)
 
         # Verify all connectors are entitled in the database
-        self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname_primary(),
-                                                                     self.config.exp_admin_user(),
-                                                                     self.config.exp_admin_pass(),
-                                                                     self.config.expected_connectors())),
+        self.assertTrue(wait_until_true(are_connectors_entitled, 60, 5, *(self.config.exp_hostname_primary(),
+                                                                          self.config.exp_admin_user(),
+                                                                          self.config.exp_admin_pass(),
+                                                                          self.config.expected_connectors())),
                         "%s does not have the full list of entitled connectors (%s)."
                         % (self.config.exp_hostname_primary(), str(self.config.expected_connectors())))
 
@@ -106,11 +106,11 @@ class BasicRegisterTest(unittest.TestCase):
 
         # Verify connectors are installed
         for connector in self.config.expected_connectors():
-            self.assertTrue(wait_until(is_connector_installed, 180, 10,
-                                       *(self.config.exp_hostname_primary(),
-                                         self.config.exp_root_user(),
-                                         self.config.exp_root_pass(),
-                                         connector)),
+            self.assertTrue(wait_until_true(is_connector_installed, 180, 10,
+                                            *(self.config.exp_hostname_primary(),
+                                              self.config.exp_root_user(),
+                                              self.config.exp_root_pass(),
+                                              connector)),
                             "%s does not have the connector %s installed." % (
                                 self.config.exp_hostname_primary(), connector))
 

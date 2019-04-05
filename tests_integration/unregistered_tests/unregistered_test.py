@@ -6,7 +6,7 @@ import unittest
 import requests
 
 from tests_integration.utils.cdb_methods import delete_cdb_entry
-from tests_integration.utils.common_methods import wait_until
+from tests_integration.utils.common_methods import wait_until_true
 from tests_integration.utils.config import Config
 from tests_integration.utils.predicates import has_log_configuration_updated
 from tests_integration.utils.ssh_methods import get_file_data, run_ssh_command
@@ -95,7 +95,7 @@ class UnregisteredTest(unittest.TestCase):
             requests.post('https://' + self.config.exp_hostname_primary() + full_path, data='level=DEBUG',
                           auth=(self.config.exp_admin_user(), self.config.exp_admin_pass()), verify=False)
 
-            self.assertTrue(wait_until(has_log_configuration_updated, 5, 1, *(
+            self.assertTrue(wait_until_true(has_log_configuration_updated, 5, 1, *(
                 self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass())),

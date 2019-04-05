@@ -136,14 +136,8 @@ def enable_expressway_connector(exp_hostname, admin_user, admin_pass, connector)
     blob_enabled_service_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_system_enabledServicesState/"
     read = get_cdb_entry(exp_hostname, admin_user, admin_pass, blob_enabled_service_path)
     existing_states = json.loads(read[0]["records"][0]["value"])
-    existing_states[connector] = "on"
+    existing_states[connector] = "true"
     set_cdb_entry(exp_hostname, admin_user, admin_pass, blob_enabled_service_path, existing_states)
-
-    full_url = 'https://' + exp_hostname + "/api/management/configuration/service/name/" + connector
-    LOG.info("full_url " + full_url)
-    requests.post(full_url, data='mode=on',
-                  auth=(admin_user, admin_pass), verify=False)
-    return True
 
 
 def get_serialno(hostname, admin_user, admin_pass):

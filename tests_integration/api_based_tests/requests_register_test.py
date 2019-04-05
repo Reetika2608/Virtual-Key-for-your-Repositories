@@ -5,12 +5,13 @@ import unittest
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
     set_poll_time, disable_fmc_upgrades
-from tests_integration.utils.common_methods import wait_until, wait_for_connectors_to_install, wait_for_defuse_to_finish
+from tests_integration.utils.common_methods import wait_until_true, wait_for_connectors_to_install, \
+    wait_for_defuse_to_finish
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import enable_cloud_fusion, deregister_cluster
 from tests_integration.utils.predicates import are_connectors_entitled, \
-    is_connector_installed
-from tests_integration.utils.ssh_methods import run_ssh_command
+    is_connector_installed, is_connector_running
+from tests_integration.utils.ssh_methods import get_process_count
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -93,25 +94,26 @@ class RequestsRegisterTest(unittest.TestCase):
         1. Verify connectors are entitled
         2. Verify connectors have been installed
         3. Configure, and Enable connectors
-        4. Verify that connectors are running with correct number of processes
+        4. Verify that connectors are running with no more than one process
+        5. Verify that at least one connector was successfully started (not all as bad connector pushes would hurt us)
         """
 
         LOG.info("Running test: %s", self._testMethodName)
         LOG.info(self.test_connectors_can_be_enabled_with_correct_process_count.__doc__)
 
-        self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname_primary(),
-                                                                     self.config.exp_admin_user(),
-                                                                     self.config.exp_admin_pass(),
-                                                                     self.config.expected_connectors())),
+        self.assertTrue(wait_until_true(are_connectors_entitled, 60, 5, *(self.config.exp_hostname_primary(),
+                                                                          self.config.exp_admin_user(),
+                                                                          self.config.exp_admin_pass(),
+                                                                          self.config.expected_connectors())),
                         "%s does not have the full list of entitled connectors (%s)."
                         % (self.config.exp_hostname_primary(), str(self.config.expected_connectors())))
 
         for connector in self.config.expected_connectors():
-            self.assertTrue(wait_until(is_connector_installed, 180, 10,
-                                       *(self.config.exp_hostname_primary(),
-                                         self.config.exp_root_user(),
-                                         self.config.exp_root_pass(),
-                                         connector)),
+            self.assertTrue(wait_until_true(is_connector_installed, 180, 10,
+                                            *(self.config.exp_hostname_primary(),
+                                              self.config.exp_root_user(),
+                                              self.config.exp_root_pass(),
+                                              connector)),
                             "%s does not have the connector %s installed."
                             % (self.config.exp_hostname_primary(), connector))
 
@@ -123,37 +125,33 @@ class RequestsRegisterTest(unittest.TestCase):
             self.config.exp_root_pass())
 
         # Enable all other connectors
+        running_connectors = []
         for connector in self.config.expected_connectors():
             if connector != "c_mgmt":
-                self.assertTrue(
-                    enable_expressway_connector(
-                        self.config.exp_hostname_primary(),
-                        self.config.exp_admin_user(),
-                        self.config.exp_admin_pass(),
-                        connector),
-                    "Connector %s is not enabled on %s." % (connector, self.config.exp_hostname_primary()))
-
-            # Verify that all connectors have the correct number of running processes
-            process_dict = {'c_cal': 'java',
-                            'c_ucmc': 'CSI',
-                            'c_mgmt': 'managementconnectormain',
-                            'c_imp': 'java'}
-
-            connector_binary = None
-            if connector in process_dict:
-                connector_binary = process_dict[connector]
-            self.assertIsNotNone(connector_binary, "No binary defined for " + connector)
-
-            cmd = "ps aux | grep %s | grep %s | grep -v grep | wc -l" % (connector, connector_binary)
-            result = run_ssh_command(
-                self.config.exp_hostname_primary(),
-                self.config.exp_root_user(),
-                self.config.exp_root_pass(),
-                cmd)
-            count = int(result.strip())
-            LOG.info("%s output from %s: %d", cmd, self.config.exp_hostname_primary(), count)
+                enable_expressway_connector(self.config.exp_hostname_primary(),
+                                            self.config.exp_admin_user(),
+                                            self.config.exp_admin_pass(),
+                                            connector)
+                # Soft wait for the connector to start up
+                wait_until_true(is_connector_running, 10, 1,
+                                *(self.config.exp_hostname_primary(),
+                                  self.config.exp_root_user(),
+                                  self.config.exp_root_pass(),
+                                  connector))
+            process_count = get_process_count(self.config.exp_hostname_primary(),
+                                              self.config.exp_root_user(),
+                                              self.config.exp_root_pass(),
+                                              connector)
+            if process_count > 0:
+                running_connectors.append(connector)
             self.assertLessEqual(
-                count,
+                process_count,
                 1,
                 "The number of processes for connector %s on %s is %s. It should be not be greater than 1"
-                % (connector, self.config.exp_hostname_primary(), count))
+                % (connector, self.config.exp_hostname_primary(), process_count))
+
+        LOG.info("%s has running processes for %s out of the expected list of %s", self.config,
+                 self.config.exp_hostname_primary(), running_connectors, self.config.expected_connectors())
+        self.assertNotEqual(running_connectors, ["c_mgmt"],
+                            "No feature connectors have running process on {}. Has starting of services broken?"
+                            .format(self.config.exp_hostname_primary()))

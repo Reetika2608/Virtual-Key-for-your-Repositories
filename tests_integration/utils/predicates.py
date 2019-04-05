@@ -10,7 +10,8 @@ from tests_integration.utils.fms import get_connector_raised_alarm_ids
 from tests_integration.utils.remote_dispatcher import get_command_from_rd
 from tests_integration.utils.ssh_methods import file_exists, \
     get_connector_heartbeat_start_time, get_mercury_device_route, get_remote_dispatcher_device_id, \
-    get_maintenance_mode_state, get_connector_status, get_connector_pid, get_installed_connector_version, get_file_data
+    get_maintenance_mode_state, get_connector_status, get_connector_pid, get_installed_connector_version, get_file_data, \
+    get_process_count
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -154,3 +155,10 @@ def feature_connectors_are_uninstalled(hostname, root_user, root_pass, connector
 def is_node_clean_after_defuse(hostname, root_user, root_pass, admin_user, admin_pass, connectors):
     return is_blob_empty(hostname, admin_user, admin_pass) \
            and feature_connectors_are_uninstalled(hostname, root_user, root_pass, connectors)
+
+
+def is_connector_running(hostname, root_user, root_pass, connector):
+    if get_process_count(hostname, root_user, root_pass, connector) > 0:
+        LOG.info("Connector %s has running processes on %s", connector, hostname)
+        return True
+    return False

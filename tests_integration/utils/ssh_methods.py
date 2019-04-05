@@ -214,3 +214,16 @@ def get_connector_status(hostname, root_user, root_pass, connector):
         return None
     else:
         return status.strip()
+
+
+def get_process_count(hostname, root_user, root_pass, connector):
+    process_dict = {'c_cal': 'java',
+                    'c_ucmc': 'CSI',
+                    'c_mgmt': 'managementconnectormain',
+                    'c_imp': 'java'}
+    connector_binary = process_dict[connector]
+    cmd = "ps aux | grep %s | grep %s | grep -v grep | wc -l" % (connector, connector_binary)
+    result = run_ssh_command(hostname, root_user, root_pass, cmd)
+    process_count = int(result.strip())
+    LOG.info("%s output from %s: %d", cmd, hostname, process_count)
+    return process_count
