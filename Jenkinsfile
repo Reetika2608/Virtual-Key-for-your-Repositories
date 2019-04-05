@@ -161,8 +161,7 @@ timestamps {
                                  ORG_ADMIN_USER=${org_admin_user} \
                                  ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                 nosetests --with-xunit --xunit-file=ui-based-test-results.xml tests_integration/ui_based_tests""".stripIndent())
-                                */
-                            }
+                            }*/
 
                             junit allowEmptyResults: true, testResults: 'ui-based-test-results.xml'
                         }
