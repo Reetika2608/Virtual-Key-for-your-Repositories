@@ -3,12 +3,12 @@ import logging
 import sys
 import unittest
 
-from tests_integration.utils.cdb_methods import configure_connectors
-from tests_integration.utils.common_methods import create_log_directory, wait_until
-from tests_integration.utils.predicates import are_connectors_entitled, is_connector_installed
+from tests_integration.utils.cdb_methods import configure_connectors, get_cluster_id_from_expressway
+from tests_integration.utils.common_methods import create_log_directory, wait_until, wait_for_defuse_to_finish
 from tests_integration.utils.config import Config
+from tests_integration.utils.predicates import are_connectors_entitled, is_connector_installed
 from tests_integration.utils.web_methods import register_expressway, deregister_expressway, create_web_driver, \
-    is_in_page_source, is_visible, login_expressway, navigate_expressway_menus, enable_expressway_connector
+    login_expressway, navigate_expressway_menus, enable_expressway_connector
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -17,18 +17,20 @@ LOG = logging.getLogger(__name__)
 class BasicRegisterTest(unittest.TestCase):
     """ BasicRegisterTest """
     config = None
+    cluster_id = None
 
     @classmethod
     def setUpClass(cls):
         LOG.info("Running: setUpClass")
-        cls.config = Config()
-        register_expressway(
-            cls.config.exp_hostname_primary(),
-            cls.config.exp_admin_user(),
-            cls.config.exp_admin_pass(),
-            cls.config.org_admin_user(),
-            cls.config.org_admin_password())
         cls.log_directory = create_log_directory()
+        cls.config = Config()
+
+        register_expressway(cls.config.control_hub(),
+                            cls.config.org_admin_user(),
+                            cls.config.org_admin_password(),
+                            cls.config.exp_hostname_primary(),
+                            cls.config.exp_admin_user(),
+                            cls.config.exp_admin_pass())
 
         for connector in cls.config.expected_connectors():
             wait_until(is_connector_installed, 240, 10,
@@ -37,9 +39,25 @@ class BasicRegisterTest(unittest.TestCase):
                          cls.config.exp_root_pass(),
                          connector))
 
+        # Get cluster id
+        cls.cluster_id = get_cluster_id_from_expressway(cls.config.exp_hostname_primary(),
+                                                        cls.config.exp_admin_user(),
+                                                        cls.config.exp_admin_pass())
+
     @classmethod
     def tearDownClass(cls):
         LOG.info("Running: tearDownClass")
+        deregister_expressway(cls.config.control_hub(),
+                              cls.config.org_admin_user(),
+                              cls.config.org_admin_password(),
+                              cls.cluster_id)
+
+        wait_for_defuse_to_finish(cls.config.exp_hostname_primary(),
+                                  cls.config.exp_root_user(),
+                                  cls.config.exp_root_pass(),
+                                  cls.config.exp_admin_user(),
+                                  cls.config.exp_admin_pass(),
+                                  cls.config.expected_connectors())
 
     def setUp(self):
         self.web_driver = create_web_driver()
@@ -52,7 +70,7 @@ class BasicRegisterTest(unittest.TestCase):
             self.web_driver.save_screenshot('%s/%s_%s.png' % (self.log_directory, class_name, self._testMethodName))
         self.web_driver.quit()
 
-    def test_01_connectors_can_be_enabled(self):
+    def test_connectors_can_be_enabled(self):
         """
         Purpose: Verify that connectors can be enabled via the UI
         Steps:
@@ -63,7 +81,7 @@ class BasicRegisterTest(unittest.TestCase):
         Notes:
         """
         LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_01_connectors_can_be_enabled.__doc__)
+        LOG.info(self.test_connectors_can_be_enabled.__doc__)
 
         # Verify all connectors are entitled in the database
         self.assertTrue(wait_until(are_connectors_entitled, 60, 5, *(self.config.exp_hostname_primary(),
@@ -83,7 +101,8 @@ class BasicRegisterTest(unittest.TestCase):
 
         for expected_display in self.config.expected_connectors().values():
             self.assertTrue(self.web_driver.find_element_by_partial_link_text(expected_display),
-                            "%s is not displaying on the UI of %s." % (expected_display, self.config.exp_hostname_primary()))
+                            "%s is not displaying on the UI of %s." % (
+                                expected_display, self.config.exp_hostname_primary()))
 
         # Verify connectors are installed
         for connector in self.config.expected_connectors():
@@ -92,7 +111,8 @@ class BasicRegisterTest(unittest.TestCase):
                                          self.config.exp_root_user(),
                                          self.config.exp_root_pass(),
                                          connector)),
-                            "%s does not have the connector %s installed." % (self.config.exp_hostname_primary(), connector))
+                            "%s does not have the connector %s installed." % (
+                                self.config.exp_hostname_primary(), connector))
 
         # Verify connectors are visible on the Components page
         login_expressway(
@@ -126,36 +146,3 @@ class BasicRegisterTest(unittest.TestCase):
                         self.config.exp_admin_pass(),
                         expected_display),
                     "Connector %s is not enabled on %s." % (expected_display, self.config.exp_hostname_primary()))
-
-    def test_08_check_defuse(self):
-        """
-        Purpose: Check Deregister
-        Steps:
-        1. Deregister the Expressway
-        2. Check that connectors have uninstalled.
-        Notes:
-        """
-
-        LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_08_check_defuse.__doc__)
-
-        deregister_expressway(self.config.exp_hostname_primary(), self.config.exp_admin_user(), self.config.exp_admin_pass(),
-                              self.config.org_admin_user(), self.config.org_admin_password())
-
-        login_expressway(
-            self.web_driver,
-            self.config.exp_hostname_primary(),
-            self.config.exp_admin_user(),
-            self.config.exp_admin_pass())
-        navigate_expressway_menus(self.web_driver, ["Applications", "Hybrid Services", "Connector Management"])
-        self.assertTrue(wait_until(is_in_page_source, 120, 5,
-                                   *(self.web_driver, " is not yet registered with the Cisco Webex Cloud.")),
-                        "%s did not defuse successfully." % self.config.exp_hostname_primary())
-
-        navigate_expressway_menus(self.web_driver, ["Maintenance", "Upgrade"])
-
-        for expected_display in self.config.expected_connectors().values():
-            if expected_display != "Management Connector":
-                self.assertFalse(is_visible(self.web_driver, "//*[contains(text(), '%s')]" % expected_display),
-                                 "Connector %s was not successfully uninstalled from %s."
-                                 % (expected_display, self.config.exp_hostname_primary()))

@@ -140,6 +140,7 @@ timestamps {
                         // The plugin is unable to handle locking of multiple resources
                         // (without using label, which would require admin access or a custom Jenkins job).
                         // We therefore lock only the primary cluster node, even though we use both
+                        // TODO need to decide on the appropriate resources for this test
                         lock(resource: resources.exp_hostname_unreg_cluster_1) {
                             print("Installing .tlp on node 1...")
                             sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_1} -w ${tlp_path}")
@@ -147,7 +148,23 @@ timestamps {
                             sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_2} -w ${tlp_path}")
 
                             print("Performing UI tests")
-                            // TODO: UI registration tests here
+                            /*
+                            withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_cluster_1} \
+                                 EXP_HOSTNAME_SECONDARY=${resources.exp_hostname_unreg_cluster_2} \
+                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                 ORG_ID=${config.org.org_id} \
+                                 ORG_ADMIN_USER=${org_admin_user} \
+                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                nosetests --with-xunit --xunit-file=ui-based-test-results.xml tests_integration/ui_based_tests""".stripIndent())
+                                */
+                            }
+
+                            junit allowEmptyResults: true, testResults: 'ui-based-test-results.xml'
                         }
                     },
                     'Upgrade tests (unclustered)': {

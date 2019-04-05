@@ -1,34 +1,31 @@
 import logging
+import os
+import platform
 import time
 
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import Select
 
-from tests_integration.utils.cdb_methods import get_entitled_list_from_expressway, get_cluster_id_from_expressway
 from tests_integration.utils.common_methods import wait_until
-from tests_integration.utils.predicates import is_connector_uninstalled
-from tests_integration.utils.ssh_methods import run_ssh_command
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 
-def deregister_expressway(exp_hostname, admin_user, admin_pass, org_admin_user, org_admin_pass):
+def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_id):
     LOG.info("Deregister Expressway")
     web_driver = create_web_driver()
-    cluster_id = get_cluster_id_from_expressway(exp_hostname, admin_user, admin_pass)
-    entitled_list = get_entitled_list_from_expressway(exp_hostname, admin_user, admin_pass)
-    web_driver.get('https://int-admin.webex.com')
+    web_driver.get('https://' + control_hub)
     web_driver.find_element_by_name('email').send_keys(org_admin_user)
     web_driver.find_element_by_xpath('//button').click()
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(3)
-    web_driver.get('https://int-admin.webex.com/services/cluster/expressway/' + cluster_id + '/settings')
+    web_driver.get('https://' + control_hub + '/services/cluster/expressway/' + cluster_id + '/settings')
     while True:
         try:
             web_driver.find_element_by_css_selector(
@@ -39,30 +36,30 @@ def deregister_expressway(exp_hostname, admin_user, admin_pass, org_admin_user, 
             break
     web_driver.find_element_by_css_selector('button[ng-click="$ctrl.deregisterCluster()"]').click()
     web_driver.find_element_by_css_selector('button[ng-click="clusterDeregister.deregister()"]').click()
-    print('Wait 10 seconds for deregister to be acknowledged')
+    LOG.info('Wait 10 seconds for deregister to be acknowledged')
     time.sleep(10)
 
-    for connector in [d['name'] for d in entitled_list]:
-        wait_until(is_connector_uninstalled, 180, 10, *(exp_hostname,
-                                                        admin_user,
-                                                        admin_pass,
-                                                        connector))
 
-    wait_until(is_connector_uninstalled, 180, 10, *(exp_hostname,
-                                                    admin_user,
-                                                    admin_pass,
-                                                    'd_openj'))
+def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id):
+    LOG.info("Deactivate a service")
+    web_driver = create_web_driver()
+    web_driver.get('https://' + control_hub)
+    web_driver.find_element_by_name('email').send_keys(org_admin_user)
+    web_driver.find_element_by_xpath('//button').click()
+    web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
+    web_driver.find_element_by_xpath('//button').click()
+    time.sleep(3)
+    web_driver.get('https://' + control_hub + '/services/cluster/expressway/' + cluster_id + '/settings')
+    web_driver.find_element_by_css_selector(
+        'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
+    web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
+    time.sleep(3)
 
-    run_ssh_command(exp_hostname,
-                    admin_user,
-                    admin_pass,
-                    'restart')
 
-
-def register_expressway(exp_hostname, admin_user, admin_pass, org_admin_user, org_admin_pass):
+def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostname, admin_user, admin_pass):
     LOG.info("Register Expressway")
     web_driver = create_web_driver()
-    web_driver.get('https://int-admin.webex.com')
+    web_driver.get('https://' + control_hub)
     web_driver.find_element_by_name('email').send_keys(org_admin_user)
     web_driver.find_element_by_xpath('//button').click()
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
@@ -83,6 +80,7 @@ def register_expressway(exp_hostname, admin_user, admin_pass, org_admin_user, or
     web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
     time.sleep(3)
     web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
     time.sleep(3)
     web_driver.switch_to.window(web_driver.window_handles[1])
     web_driver.find_element_by_name('username').send_keys(admin_user)
@@ -96,16 +94,29 @@ def register_expressway(exp_hostname, admin_user, admin_pass, org_admin_user, or
 
 
 def create_web_driver():
+    platform_os = platform.system()
+    if platform_os == 'Linux':
+        chromebinary_path = '/usr/bin/google-chrome'
+        chromedriver_path = './tests_integration/ui_based_tests/chromedriver_linux'
+    else:
+        chromebinary_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+        chromedriver_path = './tests_integration/ui_based_tests/chromedriver_mac'
+
+    if not os.path.isfile(chromedriver_path):
+        chromedriver_path = './' + chromedriver_path.split("/")[-1]
+
     options = webdriver.ChromeOptions()
-    options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    options.add_argument("headless")
+    options.binary_location = chromebinary_path
     options.add_argument('--ignore-certificate-errors')
     options.add_argument("--window-size=1920x1080")
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
     capabilities = DesiredCapabilities.CHROME.copy()
     capabilities["acceptSslCerts"] = True
     capabilities["acceptInsecureCerts"] = True
     capabilities["chrome.switches"] = ["--ignore-certificate-errors"]
-    web_driver = webdriver.Chrome("./chromedriver",
+    web_driver = webdriver.Chrome(chromedriver_path,
                                   options=options,
                                   desired_capabilities=capabilities)
     web_driver.implicitly_wait(10)
@@ -153,7 +164,11 @@ def enable_expressway_connector(web_driver, exp_hostname, admin_user, admin_pass
 
     login_expressway(web_driver, exp_hostname, admin_user, admin_pass)
     navigate_expressway_menus(web_driver, ["Applications", "Hybrid Services", "Connector Management"])
-    web_driver.find_element_by_partial_link_text("%s" % connector).click()
+    try:
+        web_driver.find_element_by_partial_link_text("%s" % connector).click()
+    except StaleElementReferenceException:
+        # The Ajax connector status table changed causing selenium to think that the object it has found is different. Retrying.
+        web_driver.find_element_by_partial_link_text("%s" % connector).click()
     select = Select(web_driver.find_element_by_id('enable_service'))
     select.select_by_visible_text('Enabled')
     web_driver.find_element_by_id('save_button').click()

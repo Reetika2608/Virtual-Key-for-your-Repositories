@@ -1,7 +1,8 @@
+import logging
 import os.path
 import uuid
+
 import yaml
-import logging
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ class Config(object):
     _fms_server = None
     _rd_server = None
     _ci_broker_server = None
+    _control_hub = None
     _expected_connectors = None
     _cluster_name = str(uuid.uuid4())
 
@@ -56,6 +58,7 @@ class Config(object):
         self._fms_server = self.get_if_present("fms_server")
         self._rd_server = self.get_if_present("rd_server")
         self._ci_broker_server = self.get_if_present("ci_broker_server")
+        self._control_hub = self.get_if_present("control_hub")
         self._expected_connectors = self.get_if_present("expected_connectors")
 
     def get_if_present(self, item):
@@ -181,6 +184,12 @@ class Config(object):
             LOG.error("Config item (ci_broker_server) to run test was not found in config file")
             assert False
         return self._ci_broker_server
+
+    def control_hub(self):
+        if not self._control_hub:
+            LOG.error("Config item (control_hub) to run test was not found in config file")
+            assert False
+        return self._control_hub
 
     def cluster_name(self):
         return self._cluster_name

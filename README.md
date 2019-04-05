@@ -189,7 +189,7 @@ Go to the [Hybrid Management](https://console.ciscocrate.com/env/1a2816697/apps/
 is a dotted menu with the option to upgrade:
 ![Agent](docs/images/agent.png?raw=true)
 
-Click the upgarde option and on the next screen check the _Always pull image before creating_ option. Click upgrade and wait for crate to work:
+Click the upgarde option and on the next screen check the _Always pull image before creating_ option. Ensure that ```Interactive and TTY``` is selected on the Commands tab. Click upgrade and wait for crate to work:
 ![Upgrade](docs/images/upgrade.png?raw=true)
 
 

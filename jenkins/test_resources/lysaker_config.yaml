@@ -2,6 +2,7 @@ urls:
   fms_server: hercules-intb.ciscospark.com
   rd_server: remote-dispatcher-intb.ciscospark.com
   ci_broker_server: idbrokerbts.webex.com
+  control_hub: int-admin.webex.com
 connectors:
   expected_connectors: {c_mgmt: 'Management Connector', c_cal: 'Calendar Connector', c_ucmc: 'Call Connector', c_imp: 'Message Connector'}
 misc:

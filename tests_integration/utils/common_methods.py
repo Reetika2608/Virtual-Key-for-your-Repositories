@@ -91,13 +91,3 @@ def wait_for_defuse_to_finish(hostname, root_user, root_pass, admin_user, admin_
                                                      admin_user,
                                                      admin_pass,
                                                      connectors))
-
-
-def number_of_connectors_installed(hostname, root_user, root_pass, connectors=None):
-    if connectors is None:
-        connectors = ['c_mgmt']
-    number_installed = 0
-    for connector in connectors:
-        if is_connector_installed(hostname, root_user, root_pass, connector):
-            number_installed = number_installed + 1
-    return number_installed

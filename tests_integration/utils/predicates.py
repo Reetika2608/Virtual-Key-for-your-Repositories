@@ -45,6 +45,14 @@ def are_connectors_entitled(hostname, username, password, connectors=None):
         return False
 
 
+def are_supplied_connectors_installed(hostname, root_user, root_pass, connectors):
+    number_installed = 0
+    for connector in connectors:
+        if is_connector_installed(hostname, root_user, root_pass, connector):
+            number_installed = number_installed + 1
+    return len(connectors) != number_installed
+
+
 def is_connector_installed(hostname, root_user, root_pass, connector):
     connector_status = get_connector_status(hostname, root_user, root_pass, connector)
     return connector_status is not None and connector_status == "install ok installed"
