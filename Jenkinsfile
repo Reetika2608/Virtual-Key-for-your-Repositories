@@ -31,8 +31,10 @@ timestamps {
 
                 sh("./build_and_upgrade.sh -c build -v ${BUILD_ID};")
                 DEB_VERSION = sh(script: 'dpkg-deb --field debian/_build/c_mgmt.deb Version', returnStdout: true).trim()
-                archiveArtifacts('debian/_build/c_mgmt.deb')
-                stash(includes: 'debian/_build/c_mgmt.deb', name: 'debian')
+
+                sh("mv ./debian/_build/c_mgmt.deb c_mgmt.deb")
+                archiveArtifacts('c_mgmt.deb')
+                stash(includes: 'c_mgmt.deb', name: 'debian')
             }
         }
 
@@ -49,8 +51,7 @@ timestamps {
                 folder_path = pwd()
 
                 print("Gather required components - debian, key and swims ticket.")
-                sh("mv ./debian/_build/c_mgmt.deb ${debian}")
-                sshagent(credentials: ['LYS-GIT']) {
+                sshagent(credentials: ['cafefusion.gen-sshNoPass']) {
                     sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
                 }
 
@@ -61,17 +62,20 @@ timestamps {
                     sh("rm -rf ${folder_path}/${swims_ticket}")
                 }
 
+                // Archive the Swims log file at this stage
+                archiveArtifacts('log.txt')
+
                 print("Set TLP name for subsequent stages.")
-                tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
-                tlp_name = sh(script: "basename ${tlp_path}", returnStdout: true).trim()
-                archiveArtifacts('_build/c_mgmt/*')
+                full_tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
+                tlp_file = sh(script: "basename ${full_tlp_path}", returnStdout: true).trim()
+                sh("mv ${full_tlp_path} ${tlp_file}")
 
                 utils = load('jenkins/methods/utils.groovy')
                 maven_tlp_dir = 'tlps/'
-                utils.uploadArtifactsToMaven("${tlp_path}", maven_tlp_dir)
+                utils.uploadArtifactsToMaven("${tlp_file}", maven_tlp_dir)
 
-                TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${tlp_name}"
-                stash(includes: "${tlp_path}", name: 'tlp')
+                TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${tlp_file}"
+                stash(includes: "${tlp_file}", name: 'tlp')
             }
         }
 
@@ -214,6 +218,19 @@ timestamps {
                     // TODO - Remove call to sqbu, and replace with local INT pipeline
                     // Kicking Old INT pipeline
                     runOldIntPipeline()
+                }
+            }
+
+            // This stage publishes the tested debian to the Expressway "wood" build
+            // which will get injected in the Expressway image
+            stage('Deploy to wood repo') {
+                checkpoint("Deploy to Expressway repo")
+                node('fmc-build') {
+                    // Get the stashed debian from the previous stages
+                    unstash('debian')
+                    sshagent(credentials: ['cafefusion.gen-sshNoPass']) {
+                        sh('scp c_mgmt.deb cafefusion.gen@nfstool.rd.cisco.com:/export/tandberg/system/releases/c_mgmt/master/c_mgmt.deb')
+                    }
                 }
             }
 
