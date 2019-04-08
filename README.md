@@ -161,7 +161,7 @@ root@acdc32ee8df8:/management-connector# ./build_and_upgrade.sh -c build
 
 ### Pipeline
 FMC's pipeline is driven mainly from the Jenkins file in this repo. The Dockerfile is also used to create a docker image, which is the base of the Jenkins image. 
-Using the root Dockerfile we generate a jenkins agent image from the jenkins directory which is uploaded to `containers.cisco.com`.
+Using the root Dockerfile we generate a jenkins agent image from the jenkins directory which is uploaded to `containers.cisco.com`. When uploading ensure that you run the docker login command using the api key you genereated on containers, __not your CEC password__.
 This image from containers.cisco.com is then leveraged by Cisco Crate (Containers as a service - CaaS) which allow us to adhere to the SQBU - BYOS (bring your own slaves) policy.
 
 #### Cisco Crate
@@ -180,6 +180,7 @@ cd jenkins/agent/
 docker build -t fmc-builder-base-ssh-slave .
 docker run fmc-builder-base-ssh-slave /bin/bash
 docker ps -l 
+docker login
 docker commit <CONTAINER ID> containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave
 docker push containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave
 ```
@@ -191,6 +192,8 @@ is a dotted menu with the option to upgrade:
 
 Click the upgarde option and on the next screen check the _Always pull image before creating_ option. Ensure that ```Interactive and TTY``` is selected on the Commands tab. Click upgrade and wait for crate to work:
 ![Upgrade](docs/images/upgrade.png?raw=true)
+
+Note that if after upgrade Jenkins reports the agents as offline you may need to manually start the ssh daemon on the nodes in Crate. The command you need to run on the console of each node in Crate is ```/usr/sbin/sshd -D```.
 
 
 #### Containers
