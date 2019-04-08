@@ -52,7 +52,14 @@ timestamps {
 
                 print("Gather required components - debian, key and swims ticket.")
                 sshagent(credentials: ['cafefusion.gen-sshNoPass']) {
-                    sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
+                    try {
+                        sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
+                    }
+                    catch (e) {
+                        println("Initial checkout failed. Has the crate node upgraded? Retrying without host key verification.")
+                        sh("ssh -o StrictHostKeyChecking=no -T git@lys-git.cisco.com")
+                        sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
+                    }
                 }
 
                 print("Package debian into a TLP.")
@@ -63,7 +70,7 @@ timestamps {
                 }
 
                 // Archive the Swims log file at this stage
-                archiveArtifacts('log.txt')
+                archiveArtifacts('_build/c_mgmt/log.txt')
 
                 print("Set TLP name for subsequent stages.")
                 full_tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
@@ -85,7 +92,7 @@ timestamps {
                 checkout scm
                 unstash('tlp')
 
-                tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
+                tlp_path = sh(script: 'ls *.tlp', returnStdout: true).trim()
                 config = readYaml(file: './jenkins/test_resources/lysaker_resources.yaml') // TODO: Should this be a parameter?
                 expresswayGroups = config.expressway.resource_groups
 
