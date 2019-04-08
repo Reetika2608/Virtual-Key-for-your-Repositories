@@ -21,7 +21,10 @@ timestamps {
 
                 print('static analysis')
                 sh("python setup.py pylint")
-                sh("test_environment/run_bandit.sh")
+                sh("bandit -r src/ -x src/unittests,src/base_platform -f xml -o bandit-results.xml")
+
+                // Archive bandit tests results
+                junit allowEmptyResults: true, testResults: 'bandit-results.xml'
 
                 print('unit test')
                 sh("nosetests tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml")
