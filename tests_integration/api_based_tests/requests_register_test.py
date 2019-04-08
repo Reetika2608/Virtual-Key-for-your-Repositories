@@ -150,8 +150,8 @@ class RequestsRegisterTest(unittest.TestCase):
                 "The number of processes for connector %s on %s is %s. It should be not be greater than 1"
                 % (connector, self.config.exp_hostname_primary(), process_count))
 
-        LOG.info("%s has running processes for %s out of the expected list of %s", self.config,
-                 self.config.exp_hostname_primary(), running_connectors, self.config.expected_connectors())
+        LOG.info("%s has running processes for %s out of the expected list of %s", self.config.exp_hostname_primary(),
+                 running_connectors, self.config.expected_connectors())
         self.assertNotEqual(running_connectors, ["c_mgmt"],
                             "No feature connectors have running process on {}. Has starting of services broken?"
                             .format(self.config.exp_hostname_primary()))
