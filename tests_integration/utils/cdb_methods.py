@@ -171,8 +171,13 @@ def get_current_machine_account_password(hostname, admin_user, admin_pass):
 
 
 def get_cluster_id(hostname, admin_user, admin_pass):
-    """ get the current machine account password """
+    """ get the current cluster id from machine account details """
     return get_machine_account_json(hostname, admin_user, admin_pass)["cluster_id"]
+
+
+def get_org_id(hostname, admin_user, admin_pass):
+    """ get the current org_id from machine account details """
+    return get_machine_account_json(hostname, admin_user, admin_pass)["organization_id"]
 
 
 def set_machine_account_expiry(hostname, admin_user, admin_pass, days):
@@ -214,6 +219,14 @@ def clear_rollback_blacklist(hostname, admin_user, admin_pass):
                      blacklist_location)
 
 
+def delete_entire_cafe_blob(hostname, admin_user, admin_pass):
+    LOG.info("Clearing the entire cafe blob on %s", hostname)
+    blob_path = "/api/management/configuration/cafe/cafeblobconfiguration/"
+    delete_cdb_entry(hostname,
+                     admin_user,
+                     admin_pass,
+                     blob_path)
+
 def set_logging_entry_to_blob(hostname, admin_user, admin_pass, uuid):
     """ Add logging entry to blob to initiate log POST. """
     cdb_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_identifier/"
@@ -229,6 +242,17 @@ def get_logging_host_url(hostname, admin_user, admin_pass):
         "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_host_u2c/")
 
     return json.loads(logging_url[0]["records"][0]["value"])
+
+
+def get_fms_host_url(hostname, admin_user, admin_pass):
+    """ get the fms host url  """
+    fms_url = get_cdb_entry(
+        hostname,
+        admin_user,
+        admin_pass,
+        "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_system_fmsUrl/")
+
+    return json.loads(fms_url[0]["records"][0]["value"])
 
 
 def set_prevent_upgrade_flag(hostname, admin_user, admin_pass, value):

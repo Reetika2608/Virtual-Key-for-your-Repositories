@@ -95,9 +95,9 @@ def wait_for_connectors_to_install(hostname, root_user, root_pass, connectors):
 
 
 def wait_for_defuse_to_finish(hostname, root_user, root_pass, admin_user, admin_pass, connectors):
-    wait_until_true(is_node_clean_after_defuse, 300, 5, *(hostname,
-                                                          root_user,
-                                                          root_pass,
-                                                          admin_user,
-                                                          admin_pass,
-                                                          connectors))
+    return wait_until_true(is_node_clean_after_defuse, 300, 5, *(hostname,
+                                                                 root_user,
+                                                                 root_pass,
+                                                                 admin_user,
+                                                                 admin_pass,
+                                                                 connectors))

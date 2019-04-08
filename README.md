@@ -159,6 +159,18 @@ root@acdc32ee8df8:/management-connector# nosetests tests/managementconnector/
 root@acdc32ee8df8:/management-connector# ./build_and_upgrade.sh -c build
 ```
 
+### Fixing an Expressway
+If a test failure or some local development work has left your Expressway in a bad state you can use the following
+utility script to fix it. This will leverage config on the Expressway, and the test config yaml to retrieve and access
+token, and deregister your Expressway. It also has some fallback manual steps that it will take to make sure your
+Expressway is in full working order.
+
+```
+./build_and_upgrade.sh -c clean_exp -t <TARGET>
+or
+python tests_integration/utils/clean_expressway.py <TARGET>
+```
+
 ### Pipeline
 FMC's pipeline is driven mainly from the Jenkins file in this repo. The Dockerfile is also used to create a docker image, which is the base of the Jenkins image. 
 Using the root Dockerfile we generate a jenkins agent image from the jenkins directory which is uploaded to `containers.cisco.com`. When uploading ensure that you run the docker login command using the api key you genereated on containers, __not your CEC password__.

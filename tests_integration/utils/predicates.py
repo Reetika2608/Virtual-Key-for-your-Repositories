@@ -120,6 +120,18 @@ def is_text_on_page(expressway, admin_user, admin_pass, page, text):
         return text in page_data.text
 
 
+def is_ui_unresponsive(expressway):
+    """ tries to get the Fusion Registration page, and ensures the UI is not un-responsive """
+    unresponsive = False
+    timeout_limit = 5
+    try:
+        requests.get("https://{}/fusionregistration".format(expressway), verify=False, timeout=timeout_limit)
+    except requests.exceptions.Timeout:
+        unresponsive = True
+        LOG.error("Expressway %s, was unresponsive with a timeout of %s", expressway, timeout_limit)
+    return unresponsive
+
+
 def is_maintenance_mode_enabled(hostname, root_user, root_pass):
     maintenance_mode = get_maintenance_mode_state(hostname, root_user, root_pass)
     LOG.info("%s maintenance mode state is %s" % (hostname, maintenance_mode))

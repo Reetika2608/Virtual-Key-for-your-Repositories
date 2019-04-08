@@ -56,6 +56,11 @@ upgrade(){
     install
 }
 
+clean_exp(){
+    echo "[clean exp] Manual clean up of Expressway, ensuring it's in a good state"
+    python tests_integration/utils/clean_expressway.py ${TARGET}
+}
+
 clean_install(){
     echo "[clean_install] Fresh installing: ${TARGET} with version ${VERSION}"
     add_to_known_hosts
@@ -186,4 +191,7 @@ elif [ "${CMD}" = "build_tlp" ]; then
 elif [ "${CMD}" = "install_prebuilt" ]; then
     [ -z "${TARGET}" ] && echo "Target must be set to install/upgrade: use option: -t" && usage && exit 1
     install_prebuilt $1
+elif [ "${CMD}" = "clean_exp" ]; then
+    [ -z "${TARGET}" ] && echo "Target must be set to clean the exp: use option: -t" && usage && exit 1
+    clean_exp
 fi
