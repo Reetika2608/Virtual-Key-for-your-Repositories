@@ -268,3 +268,7 @@ def set_prevent_upgrade_flag(hostname, admin_user, admin_pass, value):
 
 def disable_fmc_upgrades(hostname, admin_user, admin_pass):
     set_prevent_upgrade_flag(hostname, admin_user, admin_pass, "on")
+
+
+def get_machine_account_url(hostname, admin_user, admin_pass):
+    return get_machine_account_json(hostname, admin_user, admin_pass)["location"]

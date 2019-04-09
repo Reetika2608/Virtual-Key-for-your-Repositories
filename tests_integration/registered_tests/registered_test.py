@@ -3,19 +3,23 @@ import re
 import unittest
 import uuid
 
+import requests
+
+from tests_integration.api_based_tests.vcs_http import VCSHttpSession
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import clear_rollback_blacklist, get_serialno, get_logging_host_url, \
-    set_logging_entry_to_blob, set_machine_account_expiry, get_current_machine_account_password, get_cluster_id
+    set_logging_entry_to_blob, set_machine_account_expiry, get_current_machine_account_password, get_cluster_id, \
+    get_machine_account_url
 from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
-    run_full_management_connector_restart
+    run_full_management_connector_restart, wait_until_false
 from tests_integration.utils.config import Config
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import is_connector_installed, can_connector_be_rolled_back, \
     has_version_changed, is_blob_empty, has_connector_pid_changed, is_blacklist_empty, is_alarm_raised, \
-    is_command_complete, has_machine_password_changed
+    is_command_complete, has_machine_password_changed, is_text_on_page
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
 from tests_integration.utils.ssh_methods import rollback_connector, get_installed_connector_version, \
-    get_connector_pid, run_ssh_command, get_device_time, file_exists
+    get_connector_pid, run_ssh_command, get_device_time, file_exists, restart_connector
 
 LOG = get_logger()
 
@@ -493,3 +497,104 @@ class RegisteredTest(unittest.TestCase):
                 self.config.exp_admin_user(),
                 self.config.exp_admin_pass(),
                 45)
+
+    def test_revive_on_broken_machine_account(self):
+        """
+        Purpose: Verify Revive functionality
+        Steps:
+        1. Delete CI machine account (get machine account url from blob).
+        2. Re-start FMC.
+        3. Confirm revive message and button are available on fusion page.
+        4. Verify that no c_mgmt.heartbeat file exists on-box.
+        5. Using requests emulate clicking the button to revive the connection.
+        6. After revive is complete, confirm that the revive button is no longer visible.
+        7. Verify that a new c_mgmt.heartbeat file has been written on-box.
+        8. Verify that the machine account URL changed during the revive process.
+        """
+        LOG.info("Running test: %s", self._testMethodName)
+        LOG.info(self.test_revive_on_broken_machine_account.__doc__)
+
+        # 1. Delete CI machine account (get machine account url from blob).
+        starting_machine_url = get_machine_account_url(self.config.exp_hostname_primary(),
+                                                       self.config.exp_admin_user(),
+                                                       self.config.exp_admin_pass())
+
+        headers = {
+            'Authorization': 'Bearer ' + self.access_token,
+            'Content-Type': 'application/json'
+        }
+        LOG.info("Deleting the machine account %s found on %s",
+                 starting_machine_url, self.config.exp_hostname_primary())
+        response = requests.delete(starting_machine_url, headers=headers, verify=False)
+        self.assertTrue(response.ok, "Failed to delete machine account in CI: {}".format(starting_machine_url))
+
+        # 2. Re-start FMC.
+        # Do a "dumb" connector restart. Because we are deleting the machine account some of the criteria
+        # that the smart restart method waits on will never be satisfied
+        restart_connector(self.config.exp_hostname_primary(),
+                          self.config.exp_root_user(),
+                          self.config.exp_root_pass(),
+                          "c_mgmt")
+
+        # 3. Confirm revive message and button are available on fusion page.
+        self.assertTrue(wait_until_true(is_text_on_page, 60, 10, *(self.config.exp_hostname_primary(),
+                                                                   self.config.exp_admin_user(),
+                                                                   self.config.exp_admin_pass(),
+                                                                   "fusionregistration",
+                                                                   "There is an error in your connection")),
+                        "{} is not showing the revive error message".format(self.config.exp_hostname_primary()))
+        self.assertTrue(wait_until_true(is_text_on_page, 30, 5, *(self.config.exp_hostname_primary(),
+                                                                  self.config.exp_admin_user(),
+                                                                  self.config.exp_admin_pass(),
+                                                                  "fusionregistration",
+                                                                  "Re-Register")),
+                        "{} is not showing the revive button".format(self.config.exp_hostname_primary()))
+
+        # 4. Verify that no c_mgmt.heartbeat file exists on-box.
+        # When FMC restarted it would have deleted all on-box .heartbeat files. Now that the machine account has
+        # been deleted it should not be possible for a heartbeat file to exist on-box.
+        self.assertFalse(file_exists(self.config.exp_hostname_primary(),
+                                     self.config.exp_root_user(),
+                                     self.config.exp_root_pass(),
+                                     "/var/run/c_mgmt/c_mgmt.heartbeat"),
+                         "Heartbeat file still exists on {}".format(self.config.exp_hostname_primary()))
+
+        # 5. Using requests emulate clicking the button to revive the connection.
+        exp_session = VCSHttpSession(
+            hostname=self.config.exp_hostname_primary(),
+            username=self.config.exp_admin_user(),
+            password=self.config.exp_admin_pass()
+        )
+        exp_session.set_session(self.session)
+        exp_session.revive_expressway()
+
+        # 6. After revive is complete, confirm on both nodes that the revive button is no longer visible.
+        self.assertFalse(wait_until_false(is_text_on_page, 60, 10, *(self.config.exp_hostname_primary(),
+                                                                     self.config.exp_admin_user(),
+                                                                     self.config.exp_admin_pass(),
+                                                                     "fusionregistration",
+                                                                     "There is an error in your connection")),
+                         "{} is still showing the revive error message".format(self.config.exp_hostname_primary()))
+        self.assertFalse(wait_until_false(is_text_on_page, 30, 5, *(self.config.exp_hostname_primary(),
+                                                                    self.config.exp_admin_user(),
+                                                                    self.config.exp_admin_pass(),
+                                                                    "fusionregistration",
+                                                                    "Re-Register")),
+                         "{} is still showing the revive button".format(self.config.exp_hostname_primary()))
+
+        # 7. Verify that a new c_mgmt.heartbeat file has been written on-box.
+        # FMC only writes a heartbeat file to disk after a successful POST to FMS. Once this file exists then
+        # we have posted a heartbeat using the new machine account.
+        self.assertTrue(wait_until_true(file_exists, 30, 5, *(self.config.exp_hostname_primary(),
+                                                              self.config.exp_root_user(),
+                                                              self.config.exp_root_pass(),
+                                                              "/var/run/c_mgmt/c_mgmt.heartbeat")),
+                        "{} has no heartbeat file on-box. Are we still broken?"
+                        .format(self.config.exp_hostname_primary()))
+
+        # 8. Verify that the machine account URL changed during the revive process.
+        revived_machine_url = get_machine_account_url(self.config.exp_hostname_primary(),
+                                                      self.config.exp_admin_user(),
+                                                      self.config.exp_admin_pass())
+        self.assertNotEquals(starting_machine_url, revived_machine_url,
+                             "The machine account URL did not change during revive: {}".format(starting_machine_url))
