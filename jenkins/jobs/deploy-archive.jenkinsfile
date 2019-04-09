@@ -18,12 +18,14 @@ timestamps {
                                          upstreamFilterStrategy   : 'UseGlobalSetting'])
 
                 TLP_FILE = sh(script: "ls c_mgmt_*.tlp", returnStdout: true).trim()
+                stash(includes: "${TLP_FILE}", name: 'tlp')
             }
         }
 
         stage('Prepare Provisioning') {
             node('fmc-build') {
                 checkout scm
+                unstash('tlp')
                 // maven is the current approach for static url file storage of release channel tlp, for the binary
                 // deploy job, alternatively you could have a downstream jenkins job archiving all TLP also
                 print("Step 1. Publish c_mgmt.tlp to maven")
@@ -39,12 +41,8 @@ timestamps {
 
                 print("Step 3. Create provisioning JSON file")
                 createProvisioning(RELEASE_CHANNEL)
-            }
-        }
 
-        stage('Archiving') {
-            node('fmc-build') {
-                archiveArtifacts(artifacts: '*.tlp, *targeted.txt, *provisioning.txt, manifest.yaml')
+                archiveArtifacts(artifacts: "${TLP_FILE}, *targeted.txt, *provisioning.txt, manifest.yaml)
             }
         }
     }
