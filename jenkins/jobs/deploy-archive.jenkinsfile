@@ -34,10 +34,14 @@ timestamps {
                 utils.uploadArtifactsToMaven('c_mgmt.tlp', "${RELEASE_CHANNEL}/")
 
                 print("Step 2. Trigger Binaries Deploy Job")
-                def binary_job_url = "job/binaries/job/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
+                def binary_job_url = "platform/binaries/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
                 def binary_build = build(binary_job_url)
                 sh("rm -rf manifest.yaml*")
-                copyArtifacts(filter: 'manifest.yaml', fingerprintArtifacts: true, flatten: true, projectName: binary_job_url, selector: "${binary_build.number}")
+                copyArtifacts(filter: '_dist/manifest.yaml',
+                        fingerprintArtifacts: true,
+                        flatten: true,
+                        projectName: binary_job_url,
+                        selector: specific("${binary_build.number}"))
 
                 print("Step 3. Create provisioning JSON file")
                 createProvisioning(RELEASE_CHANNEL)
