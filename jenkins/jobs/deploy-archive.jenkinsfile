@@ -69,7 +69,9 @@ def getManifestUrl() {
 def createProvisioning(String release) {
     def published_url = getManifestUrl()
 
-    def connector_version = getTlpVersionFromTLP(TLP_FILE)
+    // TODO Get real version for next run, just running job so files are in place for platform jiras
+    // def connector_version = getTlpVersionFromTLP(TLP_FILE)
+    def connector_version = "8.11-1.0.321394"
 
     createProvisioningJson(release, published_url, connector_version)
 }

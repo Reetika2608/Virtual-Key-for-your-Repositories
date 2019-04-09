@@ -204,19 +204,8 @@ timestamps {
         }
 
         // Only allow Deploy Stages from the master
-        if (env.BRANCH_NAME == 'master') {
-
-            stage('Release tests') {
-                checkpoint("We have a tlp. Let's run release tests.")
-                timeout(time: 5, unit: 'MINUTES') {
-                    input "Run release tests against ${TLP_URL}?"
-                }
-
-                runOldPipeline(TLP_URL)
-
-                // since we are deploying from the old pipeline for now we do not want to continue
-                return
-            }
+        // TODO - remove and change back to 'master'; do not run the deploys for this first attempt, just trying to get a successful archived job
+        if (env.BRANCH_NAME == 'foobar') {
 
             /* TODO - Uncomment when we want the new pipeline to be kicked
             stage('Deploy to Latest') {
@@ -272,20 +261,6 @@ timestamps {
 /********************************************************************************/
 /*                          Pipeline Functions                                  */
 /********************************************************************************/
-
-// TODO: DELETE THIS ONCE TTM IS NO MORE
-def runOldPipeline(String tlpUrl) {
-    node('fmc-build') {
-        withCredentials([usernamePassword(credentialsId: 'cafefusion.gen', usernameVariable: 'cafe_user', passwordVariable: 'cafe_pass')]) {
-            job = "Jobs/bitbucket-pipelines/CAFETOOLS/auto/cafe-tools/master"
-            parameters = "-p tlpUrl=${tlpUrl}"
-            echo "Triggering old pipeline on https://engci-private-gpk.cisco.com/jenkins/"
-            sh("rm -rf jenkins-cli.jar*")
-            sh("wget -q https://engci-private-gpk.cisco.com/jenkins/citg-expressway/jnlpJars/jenkins-cli.jar")
-            sh("java -jar jenkins-cli.jar -auth ${cafe_user}:${cafe_pass} -s https://engci-private-gpk.cisco.com/jenkins/citg-expressway/ build '${job}' ${parameters}")
-        }
-    }
-}
 
 // TODO: Export targeted deploy and INT pipeline tests from SQBU to SQBU-01
 def runOldIntPipeline() {
