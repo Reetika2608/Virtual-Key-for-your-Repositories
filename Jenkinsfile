@@ -12,6 +12,7 @@ TARGET=""
 TLP_URL=""
 MAVEN_SERVER = "https://engci-maven-master.cisco.com/artifactory/"
 DEB_VERSION = ''
+TLP_FILE = ''
 
 timestamps {
     try {
@@ -76,16 +77,16 @@ timestamps {
                 archiveArtifacts('_build/c_mgmt/log.txt')
 
                 print("Set TLP name for subsequent stages.")
-                full_tlp_path = sh(script: 'ls _build/c_mgmt/*.tlp', returnStdout: true).trim()
-                tlp_file = sh(script: "basename ${full_tlp_path}", returnStdout: true).trim()
-                sh("mv ${full_tlp_path} ${tlp_file}")
+                TLP_FILE = "c_mgmt_${DEB_VERSION}.tlp"
+                sh("mv _build/c_mgmt/${TLP_FILE} ${TLP_FILE}")
 
                 utils = load('jenkins/methods/utils.groovy')
                 maven_tlp_dir = 'tlps/'
-                utils.uploadArtifactsToMaven("${tlp_file}", maven_tlp_dir)
+                utils.uploadArtifactsToMaven("${TLP_FILE}", maven_tlp_dir)
 
-                TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${tlp_file}"
-                stash(includes: "${tlp_file}", name: 'tlp')
+                TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${TLP_FILE}"
+                stash(includes: "${TLP_FILE}", name: 'tlp')
+                archiveArtifacts("${TLP_FILE}")
             }
         }
 
@@ -95,7 +96,6 @@ timestamps {
                 checkout scm
                 unstash('tlp')
 
-                tlp_path = sh(script: 'ls *.tlp', returnStdout: true).trim()
                 config = readYaml(file: './jenkins/test_resources/lysaker_resources.yaml') // TODO: Should this be a parameter?
                 expresswayGroups = config.expressway.resource_groups
 
@@ -116,7 +116,7 @@ timestamps {
                     'Unregistered tests': {
                         lock(resource: resources.exp_hostname_unreg_1) {
                             print("Installing .tlp...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${tlp_path}")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
                             print("Performing unregistered tests")
                             sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
                              EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
@@ -131,7 +131,7 @@ timestamps {
                     'API registration tests (unclustered)': {
                         lock(resource: resources.exp_hostname_unreg_2) {
                             print("Installing .tlp...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${tlp_path}")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${TLP_FILE}")
                             print("Performing API tests")
 
                             withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
@@ -157,9 +157,9 @@ timestamps {
                         // TODO need to decide on the appropriate resources for this test
                         lock(resource: resources.exp_hostname_unreg_cluster_1) {
                             print("Installing .tlp on node 1...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_1} -w ${tlp_path}")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_1} -w ${TLP_FILE}")
                             print("Installing .tlp on node 2...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_2} -w ${tlp_path}")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_2} -w ${TLP_FILE}")
 
                             print("Performing UI tests")
                             /*
@@ -183,7 +183,7 @@ timestamps {
                     'Upgrade tests (unclustered)': {
                         lock(resource: resources.exp_hostname_reg) {
                             print("Installing .tlp...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg} -w ${tlp_path} ")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg} -w ${TLP_FILE} ")
                             print("Performing unclustered upgrade tests")
                             // TODO: Upgrade tests here
                         }
@@ -191,9 +191,9 @@ timestamps {
                     'Upgrade tests (clustered)': {
                         lock(resource: resources.exp_hostname_reg_cluster_1) {
                             print("Installing .tlp on node 1...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_1} -w ${tlp_path}")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_1} -w ${TLP_FILE}")
                             print("Installing .tlp on node 2...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_2} -w ${tlp_path}")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_2} -w ${TLP_FILE}")
 
                             print("Performing upgrade tests")
                             // TODO: Upgrade tests here
