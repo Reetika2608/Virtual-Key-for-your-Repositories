@@ -1,6 +1,6 @@
 #!/usr/bin/groovy
 
-RELEASE_CHANNEL=params.RELEASE_CHANNEL
+RELEASE_CHANNEL = params.RELEASE_CHANNEL
 TLP_FILE = ''
 
 timestamps {
@@ -9,13 +9,13 @@ timestamps {
             node('fmc-build') {
                 sh("rm -rf c_mgmt_*.tlp")
                 copyArtifacts(filter: '*.tlp',
-                              fingerprintArtifacts: true,
-                              flatten: true,
-                              projectName: 'team/management-connector/pipeline/master',
-                              selector: [$class: 'TriggeredBuildSelector',
-                                         allowUpstreamDependencies: false,
-                                         fallbackToLastSuccessful : true,
-                                         upstreamFilterStrategy   : 'UseGlobalSetting'])
+                        fingerprintArtifacts: true,
+                        flatten: true,
+                        projectName: 'team/management-connector/pipeline/master',
+                        selector: [$class                   : 'TriggeredBuildSelector',
+                                   allowUpstreamDependencies: false,
+                                   fallbackToLastSuccessful : true,
+                                   upstreamFilterStrategy   : 'UseGlobalSetting'])
 
                 TLP_FILE = sh(script: "ls c_mgmt_*.tlp", returnStdout: true).trim()
                 stash(includes: "${TLP_FILE}", name: 'tlp')
@@ -42,11 +42,11 @@ timestamps {
                 print("Step 3. Create provisioning JSON file")
                 createProvisioning(RELEASE_CHANNEL)
 
-                archiveArtifacts(artifacts: "${TLP_FILE}, *targeted.txt, *provisioning.txt, manifest.yaml)
+                archiveArtifacts(artifacts: "${TLP_FILE}, *targeted.txt, *provisioning.txt, manifest.yaml")
             }
         }
     }
-    finally{
+    finally {
         node('fmc-build') {
             print('Cleaning ws')
             cleanWs()
@@ -107,7 +107,7 @@ def createProvisioningJson(String release, String tlp_url, String version) {
     }
 }
 
-def createTargetedProvisioningJson(String tlp_url, String version){
+def createTargetedProvisioningJson(String tlp_url, String version) {
     def targeted_file = 'latest_provisioning_targeted.txt'
     def cluster_id = '362ac799-8488-43ab-a215-5e58ae0aed0a'
     def org_id = '8e52edcc-bb11-4721-babe-722ec8fba823'
