@@ -146,7 +146,7 @@ install_external_dependencies(){
 
 generate_debian_version(){
     PIPELINE_VERSION=1.0
-    PR_VERSION=555.0
+    PR_VERSION=555
     DEVELOPER_VERSION=999.0
 
     BUILD_NUMBER=$1
@@ -161,8 +161,9 @@ generate_debian_version(){
 
     # Find out what type of build it is, local, PR or pipeline
     if [ "$CHANGE_ID" != "" ]; then
-        # Example: 8.10-555.0.53, where change id is the PR build number
-        BUILD_VERSION=${PR_VERSION}"."${CHANGE_ID}
+        # Example: 8.10-555.53.1, 555 is a hardcoded PR identifier, 53, is the PR number, and the 1 is the build number
+        # as there may be multiple builds within a PR
+        BUILD_VERSION=${PR_VERSION}.${CHANGE_ID}.${BUILD_NUMBER}
         echo "generate_debian_version: This is a PR build: ${BUILD_VERSION}"
 
     elif [ "$JOB_BASE_NAME" == "master" ]; then
