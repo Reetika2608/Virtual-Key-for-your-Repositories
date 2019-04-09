@@ -1,19 +1,18 @@
 """ Basic UI Based DeRegistration Test """
-import logging
 import sys
 import unittest
 
 from tests_integration.utils.cdb_methods import configure_connectors, get_cluster_id_from_expressway
 from tests_integration.utils.common_methods import create_log_directory, wait_until_true, wait_until_false
 from tests_integration.utils.config import Config
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import is_connector_installed, is_connector_uninstalled, \
     are_supplied_connectors_installed
 from tests_integration.utils.web_methods import deregister_expressway, create_web_driver, \
     deactivate_service, is_in_page_source, is_visible, login_expressway, navigate_expressway_menus, \
     enable_expressway_connector, register_expressway
 
-logging.basicConfig(level=logging.DEBUG)
-LOG = logging.getLogger(__name__)
+LOG = get_logger()
 
 
 class BasicDeRegisterTest(unittest.TestCase):

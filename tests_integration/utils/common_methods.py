@@ -1,13 +1,13 @@
 """ Generic Useful methods for tests """
 import datetime
 import errno
-import logging
 import os
 import time
 
 import requests
 import urllib3
 
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import has_connector_pid_changed, has_connector_heartbeat_start_time_changed, \
     has_mercury_device_route_changed, has_remote_dispatcher_device_id_changed, is_connector_installed, \
     is_node_clean_after_defuse
@@ -15,9 +15,7 @@ from tests_integration.utils.ssh_methods import get_and_log_management_connector
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
-logging.getLogger("paramiko").setLevel(logging.WARNING)
+LOG = get_logger()
 
 
 def wait_until_true(predicate, timeout, period=0.25, *args):

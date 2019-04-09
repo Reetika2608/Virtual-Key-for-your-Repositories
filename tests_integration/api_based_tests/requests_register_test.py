@@ -1,5 +1,4 @@
 """ Hybrid Services Registration tests via requests library """
-import logging
 import unittest
 
 from tests_integration.utils import ci
@@ -9,12 +8,12 @@ from tests_integration.utils.common_methods import wait_until_true, wait_for_con
     wait_for_defuse_to_finish
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import enable_cloud_fusion, deregister_cluster
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import are_connectors_entitled, \
     is_connector_installed, is_connector_running
 from tests_integration.utils.ssh_methods import get_process_count
 
-logging.basicConfig(level=logging.DEBUG)
-LOG = logging.getLogger(__name__)
+LOG = get_logger()
 
 
 class RequestsRegisterTest(unittest.TestCase):

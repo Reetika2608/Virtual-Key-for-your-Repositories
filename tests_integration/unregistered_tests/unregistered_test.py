@@ -1,5 +1,4 @@
 """ Management Connector Tests not requiring Registration """
-import logging
 import re
 import unittest
 
@@ -8,11 +7,11 @@ import requests
 from tests_integration.utils.cdb_methods import delete_cdb_entry
 from tests_integration.utils.common_methods import wait_until_true
 from tests_integration.utils.config import Config
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import has_log_configuration_updated
 from tests_integration.utils.ssh_methods import get_file_data, run_ssh_command
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
+LOG = get_logger()
 
 
 class UnregisteredTest(unittest.TestCase):

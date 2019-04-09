@@ -1,11 +1,10 @@
 import json
-import logging
+
 import requests
 
+from tests_integration.utils.integration_test_logger import get_logger
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
-logging.getLogger("paramiko").setLevel(logging.WARNING)
+LOG = get_logger()
 
 
 def dispatch_command_to_rd(org_id, connector_id, rd_server, command, token):

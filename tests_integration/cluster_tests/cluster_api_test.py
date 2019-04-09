@@ -1,4 +1,3 @@
-import logging
 import random
 import unittest
 
@@ -10,13 +9,13 @@ from tests_integration.utils.common_methods import wait_until_true, wait_for_def
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import enable_maintenance_mode, \
     disable_maintenance_mode, enable_cloud_fusion, deregister_cluster
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import are_connectors_entitled, \
     is_connector_installed, is_text_on_page, is_maintenance_mode_enabled, is_maintenance_mode_disabled, \
     is_connector_running
 from tests_integration.utils.ssh_methods import get_process_count
 
-logging.basicConfig(level=logging.DEBUG)
-LOG = logging.getLogger(__name__)
+LOG = get_logger()
 
 
 class ClusterSmokeTest(unittest.TestCase):

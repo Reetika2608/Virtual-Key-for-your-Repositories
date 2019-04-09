@@ -1,13 +1,11 @@
 import json
-import logging
 
 import requests
 
 from tests_integration.api_based_tests.vcs_http import VCSHttpSession
+from tests_integration.utils.integration_test_logger import get_logger
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
-logging.getLogger("paramiko").setLevel(logging.WARNING)
+LOG = get_logger()
 
 
 def enable_cloud_fusion(org_id, cluster_name, fms_server, exp_hostname, exp_admin_user, exp_admin_pass, connectors,
@@ -121,8 +119,8 @@ def provision_cluster(org_id, cluster_id, fms_server, connectors, token):
         # Management Connector is auto provisioned
         if name != "c_mgmt":
             full_url = provision_url.format(org_id, cluster_id, name)
-            provision_resp = requests.post(url=full_url, headers=get_headers(token), verify=False)
-            LOG.info("{}".format(provision_resp.content))
+            response = requests.post(url=full_url, headers=get_headers(token), verify=False)
+            LOG.info("Provisioning connector {} on FMS. Response status_code {}".format(name, response.status_code))
 
 
 def deregister_cluster(org_id, cluster_id, fms_server, token):

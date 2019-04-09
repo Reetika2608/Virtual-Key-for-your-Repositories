@@ -1,16 +1,14 @@
 """ Module for dealing with anything CI related """
 import json
-import logging
 import re
 from random import randint
 
 import requests
 
 from tests_integration.utils.config import Config
+from tests_integration.utils.integration_test_logger import get_logger
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
-logging.getLogger("paramiko").setLevel(logging.WARNING)
+LOG = get_logger()
 
 CONFIG = Config()
 ID_BROKER_HOST = 'https://' + CONFIG.ci_broker_server() + '/idb/'

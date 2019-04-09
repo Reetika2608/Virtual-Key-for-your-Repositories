@@ -1,5 +1,3 @@
-import logging
-
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
@@ -7,15 +5,14 @@ from urllib3 import Retry
 from tests_integration.utils.cdb_methods import get_full_blob_contents, get_current_machine_account_password, \
     get_entitled_list_from_expressway, get_rollback_blacklist
 from tests_integration.utils.fms import get_connector_raised_alarm_ids
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.remote_dispatcher import get_command_from_rd
 from tests_integration.utils.ssh_methods import file_exists, \
     get_connector_heartbeat_start_time, get_mercury_device_route, get_remote_dispatcher_device_id, \
     get_maintenance_mode_state, get_connector_status, get_connector_pid, get_installed_connector_version, get_file_data, \
     get_process_count
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
-logging.getLogger("paramiko").setLevel(logging.WARNING)
+LOG = get_logger()
 
 
 def is_blob_empty(hostname, admin_user, admin_pass):

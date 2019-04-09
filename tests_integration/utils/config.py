@@ -1,12 +1,11 @@
-import logging
 import os.path
 import uuid
 
 import yaml
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
-logging.getLogger("paramiko").setLevel(logging.WARNING)
+from tests_integration.utils.integration_test_logger import get_logger
+
+LOG = get_logger()
 
 
 class Config(object):

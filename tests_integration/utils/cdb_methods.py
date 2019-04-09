@@ -1,13 +1,11 @@
 import json
-import logging
 
 import requests
 
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.ssh_methods import run_ssh_command
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
-logging.getLogger("paramiko").setLevel(logging.WARNING)
+LOG = get_logger()
 
 
 def set_cdb_entry(hostname, admin_user, admin_pass, cdb_path, entry):
@@ -226,6 +224,7 @@ def delete_entire_cafe_blob(hostname, admin_user, admin_pass):
                      admin_user,
                      admin_pass,
                      blob_path)
+
 
 def set_logging_entry_to_blob(hostname, admin_user, admin_pass, uuid):
     """ Add logging entry to blob to initiate log POST. """

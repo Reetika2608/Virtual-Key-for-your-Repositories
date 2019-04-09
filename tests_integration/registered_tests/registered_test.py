@@ -1,5 +1,4 @@
 import datetime
-import logging
 import re
 import unittest
 import uuid
@@ -10,6 +9,7 @@ from tests_integration.utils.cdb_methods import clear_rollback_blacklist, get_se
 from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
     run_full_management_connector_restart
 from tests_integration.utils.config import Config
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import is_connector_installed, can_connector_be_rolled_back, \
     has_version_changed, is_blob_empty, has_connector_pid_changed, is_blacklist_empty, is_alarm_raised, \
     is_command_complete, has_machine_password_changed
@@ -17,8 +17,7 @@ from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
 from tests_integration.utils.ssh_methods import rollback_connector, get_installed_connector_version, \
     get_connector_pid, run_ssh_command, get_device_time, file_exists
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
+LOG = get_logger()
 
 
 class RegisteredTest(unittest.TestCase):

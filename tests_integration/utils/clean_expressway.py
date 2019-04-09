@@ -3,6 +3,8 @@ import logging
 import sys
 import traceback
 
+from tests_integration.utils.integration_test_logger import get_logger
+
 sys.path.append("./")
 sys.path.append("../../")
 
@@ -15,7 +17,7 @@ from tests_integration.utils.predicates import has_connector_pid_changed, is_ui_
 from tests_integration.utils.ssh_methods import get_and_log_management_connector_run_data, restart_connector, \
     run_ssh_command, run_xcommand
 
-LOG = logging.getLogger(__name__)
+LOG = get_logger()
 
 
 def restart_fmc(hostname, root_user, root_pass):

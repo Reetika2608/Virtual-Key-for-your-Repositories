@@ -1,4 +1,3 @@
-import logging
 import os
 import platform
 import time
@@ -10,10 +9,9 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import Select
 
 from tests_integration.utils.common_methods import wait_until_true
+from tests_integration.utils.integration_test_logger import get_logger
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
-logging.getLogger("paramiko").setLevel(logging.WARNING)
+LOG = get_logger()
 
 
 def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_id):
