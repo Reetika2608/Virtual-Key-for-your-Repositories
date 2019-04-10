@@ -13,7 +13,6 @@ from tests_integration.utils.cdb_methods import get_serialno, get_logging_host_u
 from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
     run_full_management_connector_restart, wait_until_false
 from tests_integration.utils.config import Config
-from tests_integration.utils.fms import get_connectors
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import is_alarm_raised, \
     is_command_complete, has_machine_password_changed, is_text_on_page
@@ -37,10 +36,9 @@ class RegisteredTest(unittest.TestCase):
         cls.config = Config()
         cls.access_token, cls.refresh_token, cls.session = ci.get_new_access_token(cls.config.org_admin_user(),
                                                                                    cls.config.org_admin_password())
-        cls.serial = get_serialno(cls.config.exp_hostname_primary(),
-                                  cls.config.exp_admin_user(),
-                                  cls.config.exp_admin_pass())
-        cls.connector_id = "c_mgmt@" + cls.serial
+        cls.connector_id = "c_mgmt@" + get_serialno(cls.config.exp_hostname_primary(),
+                                                    cls.config.exp_admin_user(),
+                                                    cls.config.exp_admin_pass())
         cls.cluster_id = get_cluster_id(cls.config.exp_hostname_primary(),
                                         cls.config.exp_admin_user(),
                                         cls.config.exp_admin_pass())
@@ -599,27 +597,3 @@ class RegisteredTest(unittest.TestCase):
                                                       self.config.exp_admin_pass())
         self.assertNotEquals(starting_machine_url, revived_machine_url,
                              "The machine account URL did not change during revive: {}".format(starting_machine_url))
-
-    def test_management_connector_white_box_status(self):
-        '''
-        US6000 Expressway sends internal connector status (white box) to squared
-        Purpose: Checking for transmission of whitebox status
-
-        Steps:
-        1. Get Calendar Status, checking for internal connector status
-
-        Notes:
-        Microtestable: True
-        '''
-
-        connectors_json = get_connectors(self.config.org_id(), self.config.fms_server(), self.access_token)
-        blend = "c_cal"
-        # # Get connector Status
-        for connector in connectors_json["items"]:
-            details = connector
-            blend_id = '%s@%s' % (blend, self.serial)
-            if details['id'] == blend_id:
-                connector_status = details['connectorStatus']
-                # Since we are not testing the actual values in the connector_status (whether the connector
-                # is operational or not just assert that the elements in fact are there, and don't test for values.
-                self.assertTrue('initialized' in connector_status and 'operational' in connector_status)

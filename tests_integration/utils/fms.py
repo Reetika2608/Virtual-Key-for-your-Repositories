@@ -137,10 +137,6 @@ def get_connector(org_id, cluster_id, fms_server, connector_id, token):
     response = requests.get(full_url, headers=get_headers(token), verify=False)
     return json.loads(response.content)
 
-def get_connectors(org_id, fms_server, token):
-    full_url = 'https://' + fms_server + '/hercules/api/v2/organizations/' + org_id + '/connectors'
-    response = requests.get(full_url, headers=get_headers(token), verify=False)
-    return json.loads(response.content)
 
 def get_connector_raised_alarm_ids(org_id, cluster_id, fms_server, connector_id, token):
     raised_alarms = []
