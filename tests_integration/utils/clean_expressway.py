@@ -3,11 +3,10 @@ import logging
 import sys
 import traceback
 
-from tests_integration.utils.integration_test_logger import get_logger
-
 sys.path.append("./")
 sys.path.append("../../")
 
+from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import get_cluster_id, get_org_id, get_fms_host_url, delete_entire_cafe_blob
 from tests_integration.utils.common_methods import wait_until_true, wait_for_defuse_to_finish
