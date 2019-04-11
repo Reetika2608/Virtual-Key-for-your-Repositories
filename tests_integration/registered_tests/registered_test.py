@@ -13,6 +13,7 @@ from tests_integration.utils.cdb_methods import get_serialno, get_logging_host_u
 from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
     run_full_management_connector_restart, wait_until_false
 from tests_integration.utils.config import Config
+from tests_integration.utils.fms import get_connector
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import is_alarm_raised, \
     is_command_complete, has_machine_password_changed, is_text_on_page
@@ -36,9 +37,10 @@ class RegisteredTest(unittest.TestCase):
         cls.config = Config()
         cls.access_token, cls.refresh_token, cls.session = ci.get_new_access_token(cls.config.org_admin_user(),
                                                                                    cls.config.org_admin_password())
-        cls.connector_id = "c_mgmt@" + get_serialno(cls.config.exp_hostname_primary(),
-                                                    cls.config.exp_admin_user(),
-                                                    cls.config.exp_admin_pass())
+        cls.serial = get_serialno(cls.config.exp_hostname_primary(),
+                                  cls.config.exp_admin_user(),
+                                  cls.config.exp_admin_pass())
+        cls.connector_id = "c_mgmt@" + cls.serial
         cls.cluster_id = get_cluster_id(cls.config.exp_hostname_primary(),
                                         cls.config.exp_admin_user(),
                                         cls.config.exp_admin_pass())
@@ -597,3 +599,21 @@ class RegisteredTest(unittest.TestCase):
                                                       self.config.exp_admin_pass())
         self.assertNotEquals(starting_machine_url, revived_machine_url,
                              "The machine account URL did not change during revive: {}".format(starting_machine_url))
+
+    def test_management_connector_white_box_status(self):
+        """
+        Purpose: Verify that management connector sends whitebox status (in heartbeat)
+
+        Steps:
+        1. Get Calendar Status, checking for internal connector status
+        """
+
+        connector = get_connector(self.config.org_id(), self.cluster_id, self.config.fms_server(),
+                                  '%s@%s' % ("c_cal", self.serial), self.access_token)
+        connector_status = connector["connectorStatus"]
+        # Since we are not testing the actual values in the connector_status (whether the connector
+        # is operational or not just assert that the elements in fact are there, and don't test for values.
+        self.assertTrue('initialized' in connector_status,
+                        "initialized not in connector status: {}".format(connector_status))
+        self.assertTrue('operational' in connector_status,
+                        "operational not in connector status: {}".format(connector_status))
