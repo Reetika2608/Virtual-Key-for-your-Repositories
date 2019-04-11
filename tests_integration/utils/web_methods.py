@@ -1,7 +1,6 @@
 import os
 import platform
 import time
-
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -78,7 +77,7 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
     web_driver.find_element_by_xpath('//button').click()
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
-    time.sleep(3)
+    time.sleep(5)
     web_driver.find_element_by_link_text('Services').click()
     time.sleep(2)
     web_driver.find_element_by_link_text('View').click()
