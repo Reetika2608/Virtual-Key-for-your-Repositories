@@ -1,16 +1,11 @@
 #!/usr/bin/groovy
 @Library('sparkPipeline') _
 
-properties(
-        [
-            parameters([
-                string(name: 'tlpUrl', defaultValue: '', description: 'Link to TLP to use for tests')
-            ])
-        ])
+properties([
+        // number of builds to keep
+        buildDiscarder(logRotator(numToKeepStr: '20')),
+])
 
-TARGET=""
-TLP_URL=""
-MAVEN_SERVER = "https://engci-maven-master.cisco.com/artifactory/"
 DEB_VERSION = ''
 TLP_FILE = ''
 
@@ -84,7 +79,6 @@ timestamps {
                 maven_tlp_dir = 'tlps/'
                 utils.uploadArtifactsToMaven("${TLP_FILE}", maven_tlp_dir)
 
-                TLP_URL = "${MAVEN_SERVER}team-cafe-release/sqbu-pipeline/tlps/${TLP_FILE}"
                 stash(includes: "${TLP_FILE}", name: 'tlp')
                 archiveArtifacts("${TLP_FILE}")
             }
