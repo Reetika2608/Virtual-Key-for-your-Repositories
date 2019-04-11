@@ -3,8 +3,8 @@ expressway:
     - exp_hostname_unreg_1: lys-fms-unreg-01.rd.cisco.com
       exp_hostname_unreg_2: lys-fms-unreg-02.rd.cisco.com
       exp_hostname_reg: lys-fms-reg-01.rd.cisco.com
-      exp_hostname_unreg_cluster_1: 10.47.27.136
-      exp_hostname_unreg_cluster_2: 10.47.27.137
+      exp_hostname_unreg_cluster_node_1: 10.47.27.136
+      exp_hostname_unreg_cluster_node_2: 10.47.27.137
       exp_hostname_reg_cluster_1: lys-fms-cluster-reg-01.rd.cisco.com
       exp_hostname_reg_cluster_2: lys-fms-cluster-reg-02.rd.cisco.com
   exp_admin_user: admin
