@@ -15,8 +15,12 @@ LOG = get_logger()
 
 
 def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_id):
-    LOG.info("Deregister Expressway")
+    """ Deregister Expressway cluster from control hub through the UI """
+    LOG.info("Deregistering Expressway cluster %s from control hub, %s.", cluster_id, control_hub)
     web_driver = create_web_driver()
+
+    LOG.info("Logging in to control hub, %s, deactivating all services and deregistering the cluster %s.",
+             control_hub, cluster_id)
     web_driver.get('https://' + control_hub)
     web_driver.find_element_by_name('email').send_keys(org_admin_user)
     web_driver.find_element_by_xpath('//button').click()
@@ -24,6 +28,7 @@ def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_i
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(3)
     web_driver.get('https://' + control_hub + '/services/cluster/expressway/' + cluster_id + '/settings')
+    time.sleep(2)
     while True:
         try:
             web_driver.find_element_by_css_selector(
@@ -31,16 +36,22 @@ def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_i
             web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
             time.sleep(3)
         except NoSuchElementException:
+            LOG.info("All services have been deactivated. Proceeding to deregister the cluster.")
             break
     web_driver.find_element_by_css_selector('button[ng-click="$ctrl.deregisterCluster()"]').click()
     web_driver.find_element_by_css_selector('button[ng-click="clusterDeregister.deregister()"]').click()
     LOG.info('Wait 10 seconds for deregister to be acknowledged')
     time.sleep(10)
+    web_driver.quit()
 
 
 def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id):
-    LOG.info("Deactivate a service")
+    """ Deactivate a service for a cluster in control hub. Note: this deactivates the first service it encounters. """
+    LOG.info("Deactivating a service from the Expressway cluster %s on control hub, %s.", cluster_id, control_hub)
     web_driver = create_web_driver()
+
+    LOG.info("Logging in to control hub, %s, and deactivating the first encountered service for the cluster %s.",
+             control_hub, cluster_id)
     web_driver.get('https://' + control_hub)
     web_driver.find_element_by_name('email').send_keys(org_admin_user)
     web_driver.find_element_by_xpath('//button').click()
@@ -52,11 +63,16 @@ def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id):
         'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
     web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
     time.sleep(3)
+    web_driver.quit()
 
 
 def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostname, admin_user, admin_pass):
-    LOG.info("Register Expressway")
+    """ Register Expressway through UI """
+    LOG.info("Registering Expressway %s", exp_hostname)
     web_driver = create_web_driver()
+
+    LOG.info("Logging in to control hub, %s, adding the Expressway, %s and activating all services.",
+             control_hub, exp_hostname)
     web_driver.get('https://' + control_hub)
     web_driver.find_element_by_name('email').send_keys(org_admin_user)
     web_driver.find_element_by_xpath('//button').click()
@@ -64,6 +80,7 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(3)
     web_driver.find_element_by_link_text('Services').click()
+    time.sleep(2)
     web_driver.find_element_by_link_text('View').click()
     web_driver.find_element_by_css_selector('button[ng-click="$ctrl.addResource()"]').click()
     web_driver.find_element_by_id('selectedType_expressway').send_keys(' ')
@@ -80,6 +97,8 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
     web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
     web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
     time.sleep(3)
+
+    LOG.info("Logging in to the Expressway, %s, and completing the registration.", exp_hostname)
     web_driver.switch_to.window(web_driver.window_handles[1])
     web_driver.find_element_by_name('username').send_keys(admin_user)
     web_driver.find_element_by_name('password').send_keys(admin_pass)
@@ -92,6 +111,8 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
 
 
 def create_web_driver():
+    """ Create a web_driver """
+    LOG.info("Creating web driver")
     platform_os = platform.system()
     if platform_os == 'Linux':
         chromebinary_path = '/usr/bin/google-chrome'
@@ -122,13 +143,15 @@ def create_web_driver():
 
 
 def is_in_page_source(web_driver, text):
+    """ Is the text in the page source of the current web_driver page """
     if text in web_driver.page_source:
         return True
-    else:
-        return False
+
+    return False
 
 
 def is_visible(web_driver, element):
+    """ Is element visible to the web_driver? """
     try:
         web_driver.find_element_by_xpath(element)
         return True
@@ -137,7 +160,12 @@ def is_visible(web_driver, element):
 
 
 def login_expressway(web_driver, exp_hostname, admin_user, admin_pass):
+    """ Log in an Expressway through the browser """
+    LOG.info("Logging in to Expressway %s through the UI.", exp_hostname)
+
+    close_web_driver = False
     if not web_driver:
+        close_web_driver = True
         web_driver = create_web_driver()
 
     web_driver.get('https://' + exp_hostname)
@@ -145,9 +173,17 @@ def login_expressway(web_driver, exp_hostname, admin_user, admin_pass):
     web_driver.find_element_by_name('password').send_keys(admin_pass)
     web_driver.find_element_by_name('formbutton').click()
 
+    if close_web_driver:
+        # If we created the web driver we should close it again.
+        web_driver.quit()
+
 
 def navigate_expressway_menus(web_driver, menus):
+    """ Navigate the menus of the Expressway through the browser. The Expressway must be logged in. """
+    LOG.info("Navigate through the menus %s", menus)
+    close_web_driver = False
     if not web_driver:
+        close_web_driver = True
         web_driver = create_web_driver()
 
     for menu in menus:
@@ -155,9 +191,17 @@ def navigate_expressway_menus(web_driver, menus):
 
     ActionChains(web_driver).click().perform()
 
+    if close_web_driver:
+        # If we created the web driver we should close it again.
+        web_driver.quit()
+
 
 def enable_expressway_connector(web_driver, exp_hostname, admin_user, admin_pass, connector):
+    """ Enable a connector on Expreswway through the UI """
+    LOG.info("Logging in to Expressway %s and enabling connector %s.", exp_hostname, connector)
+    close_web_driver = False
     if not web_driver:
+        close_web_driver = True
         web_driver = create_web_driver()
 
     login_expressway(web_driver, exp_hostname, admin_user, admin_pass)
@@ -171,4 +215,28 @@ def enable_expressway_connector(web_driver, exp_hostname, admin_user, admin_pass
     select = Select(web_driver.find_element_by_id('enable_service'))
     select.select_by_visible_text('Enabled')
     web_driver.find_element_by_id('save_button').click()
-    return "<b>Success</b>: Saved" in web_driver.page_source
+    res = "<b>Success</b>: Saved" in web_driver.page_source
+
+    if close_web_driver:
+        # If we created the web driver we should close it again.
+        web_driver.quit()
+
+    return res
+
+
+def enable_expressway_cert_management(exp_hostname, admin_user, admin_pass, web_driver=None):
+    """ Enable cert management on Expreswway through the UI """
+    LOG.info("Logging in to Expressway %s and enabling managed certs.", exp_hostname)
+    close_web_driver = False
+    if not web_driver:
+        close_web_driver = True
+    web_driver = create_web_driver()
+
+    login_expressway(web_driver, exp_hostname, admin_user, admin_pass)
+    web_driver.get("https://" + exp_hostname + "/fusioncerts")
+    web_driver.find_element_by_name('formbutton').click()
+    wait_until_true(is_in_page_source, 30, 1, *(web_driver, "The following certificates have been added by Cisco."))
+
+    if close_web_driver:
+        # If we created the web driver we should close it again.
+        web_driver.quit()

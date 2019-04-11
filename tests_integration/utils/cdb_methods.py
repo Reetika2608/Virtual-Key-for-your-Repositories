@@ -272,3 +272,8 @@ def disable_fmc_upgrades(hostname, admin_user, admin_pass):
 
 def get_machine_account_url(hostname, admin_user, admin_pass):
     return get_machine_account_json(hostname, admin_user, admin_pass)["location"]
+
+
+def enable_cert_management(hostname, admin_user, admin_pass):
+    manage_certs = "/api/management/configuration/cafe/cafestaticconfiguration/name/c_mgmt_certs_addFusionCertsToCA/"
+    set_cdb_entry(hostname, admin_user, admin_pass, manage_certs, "true")

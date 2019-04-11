@@ -48,7 +48,7 @@ def are_supplied_connectors_installed(hostname, root_user, root_pass, connectors
     for connector in connectors:
         if is_connector_installed(hostname, root_user, root_pass, connector):
             number_installed = number_installed + 1
-    return len(connectors) != number_installed
+    return len(connectors) == number_installed
 
 
 def is_connector_installed(hostname, root_user, root_pass, connector):

@@ -18,6 +18,7 @@ class IntegrationTestLogger(object):
         logging.getLogger("paramiko").setLevel(logging.WARNING)
         logging.getLogger("requests").setLevel(logging.WARNING)
         logging.getLogger("urllib3").setLevel(logging.WARNING)
+        logging.getLogger("selenium").setLevel(logging.INFO)
         self.logger = logging.getLogger("default")
 
 

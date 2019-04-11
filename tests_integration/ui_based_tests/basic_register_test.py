@@ -2,13 +2,16 @@
 import sys
 import unittest
 
-from tests_integration.utils.cdb_methods import configure_connectors, get_cluster_id_from_expressway
+from tests_integration.utils import ci
+from tests_integration.utils.cdb_methods import configure_connectors, get_cluster_id_from_expressway, \
+    disable_fmc_upgrades
 from tests_integration.utils.common_methods import create_log_directory, wait_until_true, wait_for_defuse_to_finish
 from tests_integration.utils.config import Config
+from tests_integration.utils.fms import deregister_cluster
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import are_connectors_entitled, is_connector_installed
-from tests_integration.utils.web_methods import register_expressway, deregister_expressway, create_web_driver, \
-    login_expressway, navigate_expressway_menus, enable_expressway_connector
+from tests_integration.utils.web_methods import register_expressway, create_web_driver, \
+    login_expressway, navigate_expressway_menus, enable_expressway_connector, enable_expressway_cert_management
 
 LOG = get_logger()
 
@@ -17,12 +20,24 @@ class BasicRegisterTest(unittest.TestCase):
     """ BasicRegisterTest """
     config = None
     cluster_id = None
+    access_token = None
+    refresh_token = None
 
     @classmethod
     def setUpClass(cls):
         LOG.info("Running: setUpClass")
         cls.log_directory = create_log_directory()
         cls.config = Config()
+        cls.access_token, cls.refresh_token, cls.session = ci.get_new_access_token(cls.config.org_admin_user(),
+                                                                                   cls.config.org_admin_password())
+
+        disable_fmc_upgrades(cls.config.exp_hostname_primary(),
+                             cls.config.exp_admin_user(),
+                             cls.config.exp_admin_pass())
+
+        enable_expressway_cert_management(cls.config.exp_hostname_primary(),
+                                          cls.config.exp_admin_user(),
+                                          cls.config.exp_admin_pass())
 
         register_expressway(cls.config.control_hub(),
                             cls.config.org_admin_user(),
@@ -46,17 +61,28 @@ class BasicRegisterTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         LOG.info("Running: tearDownClass")
-        deregister_expressway(cls.config.control_hub(),
-                              cls.config.org_admin_user(),
-                              cls.config.org_admin_password(),
-                              cls.cluster_id)
+        if cls.config and cls.access_token:
+            deregister_cluster(cls.config.org_id(),
+                               cls.cluster_id,
+                               cls.config.fms_server(),
+                               cls.access_token)
 
-        wait_for_defuse_to_finish(cls.config.exp_hostname_primary(),
-                                  cls.config.exp_root_user(),
-                                  cls.config.exp_root_pass(),
-                                  cls.config.exp_admin_user(),
-                                  cls.config.exp_admin_pass(),
-                                  cls.config.expected_connectors())
+        # Clean up any tokens we got at the start
+        if cls.access_token:
+            ci.delete_ci_access_token(cls.access_token)
+        if cls.refresh_token:
+            ci.delete_ci_refresh_token(cls.refresh_token)
+
+        LOG.info("Cluster has been de-registered. Wait for cleanup to complete on %s"
+                 % cls.config.exp_hostname_primary())
+
+        wait_for_defuse_to_finish(
+            cls.config.exp_hostname_primary(),
+            cls.config.exp_root_user(),
+            cls.config.exp_root_pass(),
+            cls.config.exp_admin_user(),
+            cls.config.exp_admin_pass(),
+            cls.config.expected_connectors())
 
     def setUp(self):
         self.web_driver = create_web_driver()

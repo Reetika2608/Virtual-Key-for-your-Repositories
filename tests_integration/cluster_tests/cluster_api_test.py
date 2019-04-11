@@ -3,7 +3,7 @@ import unittest
 
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import configure_connectors, enable_expressway_connector, get_serialno, \
-    set_poll_time, disable_fmc_upgrades
+    set_poll_time, disable_fmc_upgrades, enable_cert_management
 from tests_integration.utils.common_methods import wait_until_true, wait_for_defuse_to_finish, \
     wait_for_connectors_to_install
 from tests_integration.utils.config import Config
@@ -39,6 +39,9 @@ class ClusterSmokeTest(unittest.TestCase):
         cls.access_token, cls.refresh_token, cls.session = ci.get_new_access_token(cls.config.org_admin_user(),
                                                                                    cls.config.org_admin_password())
 
+        enable_cert_management(cls.config.exp_hostname_primary(),
+                               cls.config.exp_admin_user(),
+                               cls.config.exp_admin_pass())
         set_poll_time(cls.config.exp_hostname_primary(), cls.config.exp_admin_user(), cls.config.exp_admin_pass(), 9)
         disable_fmc_upgrades(
             cls.config.exp_hostname_primary(),
