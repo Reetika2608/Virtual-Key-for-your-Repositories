@@ -6,6 +6,8 @@ services:
     restart: always
     ports:
       - "32:22"
+    entrypoint:
+      - /usr/local/bin/setup-sshd
     tty: true
     labels:
       # Force to run on this host so IP will remain the same
@@ -17,6 +19,8 @@ services:
     restart: always
     ports:
       - "33:22"
+    entrypoint:
+      - /usr/local/bin/setup-sshd
     tty: true
     labels:
       # Force to run on this host so IP will remain the same,
