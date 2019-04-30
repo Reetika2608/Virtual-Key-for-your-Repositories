@@ -1,16 +1,23 @@
 expressway:
   resource_groups:
-    - exp_hostname_unreg_1: lys-fms-unreg-01.rd.cisco.com
-      exp_hostname_unreg_2: lys-fms-unreg-02.rd.cisco.com
-      exp_hostname_reg: lys-fms-reg-01.rd.cisco.com
-      exp_hostname_unreg_cluster_node_1: 10.47.27.136
-      exp_hostname_unreg_cluster_node_2: 10.47.27.137
-      exp_hostname_reg_cluster_1: lys-fms-cluster-reg-01.rd.cisco.com
-      exp_hostname_reg_cluster_2: lys-fms-cluster-reg-02.rd.cisco.com
+    # Master resources
+    - exp_hostname_unreg_1: 10.47.27.111
+      exp_hostname_unreg_2: 10.47.27.112
+      exp_hostname_reg_1: 10.47.27.113
+      exp_hostname_reg_2: 10.47.27.114
+      exp_hostname_unreg_cluster_node_1: 10.47.27.115
+      exp_hostname_unreg_cluster_node_2: 10.47.27.116
+    # PR1 resources
+    - exp_hostname_unreg_1: 10.47.27.117
+      exp_hostname_unreg_2: 10.47.27.118
+      exp_hostname_reg_1: 10.47.27.119
+      exp_hostname_reg_2: 10.47.27.120
+      exp_hostname_unreg_cluster_node_1: lys-unreg-cluster-primary-pr1.rd.cisco.com
+      exp_hostname_unreg_cluster_node_2: lys-unreg-cluster-secondary-pr1.rd.cisco.com
   exp_admin_user: admin
   exp_admin_pass: x
   exp_root_user: root
   exp_root_pass: x
 org:
-  org_id: bb9e6b5d-1383-40ed-938a-cbefc6d5b868
-  org_admin_credentials_id: lysaker-test-org-admin # TODO: Get a test org. This is Marys
+  org_id: 2c0062be-243d-4dbf-b75d-40f6854da99f
+  org_admin_credentials_id: lysaker-test-org-admin

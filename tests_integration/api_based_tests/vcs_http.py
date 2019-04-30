@@ -42,6 +42,7 @@ class VCSHttpError(Exception):
 def log_and_exit(response, error_msg):
     print(error_msg)
     print(response)
+    print(response.url)
     assert False
 
 

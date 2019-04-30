@@ -206,12 +206,12 @@ timestamps {
                         }
                     },
                     'Registered tests': {
-                        lock(resource: resources.exp_hostname_reg) {
+                        lock(resource: resources.exp_hostname_reg_1) {
                             print("Installing .tlp...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg} -w ${TLP_FILE} ")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_1} -w ${TLP_FILE} ")
                             print("Performing registered tests")
                             withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg} \
+                                sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_1} \
                                  EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
                                  EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                  EXP_ROOT_USER=${config.expressway.exp_root_user} \
@@ -255,9 +255,9 @@ timestamps {
                         }
                     },
                     'Upgrade tests': {
-                        lock(resource: resources.exp_hostname_reg_cluster_1) {
+                        lock(resource: resources.exp_hostname_reg_2) {
                             print("Installing .tlp on node 1...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_cluster_1} -w ${TLP_FILE}")
+                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_2} -w ${TLP_FILE}")
 
                             print("Performing upgrade tests")
                             // TODO: Upgrade tests here
