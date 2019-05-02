@@ -358,11 +358,12 @@ class RegisteredTest(unittest.TestCase):
         heartbeat_file = "/var/run/c_mgmt/{}.heartbeat".format(connector)
 
         LOG.info("Step 1: Ensure Connectors Heartbeat file exists, connector=%s", connector)
-        self.assertTrue(file_exists(
-            self.config.exp_hostname_primary(),
-            self.config.exp_root_user(),
-            self.config.exp_root_pass(),
-            heartbeat_file))
+        self.assertTrue(wait_until_true(file_exists, 20, 3,
+                                        *(self.config.exp_hostname_primary(),
+                                          self.config.exp_root_user(),
+                                          self.config.exp_root_pass(),
+                                          heartbeat_file)),
+                        "Did not find heartbeat file for {} in time".format(connector))
 
         LOG.info("Step 2: Ensure Connectors user can read heartbeat file")
 
