@@ -1,17 +1,17 @@
 expressway:
   resource_groups:
     # Master resources
-    - exp_hostname_unreg_1: 10.47.27.111
-      exp_hostname_unreg_2: 10.47.27.112
-      exp_hostname_reg_1: 10.47.27.113
-      exp_hostname_reg_2: 10.47.27.114
-      exp_hostname_unreg_cluster_node_1: 10.47.27.115
-      exp_hostname_unreg_cluster_node_2: 10.47.27.116
+    - exp_hostname_unreg_1: lys-unreg-01-master.rd.cisco.com
+      exp_hostname_unreg_2: lys-unreg-02-master.rd.cisco.com
+      exp_hostname_reg_1: lys-reg-01-master.rd.cisco.com
+      exp_hostname_reg_2: lys-reg-02-master.rd.cisco.com
+      exp_hostname_unreg_cluster_node_1: lys-unreg-cluster-primary-master.rd.cisco.com
+      exp_hostname_unreg_cluster_node_2: lys-unreg-cluster-secondary-master.rd.cisco.com
     # PR1 resources
-    - exp_hostname_unreg_1: 10.47.27.117
-      exp_hostname_unreg_2: 10.47.27.118
-      exp_hostname_reg_1: 10.47.27.119
-      exp_hostname_reg_2: 10.47.27.120
+    - exp_hostname_unreg_1: lys-unreg-01-pr1.rd.cisco.com
+      exp_hostname_unreg_2: lys-unreg-02-pr1.rd.cisco.com
+      exp_hostname_reg_1: lys-reg-01-pr1.rd.cisco.com
+      exp_hostname_reg_2: lys-reg-02-pr1.rd.cisco.com
       exp_hostname_unreg_cluster_node_1: lys-unreg-cluster-primary-pr1.rd.cisco.com
       exp_hostname_unreg_cluster_node_2: lys-unreg-cluster-secondary-pr1.rd.cisco.com
   exp_admin_user: admin
