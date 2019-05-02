@@ -14,6 +14,13 @@ expressway:
       exp_hostname_reg_2: lys-reg-02-pr1.rd.cisco.com
       exp_hostname_unreg_cluster_node_1: lys-unreg-cluster-primary-pr1.rd.cisco.com
       exp_hostname_unreg_cluster_node_2: lys-unreg-cluster-secondary-pr1.rd.cisco.com
+    # PR2 resources
+    - exp_hostname_unreg_1: lys-unreg-01-pr2.rd.cisco.com
+      exp_hostname_unreg_2: lys-unreg-02-pr2.rd.cisco.com
+      exp_hostname_reg_1: lys-reg-01-pr2.rd.cisco.com
+      exp_hostname_reg_2: lys-reg-02-pr2.rd.cisco.com
+      exp_hostname_unreg_cluster_node_1: lys-unreg-cluster-primary-pr2.rd.cisco.com
+      exp_hostname_unreg_cluster_node_2: lys-unreg-cluster-secondary-pr2.rd.cisco.com
   exp_admin_user: admin
   exp_admin_pass: x
   exp_root_user: root
