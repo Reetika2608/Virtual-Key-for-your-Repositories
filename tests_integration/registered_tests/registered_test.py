@@ -326,7 +326,10 @@ class RegisteredTest(unittest.TestCase):
         wait_until_true(logging_metadata_available, 120, 5, atlas_logging_url)
 
         response = get_log_data_from_atlas(atlas_logging_url, search_uuid, self.access_token)
-        log_meta_list = response.json()['metadataList'][0]
+        try:
+            log_meta_list = response.json()['metadataList'][0]
+        except IndexError:
+            LOG.error("IndexError while reading log resonse. Got {}".format(response.json))
 
         self.assertEquals(search_uuid, log_meta_list['meta']['fusion'])
         self.assertEquals(serial_number, log_meta_list['meta']['locusid'])
