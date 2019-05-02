@@ -357,13 +357,17 @@ class RegisteredTest(unittest.TestCase):
         connector = "c_cal"
         heartbeat_file = "/var/run/c_mgmt/{}.heartbeat".format(connector)
 
+        def check_for_file(hostname, root_user, root_pass, file):
+            LOG.info("Checking for {} at {}...".format(heartbeat_file, hostname))
+            return file_exists(hostname, root_user, root_pass, file)
+
         LOG.info("Step 1: Ensure Connectors Heartbeat file exists, connector=%s", connector)
-        self.assertTrue(wait_until_true(file_exists, 20, 3,
+        self.assertTrue(wait_until_true(check_for_file, 20, 3,
                                         *(self.config.exp_hostname_primary(),
                                           self.config.exp_root_user(),
                                           self.config.exp_root_pass(),
                                           heartbeat_file)),
-                        "Did not find heartbeat file for {} in time".format(connector))
+                        "Did not find heartbeat file for {} ({}) in time".format(connector, heartbeat_file))
 
         LOG.info("Step 2: Ensure Connectors user can read heartbeat file")
 
