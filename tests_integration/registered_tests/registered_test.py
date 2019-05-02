@@ -329,7 +329,7 @@ class RegisteredTest(unittest.TestCase):
         try:
             log_meta_list = response.json()['metadataList'][0]
         except IndexError:
-            LOG.error("IndexError while reading log resonse. Got {}".format(response.json))
+            LOG.error("IndexError while reading log resonse. Got {}".format(response.json()))
 
         self.assertEquals(search_uuid, log_meta_list['meta']['fusion'])
         self.assertEquals(serial_number, log_meta_list['meta']['locusid'])
