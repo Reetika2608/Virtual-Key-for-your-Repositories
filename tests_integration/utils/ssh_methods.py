@@ -221,8 +221,9 @@ def get_process_count(hostname, root_user, root_pass, connector):
                     'c_mgmt': 'managementconnectormain',
                     'c_imp': 'java'}
     connector_binary = process_dict[connector]
-    cmd = "ps aux | grep %s | grep %s | grep -v grep | wc -l" % (connector, connector_binary)
+    cmd = "ps aux | grep %s | grep %s | grep -v grep" % (connector, connector_binary)
     result = run_ssh_command(hostname, root_user, root_pass, cmd)
-    process_count = int(result.strip())
-    LOG.info("%s output from %s: %d", cmd, hostname, process_count)
+    processes = filter(lambda p: p.strip(), result.split("\n"))  # Remove blank lines
+    process_count = len(processes)
+    LOG.info("%s output from %s: %d (%s)", cmd, hostname, process_count, processes)
     return process_count
