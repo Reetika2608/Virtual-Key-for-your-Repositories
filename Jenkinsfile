@@ -91,7 +91,10 @@ timestamps {
                 unstash('tlp')
 
                 config = readYaml(file: './jenkins/test_resources/lysaker_resources.yaml') // TODO: Should this be a parameter?
+                logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
+                pythonLogsDir = "./"  + logsDir + "/"
                 expresswayGroups = config.expressway.resource_groups
+
 
                 print("Found ${expresswayGroups.size()} sets of test resources")
 
@@ -106,164 +109,174 @@ timestamps {
                     resources = expresswayGroups[1]
                 }
 
-                parallel (
-                    'Unregistered tests': {
-                        lock(resource: resources.exp_hostname_unreg_1) {
-                            print("Installing .tlp...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
-                            print("Performing unregistered tests")
-                            sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
-                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                             nosetests --with-xunit --xunit-file=unregistered-test-results.xml tests_integration/unregistered_tests""".stripIndent())
-
-                            junit allowEmptyResults: true, testResults: 'unregistered-test-results.xml'
-                        }
-                     },
-                    'API registration tests': {
-                        lock(resource: resources.exp_hostname_unreg_1) {
-                            print("Installing .tlp...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
-                            print("Performing API tests")
-
-                            withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                try {
+                    parallel (
+                        'Unregistered tests': {
+                            lock(resource: resources.exp_hostname_unreg_1) {
+                                print("Installing .tlp...")
+                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
+                                print("Performing unregistered tests")
                                 sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
                                  EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
                                  EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                  EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                  EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                 ORG_ID=${config.org.org_id} \
-                                 ORG_ADMIN_USER=${org_admin_user} \
-                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                nosetests --with-xunit --xunit-file=api-based-test-results.xml tests_integration/api_based_tests""".stripIndent())
+                                 LOGS_DIR=${pythonLogsDir} \
+                                 nosetests --with-xunit --xunit-file=unregistered-test-results.xml tests_integration/unregistered_tests""".stripIndent())
+
+                                junit allowEmptyResults: true, testResults: 'unregistered-test-results.xml'
                             }
+                         },
+                        'API registration tests': {
+                            lock(resource: resources.exp_hostname_unreg_1) {
+                                print("Installing .tlp...")
+                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
+                                print("Performing API tests")
 
-                            junit allowEmptyResults: true, testResults: 'api-based-test-results.xml'
-                        }
-                    },
-                    'UI registration tests': {
-                        lock(resource: resources.exp_hostname_unreg_2) {
-                            print("Installing .tlp...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${TLP_FILE}")
-
-                            print("Performing UI tests")
-                            withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                try {
-                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
-                                         EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                         EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                         EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                         EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                         CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                         ORG_ID=${config.org.org_id} \
-                                         ORG_ADMIN_USER=${org_admin_user} \
-                                         ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                        nosetests --with-xunit --xunit-file=ui-based-deregister-test-results.xml tests_integration/ui_based_tests/basic_deregister_test.py""".stripIndent())
-                                    junit allowEmptyResults: true, testResults: 'ui-based-deregister-test-results.xml'
-                                }
-                                finally {
-                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
-                                         EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                         EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                         EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                         EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                         CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                         ORG_ID=${config.org.org_id} \
-                                         ORG_ADMIN_USER=${org_admin_user} \
-                                         ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                        ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_2}""".stripIndent())
+                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                     EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                     EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                     EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                     EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                     CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                     ORG_ID=${config.org.org_id} \
+                                     ORG_ADMIN_USER=${org_admin_user} \
+                                     ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                     LOGS_DIR=${pythonLogsDir} \
+                                    nosetests --with-xunit --xunit-file=api-based-test-results.xml tests_integration/api_based_tests""".stripIndent())
                                 }
 
-                                try {
-                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
-                                         EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                         EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                         EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                         EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                         CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                         ORG_ID=${config.org.org_id} \
-                                         ORG_ADMIN_USER=${org_admin_user} \
-                                         ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                        nosetests --with-xunit --xunit-file=ui-based-register-test-results.xml tests_integration/ui_based_tests/basic_register_test.py""".stripIndent())
-                                    junit allowEmptyResults: true, testResults: 'ui-based-register-test-results.xml'
+                                junit allowEmptyResults: true, testResults: 'api-based-test-results.xml'
+                            }
+                        },
+                        'UI registration tests': {
+                            lock(resource: resources.exp_hostname_unreg_2) {
+                                print("Installing .tlp...")
+                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${TLP_FILE}")
+
+                                print("Performing UI tests")
+                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                    try {
+                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
+                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             ORG_ID=${config.org.org_id} \
+                                             ORG_ADMIN_USER=${org_admin_user} \
+                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                             LOGS_DIR=${pythonLogsDir} \
+                                            nosetests --with-xunit --xunit-file=ui-based-deregister-test-results.xml tests_integration/ui_based_tests/basic_deregister_test.py""".stripIndent())
+                                        junit allowEmptyResults: true, testResults: 'ui-based-deregister-test-results.xml'
+                                    }
+                                    finally {
+                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
+                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             ORG_ID=${config.org.org_id} \
+                                             ORG_ADMIN_USER=${org_admin_user} \
+                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                            ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_2}""".stripIndent())
+                                    }
+
+                                    try {
+                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
+                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             ORG_ID=${config.org.org_id} \
+                                             ORG_ADMIN_USER=${org_admin_user} \
+                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                             LOGS_DIR=${pythonLogsDir} \
+                                            nosetests --with-xunit --xunit-file=ui-based-register-test-results.xml tests_integration/ui_based_tests/basic_register_test.py""".stripIndent())
+                                        junit allowEmptyResults: true, testResults: 'ui-based-register-test-results.xml'
+                                    }
+                                    finally {
+                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
+                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             ORG_ID=${config.org.org_id} \
+                                             ORG_ADMIN_USER=${org_admin_user} \
+                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                            ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_2}""".stripIndent())
+                                    }
                                 }
-                                finally {
-                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
-                                         EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                         EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                         EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                         EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                         CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                         ORG_ID=${config.org.org_id} \
-                                         ORG_ADMIN_USER=${org_admin_user} \
-                                         ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                        ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_2}""".stripIndent())
+                            }
+                        },
+                        'Registered tests': {
+                            lock(resource: resources.exp_hostname_reg_1) {
+                                print("Installing .tlp...")
+                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_1} -w ${TLP_FILE} ")
+                                print("Performing registered tests")
+                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_1} \
+                                     EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                     EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                     EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                     EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                     CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                     ORG_ID=${config.org.org_id} \
+                                     ORG_ADMIN_USER=${org_admin_user} \
+                                     ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                     LOGS_DIR=${pythonLogsDir} \
+                                     nosetests --with-xunit --xunit-file=registered-test-results.xml tests_integration/registered_tests""".stripIndent())
                                 }
+
+                                junit allowEmptyResults: true, testResults: 'registered-test-results.xml'
+                            }
+                        },
+                        'Clustered tests': {
+                            // The plugin is unable to handle locking of multiple resources
+                            // (without using label, which would require admin access or a custom Jenkins job).
+                            // We therefore lock only the primary cluster node, even though we use both
+                            lock(resource: resources.exp_hostname_unreg_cluster_node_1) {
+                                print("Installing .tlp on node 1...")
+                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_1} -w ${TLP_FILE}")
+                                print("Installing .tlp on node 2...")
+                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_2} -w ${TLP_FILE}")
+
+                                print("Performing cluster tests")
+                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_cluster_node_1} \
+                                     EXP_HOSTNAME_SECONDARY=${resources.exp_hostname_unreg_cluster_node_2} \
+                                     EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                     EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                     EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                     EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                     CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                     ORG_ID=${config.org.org_id} \
+                                     ORG_ADMIN_USER=${org_admin_user} \
+                                     ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                     LOGS_DIR=${pythonLogsDir} \
+                                    nosetests --with-xunit --xunit-file=cluster-test-results.xml tests_integration/cluster_tests/""".stripIndent())
+                                }
+
+                                junit allowEmptyResults: true, testResults: 'cluster-test-results.xml'
+                            }
+                        },
+                        'Upgrade tests': {
+                            lock(resource: resources.exp_hostname_reg_2) {
+                                print("Installing .tlp on node 1...")
+                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_2} -w ${TLP_FILE}")
+
+                                print("Performing upgrade tests")
+                                // TODO: Upgrade tests here
                             }
                         }
-                    },
-                    'Registered tests': {
-                        lock(resource: resources.exp_hostname_reg_1) {
-                            print("Installing .tlp...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_1} -w ${TLP_FILE} ")
-                            print("Performing registered tests")
-                            withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_1} \
-                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                 ORG_ID=${config.org.org_id} \
-                                 ORG_ADMIN_USER=${org_admin_user} \
-                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                 nosetests --with-xunit --xunit-file=registered-test-results.xml tests_integration/registered_tests""".stripIndent())
-                            }
-
-                            junit allowEmptyResults: true, testResults: 'registered-test-results.xml'
-                        }
-                    },
-                    'Clustered tests': {
-                        // The plugin is unable to handle locking of multiple resources
-                        // (without using label, which would require admin access or a custom Jenkins job).
-                        // We therefore lock only the primary cluster node, even though we use both
-                        lock(resource: resources.exp_hostname_unreg_cluster_node_1) {
-                            print("Installing .tlp on node 1...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_1} -w ${TLP_FILE}")
-                            print("Installing .tlp on node 2...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_2} -w ${TLP_FILE}")
-
-                            print("Performing cluster tests")
-                            withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_cluster_node_1} \
-                                 EXP_HOSTNAME_SECONDARY=${resources.exp_hostname_unreg_cluster_node_2} \
-                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                 ORG_ID=${config.org.org_id} \
-                                 ORG_ADMIN_USER=${org_admin_user} \
-                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                nosetests --with-xunit --xunit-file=cluster-test-results.xml tests_integration/cluster_tests/""".stripIndent())
-                            }
-
-                            junit allowEmptyResults: true, testResults: 'cluster-test-results.xml'
-                        }
-                    },
-                    'Upgrade tests': {
-                        lock(resource: resources.exp_hostname_reg_2) {
-                            print("Installing .tlp on node 1...")
-                            sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_2} -w ${TLP_FILE}")
-
-                            print("Performing upgrade tests")
-                            // TODO: Upgrade tests here
-                        }
-                    }
-                )
+                    )
+                } finally {
+                    archiveArtifacts artifacts: "${logsDir}/*.*", allowEmptyArchive: true
+                }
             }
         }
 

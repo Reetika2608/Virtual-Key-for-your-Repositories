@@ -39,7 +39,9 @@ def wait_until_false(predicate, timeout, period=0.25, *args):
 
 
 def create_log_directory():
-    logs_dir = './logs/%s/' % datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    """ Creates a log directory, either by reading the LOGS_DIR environment variable or by generating one """
+    logs_dir = os.environ.get("LOGS_DIR", './logs/%s/' % datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
+
     if not os.path.exists(os.path.dirname(logs_dir)):
         try:
             os.makedirs(os.path.dirname(logs_dir))
