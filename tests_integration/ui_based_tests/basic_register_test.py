@@ -95,7 +95,7 @@ class BasicRegisterTest(unittest.TestCase):
             self.web_driver.save_screenshot('%s/%s_%s.png' % (self.log_directory, class_name, self._testMethodName))
 
             LOG.info("Saving source code: %s/%s_%s.txt", self.log_directory, class_name, self._testMethodName)
-            with open("%s/%s_%s.txt", "w") as f:
+            with open("%s/%s_%s.txt".format(self.log_directory, class_name, self._testMethodName), "w") as f:
                 f.write(self.web_driver.page_source.encode('utf-8'))
         self.web_driver.quit()
 
