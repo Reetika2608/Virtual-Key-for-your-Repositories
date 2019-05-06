@@ -9,7 +9,7 @@ from tests_integration.api_based_tests.vcs_http import VCSHttpSession
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import get_serialno, get_logging_host_url, \
     set_logging_entry_to_blob, set_machine_account_expiry, get_current_machine_account_password, get_cluster_id, \
-    get_machine_account_url, disable_fmc_upgrades
+    get_machine_account_url, disable_fmc_upgrades, set_poll_time
 from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
     run_full_management_connector_restart, wait_until_false
 from tests_integration.utils.config import Config
@@ -49,6 +49,7 @@ class RegisteredTest(unittest.TestCase):
                              cls.config.exp_admin_user(),
                              cls.config.exp_admin_pass())
 
+        set_poll_time(cls.config.exp_hostname_primary(), cls.config.exp_admin_user(), cls.config.exp_admin_pass(), 9)
 
     @classmethod
     def tearDownClass(cls):
