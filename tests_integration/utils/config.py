@@ -125,9 +125,9 @@ class Config(object):
             assert False
 
     def org_id(self):
-        user = os.environ.get("ORG_ID")
-        if user:
-            return user
+        org_id = os.environ.get("ORG_ID")
+        if org_id:
+            return org_id
         elif self._org_id:
             return self._org_id
         else:
