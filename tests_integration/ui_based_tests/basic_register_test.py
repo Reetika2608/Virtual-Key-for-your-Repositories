@@ -11,7 +11,8 @@ from tests_integration.utils.fms import deregister_cluster
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import are_connectors_entitled, is_connector_installed
 from tests_integration.utils.web_methods import register_expressway, create_web_driver, \
-    login_expressway, navigate_expressway_menus, enable_expressway_connector, enable_expressway_cert_management
+    login_expressway, navigate_expressway_menus, enable_expressway_connector, enable_expressway_cert_management, \
+    create_screenshotting_web_driver
 
 LOG = get_logger()
 
@@ -37,14 +38,16 @@ class BasicRegisterTest(unittest.TestCase):
 
         enable_expressway_cert_management(cls.config.exp_hostname_primary(),
                                           cls.config.exp_admin_user(),
-                                          cls.config.exp_admin_pass())
+                                          cls.config.exp_admin_pass(),
+                                          create_screenshotting_web_driver(cls.log_directory))
 
         register_expressway(cls.config.control_hub(),
                             cls.config.org_admin_user(),
                             cls.config.org_admin_password(),
                             cls.config.exp_hostname_primary(),
                             cls.config.exp_admin_user(),
-                            cls.config.exp_admin_pass())
+                            cls.config.exp_admin_pass(),
+                            create_screenshotting_web_driver(cls.log_directory))
 
         for connector in cls.config.expected_connectors():
             wait_until_true(is_connector_installed, 240, 10,

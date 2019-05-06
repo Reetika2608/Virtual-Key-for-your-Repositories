@@ -1,3 +1,4 @@
+import datetime
 import os
 import platform
 import time
@@ -5,6 +6,8 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.support.abstract_event_listener import AbstractEventListener
+from selenium.webdriver.support.event_firing_webdriver import EventFiringWebDriver
 from selenium.webdriver.support.ui import Select
 
 from tests_integration.utils.common_methods import wait_until_true
@@ -13,10 +16,13 @@ from tests_integration.utils.integration_test_logger import get_logger
 LOG = get_logger()
 
 
-def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_id):
+def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_id, web_driver=None):
     """ Deregister Expressway cluster from control hub through the UI """
     LOG.info("Deregistering Expressway cluster %s from control hub, %s.", cluster_id, control_hub)
-    web_driver = create_web_driver()
+    close_web_driver = False
+    if web_driver is None:
+        close_web_driver = True
+        web_driver = create_web_driver()
 
     LOG.info("Logging in to control hub, %s, deactivating all services and deregistering the cluster %s.",
              control_hub, cluster_id)
@@ -41,13 +47,17 @@ def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_i
     web_driver.find_element_by_css_selector('button[ng-click="clusterDeregister.deregister()"]').click()
     LOG.info('Wait 10 seconds for deregister to be acknowledged')
     time.sleep(10)
-    web_driver.quit()
+    if close_web_driver:
+        web_driver.quit()
 
 
-def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id):
+def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id, web_driver=None):
     """ Deactivate a service for a cluster in control hub. Note: this deactivates the first service it encounters. """
     LOG.info("Deactivating a service from the Expressway cluster %s on control hub, %s.", cluster_id, control_hub)
-    web_driver = create_web_driver()
+    close_web_driver = False
+    if web_driver is None:
+        close_web_driver = True
+        web_driver = create_web_driver()
 
     LOG.info("Logging in to control hub, %s, and deactivating the first encountered service for the cluster %s.",
              control_hub, cluster_id)
@@ -62,13 +72,17 @@ def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id):
         'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
     web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
     time.sleep(3)
-    web_driver.quit()
+    if close_web_driver:
+        web_driver.quit()
 
 
-def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostname, admin_user, admin_pass):
+def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostname, admin_user, admin_pass, web_driver=None):
     """ Register Expressway through UI """
     LOG.info("Registering Expressway %s", exp_hostname)
-    web_driver = create_web_driver()
+    close_web_driver = False
+    if web_driver is None:
+        close_web_driver = True
+        web_driver = create_web_driver()
 
     LOG.info("Logging in to control hub, %s, adding the Expressway, %s and activating all services.",
              control_hub, exp_hostname)
@@ -106,7 +120,8 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
     web_driver.find_element_by_id('checkbox1').send_keys(' ')
     web_driver.find_element_by_css_selector('button[ng-click="vm.confirm()"]').click()
     wait_until_true(is_in_page_source, 120, 5, *(web_driver, " is registered with the Cisco Webex Cloud"))
-    web_driver.quit()
+    if close_web_driver:
+        web_driver.quit()
 
 
 def create_web_driver():
@@ -139,6 +154,29 @@ def create_web_driver():
                                   desired_capabilities=capabilities)
     web_driver.implicitly_wait(10)
     return web_driver
+
+
+def create_screenshotting_web_driver(log_dir):
+    """ Create a web driver that saves a screenshot to log_dir when an exception is raised """
+    driver = create_web_driver()
+    return EventFiringWebDriver(driver, ExceptionScreenshottingListener(log_dir))
+
+
+class ExceptionScreenshottingListener(AbstractEventListener):
+    def __init__(self, logs_dir):
+        self._logs_dir = logs_dir
+
+    def on_exception(self, exception, driver):
+        file_name = self._logs_dir + "/" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        LOG.info("Saving screenshot: %s.png", file_name)
+        driver.save_screenshot('%s.png' % file_name)
+
+        LOG.info("Saving source code: %s.txt", file_name)
+        with open("%s.txt".format(file_name), "w") as f:
+            f.write(driver.page_source.encode('utf-8'))
+
+        super(ExceptionScreenshottingListener, self).on_exception(exception, driver)
 
 
 def is_in_page_source(web_driver, text):
@@ -229,7 +267,7 @@ def enable_expressway_cert_management(exp_hostname, admin_user, admin_pass, web_
     close_web_driver = False
     if not web_driver:
         close_web_driver = True
-    web_driver = create_web_driver()
+        web_driver = create_web_driver()
 
     login_expressway(web_driver, exp_hostname, admin_user, admin_pass)
     web_driver.get("https://" + exp_hostname + "/fusioncerts")
