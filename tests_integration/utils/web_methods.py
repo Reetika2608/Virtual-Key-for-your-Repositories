@@ -3,9 +3,10 @@ import os
 import platform
 import time
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.abstract_event_listener import AbstractEventListener
 from selenium.webdriver.support.event_firing_webdriver import EventFiringWebDriver
 from selenium.webdriver.support.ui import Select
@@ -124,7 +125,7 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
         web_driver.quit()
 
 
-def create_web_driver():
+def create_web_driver(driver_class=webdriver.Chrome):
     """ Create a web_driver """
     LOG.info("Creating web driver")
     platform_os = platform.system()
@@ -149,17 +150,78 @@ def create_web_driver():
     capabilities["acceptSslCerts"] = True
     capabilities["acceptInsecureCerts"] = True
     capabilities["chrome.switches"] = ["--ignore-certificate-errors"]
-    web_driver = webdriver.Chrome(chromedriver_path,
-                                  options=options,
-                                  desired_capabilities=capabilities)
+    web_driver = driver_class(chromedriver_path,
+                              options=options,
+                              desired_capabilities=capabilities)
     web_driver.implicitly_wait(10)
     return web_driver
 
 
-def create_screenshotting_web_driver(log_dir):
+def create_screenshotting_web_driver(log_dir, driver=None):
     """ Create a web driver that saves a screenshot to log_dir when an exception is raised """
-    driver = create_web_driver()
+    if driver is None:
+        driver = create_web_driver()
     return EventFiringWebDriver(driver, ExceptionScreenshottingListener(log_dir))
+
+
+def create_screenshotting_retrying_web_driver(log_dir, max_retries):
+    driver = create_web_driver(click_retrying_class_wrapping(webdriver.Chrome, max_retries))
+    return create_screenshotting_web_driver(log_dir, driver)
+
+
+def click_retrying_class_wrapping(base_class, max_retries):
+    """
+    Create a class object that can be used to instantiate a retry proxy wrapping a web driver of type base_class.
+
+    The retry proxy will retry max_retries times before failing a click operation on an element.
+    """
+
+    if not issubclass(base_class, WebDriver):
+        raise ValueError("Base class must be a subclass of WebDriver")
+
+    class ClickRetryingWebDriver(base_class):
+        def __init__(self, *args, **kwargs):
+            super(ClickRetryingWebDriver, self).__init__(*args, **kwargs)
+
+        def find_element(self, *args, **kwargs):
+            return self._find_element_with_current_attempt_count(0, *args, **kwargs)
+
+        def _find_element_with_current_attempt_count(self, current_attempt_count, *args, **kwargs):
+            element = super(ClickRetryingWebDriver, self).find_element(*args, **kwargs)
+            return ClickRetryingWebDriver._ClickRetryingElementProxy(self,
+                                                                     element,
+                                                                     current_attempt_count,
+                                                                     *args,
+                                                                     **kwargs)
+
+        class _ClickRetryingElementProxy(object):
+            def __init__(self, driver, element, current_attempt_count, *args, **kwargs):
+                self._driver = driver
+                self._element = element
+                self._attempts = current_attempt_count
+                self._args = args
+                self._kwargs = kwargs
+
+            def click(self):
+                try:
+                    return self._element.click()
+                except WebDriverException as e:
+                    self._attempts += 1
+                    if self._attempts > max_retries:
+                        LOG.error("Out of retries, throwing")
+                        raise e
+                    else:
+                        LOG.info("Retrying click {}/{} on element".format(self._attempts, max_retries, self._element))
+                        self._element = self._driver._find_element_with_current_attempt_count(
+                            self._attempts,
+                            *self._args,
+                            **self._kwargs)
+                        self.click()
+
+            def __getattr__(self, attr):
+                return getattr(self._element, attr)
+
+    return ClickRetryingWebDriver
 
 
 class ExceptionScreenshottingListener(AbstractEventListener):
@@ -170,10 +232,10 @@ class ExceptionScreenshottingListener(AbstractEventListener):
         file_name = self._logs_dir + "/" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         LOG.info("Saving screenshot: %s.png", file_name)
-        driver.save_screenshot('%s.png' % file_name)
+        driver.save_screenshot("{}.png".format(file_name))
 
         LOG.info("Saving source code: %s.txt", file_name)
-        with open("%s.txt".format(file_name), "w") as f:
+        with open("{}.txt".format(file_name), "w") as f:
             f.write(driver.page_source.encode('utf-8'))
 
         super(ExceptionScreenshottingListener, self).on_exception(exception, driver)

@@ -12,7 +12,7 @@ from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import are_connectors_entitled, is_connector_installed
 from tests_integration.utils.web_methods import register_expressway, create_web_driver, \
     login_expressway, navigate_expressway_menus, enable_expressway_connector, enable_expressway_cert_management, \
-    create_screenshotting_web_driver
+    create_screenshotting_web_driver, create_screenshotting_retrying_web_driver
 
 LOG = get_logger()
 
@@ -47,7 +47,7 @@ class BasicRegisterTest(unittest.TestCase):
                             cls.config.exp_hostname_primary(),
                             cls.config.exp_admin_user(),
                             cls.config.exp_admin_pass(),
-                            create_screenshotting_web_driver(cls.log_directory))
+                            create_screenshotting_retrying_web_driver(log_dir=cls.log_directory, max_retries=1))
 
         for connector in cls.config.expected_connectors():
             wait_until_true(is_connector_installed, 240, 10,
@@ -95,10 +95,10 @@ class BasicRegisterTest(unittest.TestCase):
         if sys.exc_info()[0]:
             class_name = self.__class__.__name__
             LOG.info("Saving screenshot: %s/%s_%s.png", self.log_directory, class_name, self._testMethodName)
-            self.web_driver.save_screenshot('%s/%s_%s.png' % (self.log_directory, class_name, self._testMethodName))
+            self.web_driver.save_screenshot("{}/{}_{}.png".format(self.log_directory, class_name, self._testMethodName))
 
             LOG.info("Saving source code: %s/%s_%s.txt", self.log_directory, class_name, self._testMethodName)
-            with open("%s/%s_%s.txt".format(self.log_directory, class_name, self._testMethodName), "w") as f:
+            with open("{}/{}_{}.txt".format(self.log_directory, class_name, self._testMethodName), "w") as f:
                 f.write(self.web_driver.page_source.encode('utf-8'))
         self.web_driver.quit()
 

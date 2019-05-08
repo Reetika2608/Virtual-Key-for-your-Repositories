@@ -11,7 +11,7 @@ from tests_integration.utils.fms import enable_cloud_fusion
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import are_supplied_connectors_installed, is_text_on_page
 from tests_integration.utils.web_methods import deregister_expressway, create_web_driver, \
-    deactivate_service
+    deactivate_service, create_screenshotting_retrying_web_driver
 
 LOG = get_logger()
 
@@ -68,10 +68,10 @@ class BasicDeRegisterTest(unittest.TestCase):
         if sys.exc_info()[0]:
             class_name = self.__class__.__name__
             LOG.info("Saving screenshot: %s/%s_%s.png", self.log_directory, class_name, self._testMethodName)
-            self.web_driver.save_screenshot('%s/%s_%s.png' % (self.log_directory, class_name, self._testMethodName))
+            self.web_driver.save_screenshot("{}/{}_{}.png".format(self.log_directory, class_name, self._testMethodName))
 
             LOG.info("Saving source code: %s/%s_%s.txt", self.log_directory, class_name, self._testMethodName)
-            with open("%s/%s_%s.txt", "w") as f:
+            with open("{}/{}_{}.txt".format(self.log_directory, class_name, self._testMethodName), "w") as f:
                 f.write(self.web_driver.page_source.encode('utf-8'))
         self.web_driver.quit()
 
@@ -92,7 +92,8 @@ class BasicDeRegisterTest(unittest.TestCase):
         deactivate_service(self.config.control_hub(),
                            self.config.org_admin_user(),
                            self.config.org_admin_password(),
-                           self.cluster_id)
+                           self.cluster_id,
+                           create_screenshotting_retrying_web_driver(log_dir=self.log_directory, max_retries=1))
         self.assertFalse(wait_until_false(are_supplied_connectors_installed, 60, 5, *(
             self.config.exp_hostname_primary(),
             self.config.exp_root_user(),
@@ -104,7 +105,8 @@ class BasicDeRegisterTest(unittest.TestCase):
         deregister_expressway(self.config.control_hub(),
                               self.config.org_admin_user(),
                               self.config.org_admin_password(),
-                              self.cluster_id)
+                              self.cluster_id,
+                              create_screenshotting_retrying_web_driver(log_dir=self.log_directory, max_retries=1))
         LOG.info("Wait for connectors to uninstall and CDB to be cleaned up...")
         wait_for_defuse_to_finish(
             self.config.exp_hostname_primary(),
