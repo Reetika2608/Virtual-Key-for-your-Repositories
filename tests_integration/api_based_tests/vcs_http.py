@@ -157,7 +157,7 @@ class VCSHttpSession(object):
         }
         r = s.post(url=url, data=data, verify=False)
 
-        sleep(5)  # Make sure bootstrap data has been written so the redirect PHP can pick it up
+        sleep(10)  # Make sure bootstrap data has been written so the redirect PHP can pick it up
 
         # POST to fusionregistration (click the "Register" button)
         data = {
