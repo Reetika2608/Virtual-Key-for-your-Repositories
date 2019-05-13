@@ -9,16 +9,17 @@ from tests_integration.api_based_tests.vcs_http import VCSHttpSession
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import get_serialno, get_logging_host_url, \
     set_logging_entry_to_blob, set_machine_account_expiry, get_current_machine_account_password, get_cluster_id, \
-    get_machine_account_url, disable_fmc_upgrades, set_poll_time
+    get_machine_account_url, enable_expressway_connector, disable_fmc_upgrades, set_poll_time
 from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
     run_full_management_connector_restart, wait_until_false
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import get_connector
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import is_alarm_raised, \
-    is_command_complete, has_machine_password_changed, is_text_on_page
+    is_command_complete, has_machine_password_changed, is_text_on_page, is_connector_running
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
-from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists, restart_connector
+from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists, restart_connector, \
+    run_xcommand
 
 LOG = get_logger()
 
@@ -615,6 +616,88 @@ class RegisteredTest(unittest.TestCase):
                                                       self.config.exp_admin_pass())
         self.assertNotEquals(starting_machine_url, revived_machine_url,
                              "The machine account URL did not change during revive: {}".format(starting_machine_url))
+
+    def test_management_connector_xstatus(self):
+        """
+        To verify that management connector's status is displayed correctly.
+        Steps:
+        1. Run xstatus and validate values.
+        2. Disable management connector, run xstatus and validate values.
+        """
+
+        states = [True]
+
+        for state in states:
+            # set the expected result from xstatus
+            try:
+                if state:
+                    enable_expressway_connector(self.config.exp_hostname_primary(), self.config.exp_admin_user(),
+                                                self.config.exp_admin_pass(), "c_mgmt")
+                    wait_until_true(is_connector_running, 10, 1,
+                                    *(self.config.exp_hostname_primary(),
+                                      self.config.exp_root_user(),
+                                      self.config.exp_root_pass(),
+                                      "c_mgmt"))
+                    expected = (True, True, '"operational"')
+
+                xcommand_result = run_xcommand(
+                    self.config.exp_hostname_primary(),
+                    self.config.exp_root_user(),
+                    self.config.exp_root_pass(),
+                    "xstat cafe")
+
+                # Clean the result
+                xstatus = xcommand_result[xcommand_result.find("*s Cafe: /") + 10:xcommand_result.find("*s/end")]
+
+                enabled = running = False
+                operational_status = 'notset'
+                for level, name, parent in self.parse_xstatus(xstatus.split('\n')):
+                    # print('{0}name={1} ( {2} )'.format(' ' * (4 * level), name, parent or 'root'))
+                    if (parent == 'c_mgmt:' and
+                            name.split(':')[0] == 'enabled' and
+                            name.split(':')[1].strip() == '"True"'):
+                        enabled = True
+                    elif (parent == 'c_mgmt:' and
+                          name.split(':')[0] == 'running' and
+                          name.split(':')[1].strip() == '"True"'):
+                        running = True
+                    elif (parent == 'c_mgmt:' and
+                          name.split(':')[0] == 'operational_status'):
+                        operational_status = name.split(':')[1].strip()
+
+                result = (enabled, running, operational_status)
+                self.assertEqual(expected, result)
+            finally:
+                enable_expressway_connector(self.config.exp_hostname_primary(), self.config.exp_admin_user(),
+                                            self.config.exp_admin_pass(), "c_mgmt")
+                wait_until_true(is_connector_running, 10, 1,
+                                *(self.config.exp_hostname_primary(),
+                                  self.config.exp_root_user(),
+                                  self.config.exp_root_pass(),
+                                  "c_mgmt"))
+
+    def parse_xstatus(self, lines):
+        """
+        Parse an indented xstatus into (level, name, parent) tuples.  Each level
+        of indentation is 2 spaces.
+        """
+        indent = 2
+        regex = re.compile(r'^(?P<indent>(?: {2})*)(?P<name>\S.*)')
+        stack = []
+        for line in lines:
+            if line.strip():  # Keep empty lines
+                # remove the first 5 indents
+                line = ' ' * (len(line) - len(line.lstrip(' ')) - 5) + line.lstrip()
+                match = regex.match(line)
+                if not match:
+                    raise ValueError(
+                        'Indentation not a multiple of {0} spaces: "{1}"'.format(indent, line)
+                    )
+                level = len(match.group('indent')) // indent
+                if level > len(stack):
+                    raise ValueError('Indentation too deep: "{0}"'.format(line))
+                stack[level:] = [match.group('name')]
+                yield level, match.group('name'), (stack[level - 1] if level else None)
 
     def test_management_connector_white_box_status(self):
         """

@@ -171,3 +171,7 @@ def is_connector_running(hostname, root_user, root_pass, connector):
         LOG.info("Connector %s has running processes on %s", connector, hostname)
         return True
     return False
+
+
+def is_connector_stopped(hostname, root_user, root_pass, connector):
+    return not is_connector_running(hostname, root_user, root_pass, connector)

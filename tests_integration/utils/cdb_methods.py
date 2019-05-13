@@ -130,13 +130,22 @@ def get_cluster_id_from_expressway(exp_hostname, admin_user, admin_pass):
 
 
 def enable_expressway_connector(exp_hostname, admin_user, admin_pass, connector):
-    LOG.info("Turning on " + connector + " in CDB")
+    set_expressway_connector_state(exp_hostname, admin_user, admin_pass, connector, True)
+
+
+def disable_expressway_connector(exp_hostname, admin_user, admin_pass, connector):
+    set_expressway_connector_state(exp_hostname, admin_user, admin_pass, connector, False)
+
+
+def set_expressway_connector_state(exp_hostname, admin_user, admin_pass, connector, enabled):
+    new_state = "true" if enabled else "false"
+    LOG.info("Setting connector " + connector + " to enabled=" + new_state + " in CDB")
     blob_enabled_service_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_system_enabledServicesState/"
     read = get_cdb_entry(exp_hostname, admin_user, admin_pass, blob_enabled_service_path)
     existing_states = json.loads(read[0]["records"][0]["value"])
-    existing_states[connector] = "true"
+    existing_states[connector] = new_state
     set_cdb_entry(exp_hostname, admin_user, admin_pass, blob_enabled_service_path, existing_states)
-
+    
 
 def get_serialno(hostname, admin_user, admin_pass):
     """ get expressway serial number """
