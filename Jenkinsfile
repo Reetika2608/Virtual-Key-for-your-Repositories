@@ -281,10 +281,8 @@ timestamps {
         }
 
         // Only allow Deploy Stages from the master
-        // TODO - remove and change back to 'master'; do not run the deploys for this first attempt, just trying to get a successful archived job
-        if (env.BRANCH_NAME == 'foobar') {
+        if (env.BRANCH_NAME == 'master') {
 
-            /* TODO - Uncomment when we want the new pipeline to be kicked
             stage('Deploy to Latest') {
                 checkpoint("Deploy to latest")
                 node('fmc-build') {
@@ -324,7 +322,6 @@ timestamps {
                 // Generate and Deploy Provisioning Data to FMS
                 deploy('stable', ['integration', 'production', 'cfe'])
             }
-            */
         }
     }
     finally {
