@@ -287,7 +287,20 @@ timestamps {
                 checkpoint("Deploy to latest")
                 node('fmc-build') {
                     // Setup provisioning data
-                    build('team/management-connector/deploy_files/provisioning_json_latest')
+                    def provisioning_json_job_url = 'team/management-connector/deploy_files/provisioning_json_latest'
+                    def provisioning_build = build(provisioning_json_job_url)
+                    copyArtifacts(filter: 'latest_provisioning_targeted.txt',
+                            fingerprintArtifacts: true,
+                            flatten: true,
+                            projectName: provisioning_json_job_url,
+                            selector: specific("${provisioning_build.number}"))
+
+                    // Publish latest_provisioning_targeted.txt to maven
+                    utils = load('jenkins/methods/utils.groovy')
+                    maven_json_dir = 'provisioning/'
+                    utils.uploadArtifactsToMaven('latest_provisioning_targeted.txt', maven_json_dir)
+
+                    // TODO: KICK OFF TARGETED DEPLOY HERE
 
                     // TODO - Remove call to sqbu, and replace with local INT pipeline
                     // Kicking Old INT pipeline
