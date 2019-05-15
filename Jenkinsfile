@@ -303,7 +303,7 @@ timestamps {
                     // Get the stashed debian from the previous stages
                     unstash('debian')
                     sshagent(credentials: ['cafefusion.gen-sshNoPass']) {
-                        sh('scp c_mgmt.deb cafefusion.gen@nfstool.rd.cisco.com:/export/tandberg/system/releases/c_mgmt/master/c_mgmt.deb')
+                        sh('scp -o StrictHostKeyChecking=no c_mgmt.deb cafefusion.gen@nfstool.rd.cisco.com:/export/tandberg/system/releases/c_mgmt/master/c_mgmt.deb')
                     }
                 }
             }
@@ -341,8 +341,8 @@ def runOldIntPipeline() {
     node('fmc-build') {
         def job = "team/mgmt-connector/fusion-mgt-connector-pipeline-release-channels"
 
-        withCredentials([sshUserPrivateKey(credentialsId: "cafefusion.gen-ssh", keyFileVariable: 'private_key')]) {
-            sh("ssh -p 2022 -o StrictHostKeyChecking=no -i ${private_key} cafefusion.gen@sqbu-jenkins.cisco.com build '${job}'")
+        withCredentials([sshUserPrivateKey(credentialsId: "cafefusion.gen-ssh", keyFileVariable: 'priv_key')]) {
+            sh("ssh -p 2022 -o StrictHostKeyChecking=no -i ${priv_key} cafefusion.gen@sqbu-jenkins.cisco.com build '${job}'")
         }
     }
 }
