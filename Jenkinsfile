@@ -300,7 +300,7 @@ timestamps {
                     maven_json_dir = 'provisioning/'
                     utils.uploadArtifactsToMaven('latest_provisioning_targeted.txt', maven_json_dir)
 
-                    // TODO: KICK OFF TARGETED DEPLOY HERE
+                    build('platform/tlp-deploy/tlp-deploy-management-connector-integration-latest')
 
                     // TODO - Remove call to sqbu, and replace with local INT pipeline
                     // Kicking Old INT pipeline
