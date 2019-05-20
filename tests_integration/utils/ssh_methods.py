@@ -180,6 +180,18 @@ def restart_connector(hostname, root_user, root_pass, connector_name):
     run_ssh_command(hostname, root_user, root_pass, command)
 
 
+def stop_connector(hostname, root_user, root_pass, connector_name):
+    """ Stop the supplied connector """
+    command = "/etc/init.d/{} stop".format(connector_name)
+    run_ssh_command(hostname, root_user, root_pass, command)
+
+
+def start_connector(hostname, root_user, root_pass, connector_name):
+    """ Start the supplied connector """
+    command = "/etc/init.d/{} start".format(connector_name)
+    run_ssh_command(hostname, root_user, root_pass, command)
+
+
 def run_xcommand(hostname, root_user, root_pass, xcommand):
     wrapped_command = "echo '" + xcommand + "' | tsh"
     output = run_ssh_command(hostname, root_user, root_pass, wrapped_command)

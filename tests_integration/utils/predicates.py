@@ -4,13 +4,13 @@ from urllib3 import Retry
 
 from tests_integration.utils.cdb_methods import get_full_blob_contents, get_current_machine_account_password, \
     get_entitled_list_from_expressway, get_rollback_blacklist
-from tests_integration.utils.fms import get_connector_raised_alarm_ids
+from tests_integration.utils.fms import get_connector_raised_alarm_ids, get_connector
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.remote_dispatcher import get_command_from_rd
 from tests_integration.utils.ssh_methods import file_exists, \
     get_connector_heartbeat_start_time, get_mercury_device_route, get_remote_dispatcher_device_id, \
     get_maintenance_mode_state, get_connector_status, get_connector_pid, get_installed_connector_version, get_file_data, \
-    get_process_count
+    get_process_count, run_xcommand
 
 LOG = get_logger()
 
@@ -54,6 +54,17 @@ def are_supplied_connectors_installed(hostname, root_user, root_pass, connectors
 def is_connector_installed(hostname, root_user, root_pass, connector):
     connector_status = get_connector_status(hostname, root_user, root_pass, connector)
     return connector_status is not None and connector_status == "install ok installed"
+
+
+def is_connector_in_fms_state(org_id, cluster_id, fms_server, connector_id, access_token, state):
+    fms_connector = get_connector(org_id, cluster_id, fms_server, connector_id, access_token)
+    return fms_connector is not None and fms_connector['state'] == state
+
+
+def is_connector_in_composed_status(hostname, root_user, root_pass, connector, state):
+    output = run_xcommand(hostname, root_user, root_pass,
+                          "xstatus Cafe c_mgmt additional connectors {} composed_status".format(connector))
+    return 'composed_status: "{}"\n'.format(state) in output
 
 
 def is_connector_uninstalled(exp_hostname, exp_root_user, exp_root_pass, connector):

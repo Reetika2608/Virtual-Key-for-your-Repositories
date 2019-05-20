@@ -10,7 +10,7 @@ from tests_integration.utils.config import Config
 from tests_integration.utils.fms import enable_cloud_fusion, deregister_cluster
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import are_connectors_entitled, \
-    is_connector_installed, is_connector_running
+    is_connector_installed, is_connector_running, is_connector_in_fms_state, is_connector_in_composed_status
 from tests_integration.utils.ssh_methods import get_process_count
 
 LOG = get_logger()
@@ -40,11 +40,11 @@ class RequestsRegisterTest(unittest.TestCase):
             cls.config.exp_hostname_primary(),
             cls.config.exp_admin_user(),
             cls.config.exp_admin_pass())
-        cls.connector_id = "c_mgmt@" + \
-                           get_serialno(
-                               cls.config.exp_hostname_primary(),
-                               cls.config.exp_admin_user(),
-                               cls.config.exp_admin_pass())
+        cls.serialno = get_serialno(
+            cls.config.exp_hostname_primary(),
+            cls.config.exp_admin_user(),
+            cls.config.exp_admin_pass())
+        cls.connector_id = "c_mgmt@" + cls.serialno
 
         cls.cluster_id = enable_cloud_fusion(
             cls.config.org_id(),
@@ -95,9 +95,10 @@ class RequestsRegisterTest(unittest.TestCase):
         Steps:
         1. Verify connectors are entitled
         2. Verify connectors have been installed
-        3. Configure, and Enable connectors
-        4. Verify that connectors are running with no more than one process
-        5. Verify that at least one connector was successfully started (not all as bad connector pushes would hurt us)
+        3. Verify that both FMS and Xstatus reports the connectors to be in the not_configured state
+        4. Configure, and Enable connectors
+        5. Verify that connectors are running with no more than one process
+        6. Verify that at least one connector was successfully started (not all as bad connector pushes would hurt us)
         """
 
         LOG.info("Running test: %s", self._testMethodName)
@@ -118,6 +119,25 @@ class RequestsRegisterTest(unittest.TestCase):
                                               connector)),
                             "%s does not have the connector %s installed."
                             % (self.config.exp_hostname_primary(), connector))
+
+            if connector != 'c_mgmt':
+                # Verify Xstatus state
+                LOG.info("Waiting for {} to reach the not_configured in Xstatus".format(connector))
+                self.assertTrue(
+                    wait_until_true(is_connector_in_composed_status, 40, 2, *(self.config.exp_hostname_primary(),
+                                                                              self.config.exp_root_user(),
+                                                                              self.config.exp_root_pass(),
+                                                                              connector,
+                                                                              'not_configured')))
+
+                # Verify FMS state
+                LOG.info("Waiting for {} to reach the not_configured state in FMS".format(connector))
+                self.assertTrue(wait_until_true(is_connector_in_fms_state, 70, 2, *(self.config.org_id(),
+                                                                                    self.cluster_id,
+                                                                                    self.config.fms_server(),
+                                                                                    connector + '@' + self.serialno,
+                                                                                    self.access_token,
+                                                                                    'not_configured')))
 
         configure_connectors(
             self.config.exp_hostname_primary(),

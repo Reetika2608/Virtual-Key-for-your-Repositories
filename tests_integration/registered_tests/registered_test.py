@@ -9,17 +9,19 @@ from tests_integration.api_based_tests.vcs_http import VCSHttpSession
 from tests_integration.utils import ci
 from tests_integration.utils.cdb_methods import get_serialno, get_logging_host_url, \
     set_logging_entry_to_blob, set_machine_account_expiry, get_current_machine_account_password, get_cluster_id, \
-    get_machine_account_url, enable_expressway_connector, disable_fmc_upgrades, set_poll_time
+    get_machine_account_url, enable_expressway_connector, disable_expressway_connector, disable_fmc_upgrades, \
+    set_poll_time
 from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
     run_full_management_connector_restart, wait_until_false
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import get_connector
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import is_alarm_raised, \
-    is_command_complete, has_machine_password_changed, is_text_on_page, is_connector_running
+    is_command_complete, has_machine_password_changed, is_text_on_page, is_connector_running, \
+    is_connector_in_composed_status, is_connector_in_fms_state
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
 from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists, restart_connector, \
-    run_xcommand
+    stop_connector, start_connector, run_xcommand
 
 LOG = get_logger()
 
@@ -716,3 +718,76 @@ class RegisteredTest(unittest.TestCase):
                         "initialized not in connector status: {}".format(connector_status))
         self.assertTrue('operational' in connector_status,
                         "operational not in connector status: {}".format(connector_status))
+
+    def test_post_status_of_connector(self):
+        """
+        Purpose:
+        To verify correct connector status is being sent by management
+        connector to management service.
+        Note:
+        This test does not verify the UI because it does not use the selenium runner,
+        but verifies xstatus which is used by the UI.
+        Steps:
+        1. Disable calendar connector
+        2. Verify that Xstatus and FMS reflects the new state
+        3. Re-enable calendar connector
+        4. Stop calendar connector
+        5. Verify that Xstatus and FMS reflects the new state
+        """
+        test_connector = 'c_cal'
+        connector_id = test_connector + '@' + get_serialno(self.config.exp_hostname_primary(),
+                                                           self.config.exp_admin_user(),
+                                                           self.config.exp_admin_pass())
+
+        def verify_connector_in_state(connector, state):
+            # Verify XStatus state
+            LOG.info("Waiting for {} to reach the {} composed status".format(connector, state))
+            self.assertTrue(
+                wait_until_true(is_connector_in_composed_status, 40, 2, *(self.config.exp_hostname_primary(),
+                                                                          self.config.exp_root_user(),
+                                                                          self.config.exp_root_pass(),
+                                                                          connector,
+                                                                          state)))
+
+            # Verify FMS state
+            LOG.info("Waiting for {} to reach the {} state in FMS".format(connector, state))
+            self.assertTrue(wait_until_true(is_connector_in_fms_state, 80, 2, *(self.config.org_id(),
+                                                                                self.cluster_id,
+                                                                                self.config.fms_server(),
+                                                                                connector_id,
+                                                                                self.access_token,
+                                                                                state)))
+        try:  # Test disabling connector
+            LOG.info("Disabling {}...".format(test_connector))
+            disable_expressway_connector(self.config.exp_hostname_primary(),
+                                         self.config.exp_admin_user(),
+                                         self.config.exp_admin_pass(),
+                                         test_connector)
+
+            verify_connector_in_state(test_connector, 'disabled')
+        finally:
+            enable_expressway_connector(self.config.exp_hostname_primary(),
+                                        self.config.exp_admin_user(),
+                                        self.config.exp_admin_pass(),
+                                        test_connector)
+
+        # Wait for connector to get enabled to make sure that re-enabling doesn't interfere with stopping
+        self.assertTrue(
+            wait_until_true(is_connector_in_composed_status, 40, 2, *(self.config.exp_hostname_primary(),
+                                                                      self.config.exp_root_user(),
+                                                                      self.config.exp_root_pass(),
+                                                                      test_connector,
+                                                                      'running')))
+
+        try:  # Test stopping connector
+            LOG.info("Stopping {}".format(test_connector))
+            stop_connector(self.config.exp_hostname_primary(),
+                           self.config.exp_root_user(),
+                           self.config.exp_root_pass(),
+                           test_connector)
+            verify_connector_in_state(test_connector, 'stopped')
+        finally:
+            start_connector(self.config.exp_hostname_primary(),
+                            self.config.exp_root_user(),
+                            self.config.exp_root_pass(),
+                            test_connector)
