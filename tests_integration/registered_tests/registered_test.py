@@ -262,7 +262,7 @@ class RegisteredTest(unittest.TestCase):
             self.assertTrue(wait_until_true(is_alarm_raised_on_exp, 5, 1, alarm_to_raise),
                             "Alarm {} was not raised in time on the Expressway.".format(alarm_to_raise))
 
-            self.assertTrue(wait_until_true(is_alarm_raised, 30, 1, *(self.config.org_id(),
+            self.assertTrue(wait_until_true(is_alarm_raised, 45, 1, *(self.config.org_id(),
                                                                       self.cluster_id,
                                                                       self.config.fms_server(),
                                                                       self.connector_id,
