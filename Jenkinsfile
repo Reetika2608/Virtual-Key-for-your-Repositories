@@ -370,11 +370,12 @@ def deploy(String release, List<String> environments) {
         build("team/management-connector/deploy_files/provisioning_json_${release}")
 
         // Deploy provisioning Data
+        def environment = ""
         try {
             // Loop through for each environment
             environments.each {
                 // 'it' is the implicit param for each element in the list
-                def environment = it
+                environment = it
                 def deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}-${release}"
 
                 if ((release == "stable") && (environment == "cfe")) {
