@@ -22,15 +22,14 @@
         "pollTime": "$!setvar("pollTime", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_u2c_pollTime"]')!$<!--(if len(pollTime))-->$!pollTime[0]['value']!$<!--(else)-->86400<!--(end)-->"
     },
 
-    "logging":
-    {
-        "host" :  $!setvar("atlasHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_logging_host_u2c"]')!$<!--(if len(atlasHost))-->$!atlasHost[0]['value']!$<!--(else)-->"https://atlas-a.wbx2.com/admin/api/v1"<!--(end)-->,
-        "askurl" : "/logs/url",
-        "metaurl" : "/logs/meta",
+    "logging": {
+        "host": $!setvar("atlasHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_logging_host_u2c"]')!$<!--(if len(atlasHost))-->$!atlasHost[0]['value']!$<!--(else)-->"https://client-logs-a.wbx2.com/api/v1"<!--(end)-->,
+        "askurl": "/logs/urls",
+        "metaurl": "/logs/meta",
         "identifier": $!setvar("c_mgmt_logging_identifier", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_logging_identifier"]')!$<!--(if len(c_mgmt_logging_identifier))-->$!c_mgmt_logging_identifier[0]['value']!$<!--(else)-->false<!--(end)-->,
         "quantity": $!setvar("c_mgmt_logging_quantity", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_logging_quantity"]')!$<!--(if len(c_mgmt_logging_quantity))-->$!c_mgmt_logging_quantity[0]['value']!$<!--(else)-->50<!--(end)-->,
         "pushTimeout": $!setvar("c_mgmt_logging_timeout", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_logging_timeout"]')!$<!--(if len(c_mgmt_logging_timeout))-->$!c_mgmt_logging_timeout[0]['value']!$<!--(else)-->60<!--(end)-->,
-        "loggingLevels" : [$!setvar('hybridserviceslogger', 'CDB["/configuration/hybridserviceslogger", ""]')!$ <!--(for logger_index, logger in enumerate(hybridserviceslogger))-->$!setvar('comma', '"," if logger_index < len(hybridserviceslogger) - 1 else ""')!${"name" : "@!logger['name']!@", "level" : "@!logger['level']!@"}@!comma!@ <!--(end)-->]
+        "loggingLevels": [$!setvar('hybridserviceslogger', 'CDB["/configuration/hybridserviceslogger", ""]')!$ <!--(for logger_index, logger in enumerate(hybridserviceslogger))-->$!setvar('comma', '"," if logger_index < len(hybridserviceslogger) - 1 else ""')!${"name": "@!logger['name']!@", "level": "@!logger['level']!@"}@!comma!@ <!--(end)-->]
     },
 
     "installed":

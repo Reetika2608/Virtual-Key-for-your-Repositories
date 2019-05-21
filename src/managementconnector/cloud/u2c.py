@@ -14,7 +14,7 @@ class U2C(object):
     """ U2C Class """
 
     # Map service name to cdb entry
-    service_map = {"atlas": ManagementConnectorProperties.U2C_ATLAS,
+    service_map = {"clientLogs": ManagementConnectorProperties.U2C_CLIENT_LOGS,
                    "wdm": ManagementConnectorProperties.U2C_WDM,
                    "metrics": ManagementConnectorProperties.U2C_METRICS,
                    "remoteDispatcher": ManagementConnectorProperties.U2C_RD,

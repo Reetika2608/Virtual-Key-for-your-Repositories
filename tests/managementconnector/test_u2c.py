@@ -55,10 +55,10 @@ class U2CTest(unittest.TestCase):
 
         self.http = mock.Mock()
         self.http.get.return_value = {"services": [{
-            "serviceName": "atlas",
-            "logicalNames": ["https://atlas-intb.ciscospark.com/admin/api/v1"],
+            "serviceName": "clientLogs",
+            "logicalNames": ["https://client-logs-a.wbx2.com/api/v1"],
             "serviceUrls": [{
-                "baseUrl": "https://atlas-intb.ciscospark.com/admin/api/v1",
+                "baseUrl": "https://client-logs-a.wbx2.com/api/v1",
                 "priority": 1
             }
             ],
@@ -75,16 +75,16 @@ class U2CTest(unittest.TestCase):
 
         self.config_mock.write.assert_called_with(
             '/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_host_u2c',
-            {'value': '"https://atlas-intb.ciscospark.com/admin/api/v1"'})
+            {'value': '"https://client-logs-a.wbx2.com/api/v1"'})
 
     def test_update_user_catalog_service_missing(self):
         """ Test U2C User Catalog Processed Correctly with missing value"""
         self.config_mock.read.side_effect = config_read
         self.http.get.return_value = {"services": [{
             "serviceName": "xxx",
-            "logicalNames": ["https://atlas-intb.ciscospark.com/admin/api/v1"],
+            "logicalNames": ["https://client-logs-a.wbx2.com/api/v1"],
             "serviceUrls": [{
-                "baseUrl": "https://atlas-intb.ciscospark.com/admin/api/v1",
+                "baseUrl": "https://client-logs-a.wbx2.com/api/v1",
                 "priority": 1
             }
             ],
@@ -104,7 +104,7 @@ class U2CTest(unittest.TestCase):
         test_u2c.update_user_catalog()
 
         self.http.get.assert_called_with(
-            "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM&services=atlas,atlasFusionAdminPortal,feature,fms,metrics,remoteDispatcher,wdm",
+            "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM&services=atlasFusionAdminPortal,clientLogs,feature,fms,metrics,remoteDispatcher,wdm",
             headers=mock.ANY,
             schema=mock.ANY)
 
@@ -116,10 +116,10 @@ class U2CTest(unittest.TestCase):
 
         services_list = test_u2c.build_services_list(U2C.service_map)
 
-        self.assertEqual(services_list, "atlas,atlasFusionAdminPortal,feature,fms,metrics,remoteDispatcher,wdm",
+        self.assertEqual(services_list, "atlasFusionAdminPortal,clientLogs,feature,fms,metrics,remoteDispatcher,wdm",
                          "services list is not correct")
 
-    def test_write_u2c_host_to_cdb_if_u2c_is_none (self):
+    def test_write_u2c_host_to_cdb_if_u2c_is_none(self):
         """ Reported as SPARK-68250: we did only write the U2C host URL
         on fuse. The U2C thread should do a test and write in the default value to CDB, if value not set in CDB'"""
         self.config_mock.read.side_effect = config_read
@@ -129,7 +129,7 @@ class U2CTest(unittest.TestCase):
         test_u2c.update_user_catalog()
 
         self.config_mock.write_blob.assert_called_with('u2c_u2cHost',
-                           {'value': '"https://u2c-a.wbx2.com/u2c/api/v1"'})
+                                                       {'value': '"https://u2c-a.wbx2.com/u2c/api/v1"'})
 
 
 if __name__ == "__main__":

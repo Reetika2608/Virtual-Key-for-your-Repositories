@@ -72,7 +72,7 @@ def run_full_management_connector_restart(hostname, root_user, root_pass):
 def get_log_data_from_atlas(atlas_url, log_uuid, token):
     """ get log data from atlas """
 
-    search_url = atlas_url + "/logs?search=" + str(log_uuid)
+    search_url = atlas_url + "/logs/meta?search=" + str(log_uuid)
 
     log_headers = {
         'Authorization': 'Bearer ' + token,

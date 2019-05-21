@@ -183,7 +183,6 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
 
     CDB_CLEAN_TIMEOUT = 30
 
-
     # -------------------------------------------------------------------------
     # Configuration Paths
     # -------------------------------------------------------------------------
@@ -206,8 +205,6 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     DEFAULT_INITIAL_POLL = 4200
     DEFAULT_U2C_POLL_TIME = 86400
 
-
-
     # -------------------------------------------------------------------------
     # Logging API Paths
     # -------------------------------------------------------------------------
@@ -220,7 +217,6 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     LOGGING_IDENTIFIER = LOGGING_API + "identifier"
     LOGGING_QUANTITY = LOGGING_API + "quantity"
     LOGGING_QUANTITY_DEFAULT = 50
-
 
     # -------------------------------------------------------------------------
     # Features API Paths
@@ -237,7 +233,6 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     FEATURES_PREFIX = "fmc-"
     FEATURE_VAL_ID = "val"
     FEATURES_GROUP = "developer"
-
 
     # -------------------------------------------------------------------------
     # Metrics Paths
@@ -380,7 +375,6 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
 
     CORE_DUMP_PATHS = ['/mnt/harddisk/core/processed/CSI.*']
 
-
     # -------------------------------------------------------------------------
     # U2C API Paths
     # -------------------------------------------------------------------------
@@ -391,7 +385,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     U2C_SERVICE_URL = U2C_BASE + "serviceUrl"
     U2C_USER_SERVICE_URL = U2C_BASE + "userUrl"
     U2C_HEARTBEAT_POLL_TIME = U2C_BASE + "pollTime"
-    U2C_ATLAS = BLOB_CDB_PATH + LOGGING_HOST + "_u2c"
+    U2C_CLIENT_LOGS = BLOB_CDB_PATH + LOGGING_HOST + "_u2c"
     U2C_WDM = BLOB_CDB_PATH + WDM_HOST + "_u2c"
     U2C_METRICS = BLOB_CDB_PATH + METRICS_HOST + "_u2c"
     U2C_RD = BLOB_CDB_PATH + REMOTE_DISPATCHER_HOST + "_u2c"
