@@ -301,7 +301,7 @@ def run(command_name, parameters, callback, error_callback):
             oauth.init()
 
             # Populate service urls
-            u2c = U2C(config, oauth)
+            u2c = U2C(config, oauth, Http, DatabaseHandler())
             u2c.update_user_catalog()
 
             config.write_blob(ManagementConnectorProperties.FUSED, 'true')

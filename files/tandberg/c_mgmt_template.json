@@ -15,12 +15,10 @@
         "watchdogPollTime": "$!setvar("c_mgmt_config_watchdogPollTime", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_config_watchdogPollTime"]')!$<!--(if len(c_mgmt_config_watchdogPollTime))-->$!c_mgmt_config_watchdogPollTime[0]['value']!$<!--(else)-->43200<!--(end)-->",
         "initialWatchdogPoll": "$!setvar("c_mgmt_config_initialWatchdogPoll", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_config_initialWatchdogPoll"]')!$<!--(if len(c_mgmt_config_initialWatchdogPoll))-->$!c_mgmt_config_initialWatchdogPoll[0]['value']!$<!--(else)-->900<!--(end)-->"
     },
-
-    "u2c":
-    {
-        "u2cHost" :  $!setvar("u2cHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_u2c_u2cHost"]')!$<!--(if len(u2cHost))-->$!u2cHost[0]['value']!$<!--(else)-->"https://u2c-a.wbx2.com/u2c/api/v1"<!--(end)-->,
-        "serviceUrl" : "/services",
-        "userUrl" : "/user/services",
+    "u2c": {
+        "u2cHost": $!setvar("u2cHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_u2c_u2cHost"]')!$<!--(if len(u2cHost))-->$!u2cHost[0]['value']!$<!--(else)-->"https://u2c-a.wbx2.com/u2c/api/v1"<!--(end)-->,
+        "serviceUrl": "/services",
+        "userUrl": "/user/catalog?types=TEAM",
         "pollTime": "$!setvar("pollTime", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_u2c_pollTime"]')!$<!--(if len(pollTime))-->$!pollTime[0]['value']!$<!--(else)-->86400<!--(end)-->"
     },
 

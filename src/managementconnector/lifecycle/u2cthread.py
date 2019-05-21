@@ -6,9 +6,11 @@ import threading
 import time
 import traceback
 
-from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.cloud.oauth import OAuth
 from managementconnector.cloud.u2c import U2C
+from managementconnector.config.databasehandler import DatabaseHandler
+from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from managementconnector.platform.http import Http
 from managementconnector.platform.system import System
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
@@ -47,7 +49,7 @@ class U2CThread(threading.Thread):
         time.sleep(2)
 
         self._oauth = OAuth(self._config)
-        self._u2c = U2C(self._config, self._oauth)
+        self._u2c = U2C(self._config, self._oauth, Http, DatabaseHandler())
 
         while True:
             if self._stop_event.is_set():
@@ -76,6 +78,6 @@ class U2CThread(threading.Thread):
 
         finally:
             poll_time = int(self._config.read(ManagementConnectorProperties.U2C_HEARTBEAT_POLL_TIME,
-                                                   ManagementConnectorProperties.DEFAULT_U2C_POLL_TIME))
+                                              ManagementConnectorProperties.DEFAULT_U2C_POLL_TIME))
             DEV_LOGGER.info('Detail="FMC_Lifecycle U2CThread: sleeping for %s seconds"' % poll_time)
             self._stop_event.wait(poll_time)

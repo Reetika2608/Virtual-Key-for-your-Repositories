@@ -361,17 +361,22 @@ U2C_SERVICES_RESPONSE = {
             "items": {
                 "type": "object",
                 "properties": {
-                            "serviceName": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 256
-                            },
-                            "logicalNames": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
+                    "serviceName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
+                    "logicalNames": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
                 },
                 "required": ["serviceName", "logicalNames"]
             }
