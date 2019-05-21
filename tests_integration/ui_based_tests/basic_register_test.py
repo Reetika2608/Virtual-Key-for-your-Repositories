@@ -123,7 +123,7 @@ class BasicRegisterTest(unittest.TestCase):
                         "%s does not have the full list of entitled connectors (%s)."
                         % (self.config.exp_hostname_primary(), str(self.config.expected_connectors())))
 
-        # Verify Connectors are entitled/visible/displaying the correct status in the Hybrid Services connector table
+        # Verify Connectors are entitled/visible in the Hybrid Services connector table
         login_expressway(
             self.web_driver,
             self.config.exp_hostname_primary(),
@@ -131,26 +131,10 @@ class BasicRegisterTest(unittest.TestCase):
             self.config.exp_admin_pass())
         navigate_expressway_menus(self.web_driver, ["Applications", "Hybrid Services", "Connector Management"])
 
-        ui_connector_statuses = {}  # Display name => Status (i.e. "Management Connector => Running")
-        for connector_num in range(1, len(self.config.expected_connectors()) + 1):
-            name = self.web_driver.find_element_by_xpath('//tbody[@id="fusion_services_tbody"]/tr[{}]/td'
-                                                         .format(connector_num)).text
-            status = self.web_driver.find_element_by_xpath('//tbody[@id="fusion_services_tbody"]/tr[{}]/td[2]'
-                                                           .format(connector_num)).text
-
-            ui_connector_statuses[name] = status
-
-        for connector, expected_display_name in self.config.expected_connectors().items():
-            self.assertTrue(expected_display_name in ui_connector_statuses,
+        for expected_display in self.config.expected_connectors().values():
+            self.assertTrue(self.web_driver.find_element_by_partial_link_text(expected_display),
                             "%s is not displaying on the UI of %s." % (
-                                expected_display_name, self.config.exp_hostname_primary()))
-
-            expected_status = 'Running' if connector == 'c_mgmt' else 'Not configured'
-            status = ui_connector_statuses[expected_display_name]
-            self.assertEqual(status, expected_status,
-                             'Expected {} to be in state {}, found {}'.format(expected_display_name, expected_status, status))
-
-            LOG.info("Found {} with status {} in UI".format(expected_display_name, expected_status))
+                                expected_display, self.config.exp_hostname_primary()))
 
         # Verify connectors are installed
         for connector in self.config.expected_connectors():
@@ -170,10 +154,10 @@ class BasicRegisterTest(unittest.TestCase):
             self.config.exp_admin_pass())
         navigate_expressway_menus(self.web_driver, ["Maintenance", "Upgrade"])
 
-        for expected_display_name in self.config.expected_connectors().values():
-            self.assertTrue(self.web_driver.find_element_by_xpath(("//*[contains(text(), '%s')]" % expected_display_name)),
+        for expected_display in self.config.expected_connectors().values():
+            self.assertTrue(self.web_driver.find_element_by_xpath(("//*[contains(text(), '%s')]" % expected_display)),
                             "%s does not show the connector %s on the UI." % (
-                                self.config.exp_hostname_primary(), expected_display_name))
+                                self.config.exp_hostname_primary(), expected_display))
 
         # Configure the feature connectors so that they can be enabled
         configure_connectors(
@@ -184,13 +168,13 @@ class BasicRegisterTest(unittest.TestCase):
             self.config.exp_root_pass())
 
         # Enable connectors
-        for expected_display_name in self.config.expected_connectors().values():
-            if expected_display_name != "Management Connector":
+        for expected_display in self.config.expected_connectors().values():
+            if expected_display != "Management Connector":
                 self.assertTrue(
                     enable_expressway_connector(
                         self.web_driver,
                         self.config.exp_hostname_primary(),
                         self.config.exp_admin_user(),
                         self.config.exp_admin_pass(),
-                        expected_display_name),
-                    "Connector %s is not enabled on %s." % (expected_display_name, self.config.exp_hostname_primary()))
+                        expected_display),
+                    "Connector %s is not enabled on %s." % (expected_display, self.config.exp_hostname_primary()))
