@@ -164,12 +164,12 @@ def create_screenshotting_web_driver(log_dir, driver=None):
     return EventFiringWebDriver(driver, ExceptionScreenshottingListener(log_dir))
 
 
-def create_screenshotting_retrying_web_driver(log_dir, max_retries):
-    driver = create_web_driver(click_retrying_class_wrapping(webdriver.Chrome, max_retries))
+def create_screenshotting_retrying_web_driver(log_dir, max_retries, retry_delay_secs=0.1):
+    driver = create_web_driver(click_retrying_class_wrapping(webdriver.Chrome, max_retries, retry_delay_secs))
     return create_screenshotting_web_driver(log_dir, driver)
 
 
-def click_retrying_class_wrapping(base_class, max_retries):
+def click_retrying_class_wrapping(base_class, max_retries, retry_delay_secs):
     """
     Create a class object that can be used to instantiate a retry proxy wrapping a web driver of type base_class.
 
@@ -211,6 +211,7 @@ def click_retrying_class_wrapping(base_class, max_retries):
                         LOG.error("Out of retries, throwing")
                         raise e
                     else:
+                        time.sleep(retry_delay_secs)
                         LOG.info("Retrying click {}/{} on element".format(self._attempts, max_retries, self._element))
                         self._element = self._driver._find_element_with_current_attempt_count(
                             self._attempts,

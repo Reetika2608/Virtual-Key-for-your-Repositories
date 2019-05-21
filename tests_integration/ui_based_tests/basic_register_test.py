@@ -47,7 +47,7 @@ class BasicRegisterTest(unittest.TestCase):
                             cls.config.exp_hostname_primary(),
                             cls.config.exp_admin_user(),
                             cls.config.exp_admin_pass(),
-                            create_screenshotting_retrying_web_driver(log_dir=cls.log_directory, max_retries=1))
+                            create_screenshotting_retrying_web_driver(log_dir=cls.log_directory, max_retries=20))
 
         for connector in cls.config.expected_connectors():
             wait_until_true(is_connector_installed, 240, 10,
