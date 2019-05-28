@@ -21,7 +21,7 @@ class AlarmProcessor(object):
         command = [ALARM_EXECUTABLE, ALARM_RAISE, alarm_id]
         if parameters:
             for param in parameters:
-                command += ["--param", param]
+                command += ["--param", str(param)]
         try:
             subprocess.check_output(command)
         except subprocess.CalledProcessError:
