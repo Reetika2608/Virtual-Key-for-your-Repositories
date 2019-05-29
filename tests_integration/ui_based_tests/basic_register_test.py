@@ -3,16 +3,16 @@ import sys
 import unittest
 
 from tests_integration.utils import ci
-from tests_integration.utils.cdb_methods import configure_connectors, get_cluster_id_from_expressway, \
-    disable_fmc_upgrades
+from tests_integration.utils.cdb_methods import configure_connectors, disable_fmc_upgrades, \
+    get_cluster_id_from_expressway
 from tests_integration.utils.common_methods import create_log_directory, wait_until_true, wait_for_defuse_to_finish
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import deregister_cluster
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import are_connectors_entitled, is_connector_installed
-from tests_integration.utils.web_methods import register_expressway, create_web_driver, \
+from tests_integration.utils.web_methods import create_web_driver, \
     login_expressway, navigate_expressway_menus, enable_expressway_connector, enable_expressway_cert_management, \
-    create_screenshotting_web_driver, create_screenshotting_retrying_web_driver
+    create_screenshotting_web_driver, register_expressway, create_screenshotting_retrying_web_driver, is_in_page_source
 
 LOG = get_logger()
 
@@ -148,7 +148,8 @@ class BasicRegisterTest(unittest.TestCase):
             expected_status = 'Running' if connector == 'c_mgmt' else 'Not configured'
             status = ui_connector_statuses[expected_display_name]
             self.assertEqual(status, expected_status,
-                             'Expected {} to be in state {}, found {}'.format(expected_display_name, expected_status, status))
+                             'Expected {} to be in state {}, found {}'.format(expected_display_name, expected_status,
+                                                                              status))
 
             LOG.info("Found {} with status {} in UI".format(expected_display_name, expected_status))
 
@@ -171,9 +172,10 @@ class BasicRegisterTest(unittest.TestCase):
         navigate_expressway_menus(self.web_driver, ["Maintenance", "Upgrade"])
 
         for expected_display_name in self.config.expected_connectors().values():
-            self.assertTrue(self.web_driver.find_element_by_xpath(("//*[contains(text(), '%s')]" % expected_display_name)),
-                            "%s does not show the connector %s on the UI." % (
-                                self.config.exp_hostname_primary(), expected_display_name))
+            self.assertTrue(
+                self.web_driver.find_element_by_xpath(("//*[contains(text(), '%s')]" % expected_display_name)),
+                "%s does not show the connector %s on the UI." % (
+                    self.config.exp_hostname_primary(), expected_display_name))
 
         # Configure the feature connectors so that they can be enabled
         configure_connectors(
@@ -194,3 +196,28 @@ class BasicRegisterTest(unittest.TestCase):
                         self.config.exp_admin_pass(),
                         expected_display_name),
                     "Connector %s is not enabled on %s." % (expected_display_name, self.config.exp_hostname_primary()))
+
+    def test_send_logs(self):
+        """
+        US15739 UI System test for log push
+        Purpose: Verify that VCS logs are sent
+
+        Steps:
+            1. Click the send_logs button (click 'OK' in confirmation box)
+            2. Get the log push ID
+            3. Verify log snapshot sent
+        """
+        LOG.info("Sending logs from VCS: %s" % (self.config.exp_hostname_primary()))
+        login_expressway(
+            self.web_driver,
+            self.config.exp_hostname_primary(),
+            self.config.exp_admin_user(),
+            self.config.exp_admin_pass())
+        navigate_expressway_menus(self.web_driver, ["Applications", "Hybrid Services", "Connector Logging"])
+
+        self.assertTrue(wait_until_true(is_in_page_source, 30, 1, *(self.web_driver, "Send Logs to Cisco Webex Cloud")))
+
+        self.web_driver.find_element_by_xpath('//input[@value="Send"]').click()
+        self.web_driver.find_element_by_xpath("//button[@id='button-ok']").click()
+        self.assertTrue(
+            wait_until_true(is_in_page_source, 120, 5, *(self.web_driver, "Generated Search Key:")))
