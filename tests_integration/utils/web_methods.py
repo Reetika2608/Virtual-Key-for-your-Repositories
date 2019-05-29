@@ -17,6 +17,10 @@ from tests_integration.utils.integration_test_logger import get_logger
 LOG = get_logger()
 
 
+class WaitTimeoutException(Exception):
+    pass
+
+
 def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_id, web_driver=None):
     """ Deregister Expressway cluster from control hub through the UI """
     LOG.info("Deregistering Expressway cluster %s from control hub, %s.", cluster_id, control_hub)
@@ -85,44 +89,47 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
         close_web_driver = True
         web_driver = create_web_driver()
 
-    LOG.info("Logging in to control hub, %s, adding the Expressway, %s and activating all services.",
-             control_hub, exp_hostname)
-    web_driver.get('https://' + control_hub)
-    web_driver.find_element_by_name('email').send_keys(org_admin_user)
-    web_driver.find_element_by_xpath('//button').click()
-    web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
-    web_driver.find_element_by_xpath('//button').click()
-    time.sleep(5)
-    web_driver.find_element_by_link_text('Services').click()
-    time.sleep(2)
-    web_driver.find_element_by_link_text('View').click()
-    web_driver.find_element_by_css_selector('button[ng-click="$ctrl.addResource()"]').click()
-    web_driver.find_element_by_id('selectedType_expressway').send_keys(' ')
-    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-    web_driver.find_element_by_name('calendar').send_keys(' ')
-    web_driver.find_element_by_name('call').send_keys(' ')
-    web_driver.find_element_by_id('service_imp').send_keys(' ')
-    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-    web_driver.find_element_by_name('hostname').send_keys(exp_hostname)
-    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-    web_driver.find_element_by_name('name').send_keys(exp_hostname)
-    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-    time.sleep(3)
-    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-    time.sleep(3)
+    try:
+        LOG.info("Logging in to control hub, %s, adding the Expressway, %s and activating all services.",
+                 control_hub, exp_hostname)
+        web_driver.get('https://' + control_hub)
+        web_driver.find_element_by_name('email').send_keys(org_admin_user)
+        web_driver.find_element_by_xpath('//button').click()
+        web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
+        web_driver.find_element_by_xpath('//button').click()
+        time.sleep(5)
+        web_driver.find_element_by_link_text('Services').click()
+        time.sleep(2)
+        web_driver.find_element_by_link_text('View').click()
+        web_driver.find_element_by_css_selector('button[ng-click="$ctrl.addResource()"]').click()
+        web_driver.find_element_by_id('selectedType_expressway').send_keys(' ')
+        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+        web_driver.find_element_by_name('calendar').send_keys(' ')
+        web_driver.find_element_by_name('call').send_keys(' ')
+        web_driver.find_element_by_id('service_imp').send_keys(' ')
+        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+        web_driver.find_element_by_name('hostname').send_keys(exp_hostname)
+        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+        web_driver.find_element_by_name('name').send_keys(exp_hostname)
+        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+        time.sleep(3)
+        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+        time.sleep(3)
 
-    LOG.info("Logging in to the Expressway, %s, and completing the registration.", exp_hostname)
-    web_driver.switch_to.window(web_driver.window_handles[1])
-    web_driver.find_element_by_name('username').send_keys(admin_user)
-    web_driver.find_element_by_name('password').send_keys(admin_pass)
-    web_driver.find_element_by_name('formbutton').click()
-    web_driver.find_element_by_name('formbutton').click()
-    web_driver.find_element_by_id('checkbox1').send_keys(' ')
-    web_driver.find_element_by_css_selector('button[ng-click="vm.confirm()"]').click()
-    wait_until_true(is_in_page_source, 120, 5, *(web_driver, " is registered with the Cisco Webex Cloud"))
-    if close_web_driver:
-        web_driver.quit()
+        LOG.info("Logging in to the Expressway, %s, and completing the registration.", exp_hostname)
+        web_driver.switch_to.window(web_driver.window_handles[1])
+        web_driver.find_element_by_name('username').send_keys(admin_user)
+        web_driver.find_element_by_name('password').send_keys(admin_pass)
+        web_driver.find_element_by_name('formbutton').click()
+        web_driver.find_element_by_name('formbutton').click()
+        web_driver.find_element_by_id('checkbox1').send_keys(' ')
+        web_driver.find_element_by_css_selector('button[ng-click="vm.confirm()"]').click()
+        if not wait_until_true(is_in_page_source, 120, 5, *(web_driver, " is registered with the Cisco Webex Cloud")):
+            raise WaitTimeoutException("Timed out waiting for registration confirmation message")
+    finally:
+        if close_web_driver:
+            web_driver.quit()
 
 
 def create_web_driver(driver_class=webdriver.Chrome):
@@ -332,11 +339,13 @@ def enable_expressway_cert_management(exp_hostname, admin_user, admin_pass, web_
         close_web_driver = True
         web_driver = create_web_driver()
 
-    login_expressway(web_driver, exp_hostname, admin_user, admin_pass)
-    web_driver.get("https://" + exp_hostname + "/fusioncerts")
-    web_driver.find_element_by_name('formbutton').click()
-    wait_until_true(is_in_page_source, 30, 1, *(web_driver, "The following certificates have been added by Cisco."))
-
-    if close_web_driver:
-        # If we created the web driver we should close it again.
-        web_driver.quit()
+    try:
+        login_expressway(web_driver, exp_hostname, admin_user, admin_pass)
+        web_driver.get("https://" + exp_hostname + "/fusioncerts")
+        web_driver.find_element_by_name('formbutton').click()
+        if not wait_until_true(is_in_page_source, 30, 1, *(web_driver, "The following certificates have been added by Cisco.")):
+            raise WaitTimeoutException("Timed out waiting for certificates-managed-by-Cisco message")
+    finally:
+        if close_web_driver:
+            # If we created the web driver we should close it again.
+            web_driver.quit()

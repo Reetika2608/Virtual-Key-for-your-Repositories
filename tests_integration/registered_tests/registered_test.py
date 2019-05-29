@@ -635,11 +635,12 @@ class RegisteredTest(unittest.TestCase):
                 if state:
                     enable_expressway_connector(self.config.exp_hostname_primary(), self.config.exp_admin_user(),
                                                 self.config.exp_admin_pass(), "c_mgmt")
-                    wait_until_true(is_connector_running, 10, 1,
-                                    *(self.config.exp_hostname_primary(),
-                                      self.config.exp_root_user(),
-                                      self.config.exp_root_pass(),
-                                      "c_mgmt"))
+                    self.assertTrue(wait_until_true(is_connector_running, 10, 1,
+                                                    *(self.config.exp_hostname_primary(),
+                                                      self.config.exp_root_user(),
+                                                      self.config.exp_root_pass(),
+                                                      "c_mgmt")),
+                                    "Timed out waiting for c_mgmt to be running")
                     expected = (True, True, '"operational"')
 
                 xcommand_result = run_xcommand(
@@ -672,11 +673,12 @@ class RegisteredTest(unittest.TestCase):
             finally:
                 enable_expressway_connector(self.config.exp_hostname_primary(), self.config.exp_admin_user(),
                                             self.config.exp_admin_pass(), "c_mgmt")
-                wait_until_true(is_connector_running, 10, 1,
-                                *(self.config.exp_hostname_primary(),
-                                  self.config.exp_root_user(),
-                                  self.config.exp_root_pass(),
-                                  "c_mgmt"))
+                if not wait_until_true(is_connector_running, 10, 1,
+                                       *(self.config.exp_hostname_primary(),
+                                         self.config.exp_root_user(),
+                                         self.config.exp_root_pass(),
+                                         "c_mgmt")):
+                    LOG.warn("c_mgmt did not start in time during cleanup")
 
     def parse_xstatus(self, lines):
         """

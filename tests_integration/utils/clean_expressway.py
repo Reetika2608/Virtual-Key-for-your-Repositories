@@ -26,8 +26,9 @@ def restart_fmc(hostname, root_user, root_pass):
         get_and_log_management_connector_run_data(hostname, root_user, root_pass)
 
     restart_connector(hostname, root_user, root_pass, "c_mgmt")
-    wait_until_true(has_connector_pid_changed, 10, 1,
-                    *(hostname, root_user, root_pass, "c_mgmt", starting_pid))
+    if not wait_until_true(has_connector_pid_changed, 10, 1,
+                           *(hostname, root_user, root_pass, "c_mgmt", starting_pid)):
+        LOG.warn("Connector PID did not change within the excepted time")
 
 
 def restart_expressway(hostname, root_user, root_pass):

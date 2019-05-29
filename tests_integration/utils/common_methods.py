@@ -57,14 +57,18 @@ def run_full_management_connector_restart(hostname, root_user, root_pass):
 
     LOG.info("Restarting management connector...")
     restart_connector(hostname, root_user, root_pass, "c_mgmt")
-    wait_until_true(has_connector_pid_changed, 10, 1,
-                    *(hostname, root_user, root_pass, "c_mgmt", starting_pid))
-    wait_until_true(has_connector_heartbeat_start_time_changed, 20, 1,
-                    *(hostname, root_user, root_pass, "c_mgmt", starting_heartbeat_start_time))
-    wait_until_true(has_mercury_device_route_changed, 10, 1,
-                    *(hostname, root_user, root_pass, starting_mercury_route))
-    wait_until_true(has_remote_dispatcher_device_id_changed, 10, 1,
-                    *(hostname, root_user, root_pass, starting_rd_device))
+    if not wait_until_true(has_connector_pid_changed, 10, 1,
+                    *(hostname, root_user, root_pass, "c_mgmt", starting_pid)):
+        LOG.warn("Warning: c_mgmt did not change connector PID in time")
+    if not wait_until_true(has_connector_heartbeat_start_time_changed, 20, 1,
+                    *(hostname, root_user, root_pass, "c_mgmt", starting_heartbeat_start_time)):
+        LOG.warn("Warning: c_mgmt did not change heartbeat start timein time")
+    if not wait_until_true(has_mercury_device_route_changed, 10, 1,
+                           *(hostname, root_user, root_pass, starting_mercury_route)):
+        LOG.warn("Warning: mercury device route did not change in time")
+    if not wait_until_true(has_remote_dispatcher_device_id_changed, 10, 1,
+                           *(hostname, root_user, root_pass, starting_rd_device)):
+        LOG.warn("Warning: RD device id did not change in time")
     LOG.info("Restart of management connector is complete")
     get_and_log_management_connector_run_data(hostname, root_user, root_pass)
 
@@ -96,9 +100,13 @@ def wait_for_connectors_to_install(hostname, root_user, root_pass, connectors):
 
 
 def wait_for_defuse_to_finish(hostname, root_user, root_pass, admin_user, admin_pass, connectors):
-    return wait_until_true(is_node_clean_after_defuse, 300, 5, *(hostname,
-                                                                 root_user,
-                                                                 root_pass,
-                                                                 admin_user,
-                                                                 admin_pass,
-                                                                 connectors))
+    defuse_result = wait_until_true(is_node_clean_after_defuse, 300, 5, *(hostname,
+                                                                          root_user,
+                                                                          root_pass,
+                                                                          admin_user,
+                                                                          admin_pass,
+                                                                          connectors))
+    if not defuse_result:
+        LOG.warn("Did not complete node cleanup on {} in time".format(hostname))
+
+    return defuse_result

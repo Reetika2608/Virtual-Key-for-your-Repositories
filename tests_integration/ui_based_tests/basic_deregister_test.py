@@ -157,13 +157,14 @@ class BasicDeRegisterTest(unittest.TestCase):
                               self.cluster_id,
                               create_screenshotting_retrying_web_driver(log_dir=self.log_directory, max_retries=1))
         LOG.info("Wait for connectors to uninstall and CDB to be cleaned up...")
-        wait_for_defuse_to_finish(
+        self.assertTrue(wait_for_defuse_to_finish(
             self.config.exp_hostname_primary(),
             self.config.exp_root_user(),
             self.config.exp_root_pass(),
             self.config.exp_admin_user(),
             self.config.exp_admin_pass(),
-            self.config.expected_connectors())
+            self.config.expected_connectors()),
+            "Did not defuse in time")
 
         LOG.info("Verify that the upgrade page shows that the connectors are not installed")
         for expected_display in self.config.expected_connectors().values():
