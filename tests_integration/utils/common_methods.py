@@ -87,6 +87,7 @@ def get_log_data_from_atlas(atlas_url, log_uuid, token):
 
 def wait_for_connectors_to_install(hostname, root_user, root_pass, connectors):
     for connector in connectors:
+        LOG.info("Waiting for connector {} to install".format(connector))
         wait_until_true(is_connector_installed, 240, 10,
                         *(hostname,
                           root_user,

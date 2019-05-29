@@ -3,7 +3,7 @@ from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
 from tests_integration.utils.cdb_methods import get_full_blob_contents, get_current_machine_account_password, \
-    get_entitled_list_from_expressway, get_rollback_blacklist
+    get_entitled_list_from_expressway, get_rollback_blacklist, get_cdb_entry
 from tests_integration.utils.fms import get_connector_raised_alarm_ids, get_connector
 from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.remote_dispatcher import get_command_from_rd
@@ -21,6 +21,10 @@ def is_blob_empty(hostname, admin_user, admin_pass):
 
 def has_machine_password_changed(hostname, admin_user, admin_pass, machine_password):
     return machine_password != get_current_machine_account_password(hostname, admin_user, admin_pass)
+
+
+def does_cdb_entry_exist(hostname, admin_user, admin_pass, path):
+    return len(get_cdb_entry(hostname, admin_user, admin_pass, path)) != 0
 
 
 def are_connectors_entitled(hostname, username, password, connectors=None):
