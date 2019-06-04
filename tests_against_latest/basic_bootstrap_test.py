@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from tests_integration.utils.cdb_methods import enable_fmc_upgrades
@@ -17,6 +18,8 @@ class BasicBootstrapTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.log_directory = create_log_directory()
+        certs_location = os.environ.get("BROKEN_CERTS_LOCATION")
+        cls.broken_certs_location = certs_location if certs_location is not None else "all_cas_removed.pem"
         cls.config = Config()
 
         enable_fmc_upgrades(cls.config.exp_hostname_primary(),
@@ -49,7 +52,7 @@ class BasicBootstrapTest(unittest.TestCase):
             certs_backed_up = True
 
             # Replace cert file contents with our broken one
-            with open("all_cas_removed.pem") as broken_cert_file:
+            with open(self.broken_certs_location) as broken_cert_file:
                 run_ssh_command(self.config.exp_hostname_primary(),
                                 self.config.exp_root_user(),
                                 self.config.exp_root_pass(),

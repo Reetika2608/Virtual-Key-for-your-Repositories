@@ -315,7 +315,8 @@ timestamps {
                                              ORG_ADMIN_USER=${org_admin_user} \
                                              ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                              LOGS_DIR=${pythonLogsDir} \
-                                            nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test""".stripIndent())
+                                             BROKEN_CERTS_LOCATION=./tests_against_latest/all_cas_removed.pem \
+                                            nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test.py""".stripIndent())
                                         junit allowEmptyResults: true, testResults: 'bootstrap-latest-test-results.xml'
                                     } finally {
                                         sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
