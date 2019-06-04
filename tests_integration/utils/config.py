@@ -32,6 +32,7 @@ class Config(object):
         config_file = os.environ.get("CONFIG_FILE")
         if config_file is None:
             file_names = ["../configuration/default.yaml",
+                          "../tests_integration/configuration/default.yaml",
                           "tests_integration/configuration/default.yaml"]
         else:
             file_names = [config_file]

@@ -90,24 +90,9 @@ timestamps {
                 checkout scm
                 unstash('tlp')
 
-                config = readYaml(file: './jenkins/test_resources/lysaker_resources.yaml') // TODO: Should this be a parameter?
                 logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
                 pythonLogsDir = "./"  + logsDir + "/"
-                expresswayGroups = config.expressway.resource_groups
-
-
-                print("Found ${expresswayGroups.size()} sets of test resources")
-
-                // We keep a separate set of resources for the master branch, in order to prevent PRs from blocking a master build
-                if (isMasterBranch() || expresswayGroups.size() == 1) { // If we only have one set of Expressways, we'll have to use that one
-                    resources = expresswayGroups[0]
-                } else if (isPullRequest()) { // If we have multiple Expressway groups, split them among PRs
-                    PRNumber = env.BRANCH_NAME.reverse().take(1).toInteger()
-                    resources = expresswayGroups[1 + (PRNumber % (expresswayGroups.size() - 1))]
-                } else {
-                    print("*** Warning: Testing with \"PR-1\" testbed even though I am not a pull request!")
-                    resources = expresswayGroups[1]
-                }
+                resources = getResources('./jenkins/test_resources/lysaker_resources.yaml')
 
                 try {
                     parallel (
@@ -308,6 +293,50 @@ timestamps {
                 }
             }
 
+            stage('Tests against latest') {
+                checkpoint("Tests against latest")
+                node('fmc-build') {
+                    try {
+                        logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
+                        pythonLogsDir = "./"  + logsDir + "/"
+                        resources = getResources('./jenkins/test_resources/lysaker_resources.yaml')
+
+                        lock(resource: resources.exp_hostname_unreg_1) {
+                                print("Performing bootstrap & cert tests")
+                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                    try {
+                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             ORG_ID=${config.org.org_id} \
+                                             ORG_ADMIN_USER=${org_admin_user} \
+                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                             LOGS_DIR=${pythonLogsDir} \
+                                            nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test""".stripIndent())
+                                        junit allowEmptyResults: true, testResults: 'bootstrap-latest-test-results.xml'
+                                    } finally {
+                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             ORG_ID=${config.org.org_id} \
+                                             ORG_ADMIN_USER=${org_admin_user} \
+                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                            ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_1}""".stripIndent())
+                                    }
+                                }
+                            }
+                    } finally {
+                        archiveArtifacts artifacts: "${logsDir}/*.*", allowEmptyArchive: true
+                    }
+                }
+            }
+
             // This stage publishes the tested debian to the Expressway "wood" build
             // which will get injected in the Expressway image
             stage('Deploy to wood repo') {
@@ -395,4 +424,24 @@ def deploy(String release, List<String> environments) {
             }
         }
     }
+}
+
+def getResources(String resourceFile) {
+    config = readYaml(file: resourceFile)
+    expresswayGroups = config.expressway.resource_groups
+
+    print("Found ${expresswayGroups.size()} sets of test resources")
+
+    // We keep a separate set of resources for the master branch, in order to prevent PRs from blocking a master build
+    if (isMasterBranch() || expresswayGroups.size() == 1) { // If we only have one set of Expressways, we'll have to use that one
+        resources = expresswayGroups[0]
+    } else if (isPullRequest()) { // If we have multiple Expressway groups, split them among PRs
+        PRNumber = env.BRANCH_NAME.reverse().take(1).toInteger()
+        resources = expresswayGroups[1 + (PRNumber % (expresswayGroups.size() - 1))]
+    } else {
+        print("*** Warning: Testing with \"PR-1\" testbed even though I am not a pull request!")
+        resources = expresswayGroups[1]
+    }
+
+    return resources
 }

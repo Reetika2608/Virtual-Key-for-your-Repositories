@@ -275,6 +275,10 @@ def set_prevent_upgrade_flag(hostname, admin_user, admin_pass, value):
         LOG.error("CDB Set failed: path {} and entry: {}".format(prevent_update, value))
 
 
+def enable_fmc_upgrades(hostname, admin_user, admin_pass):
+    set_prevent_upgrade_flag(hostname, admin_user, admin_pass, "off")
+
+
 def disable_fmc_upgrades(hostname, admin_user, admin_pass):
     set_prevent_upgrade_flag(hostname, admin_user, admin_pass, "on")
 

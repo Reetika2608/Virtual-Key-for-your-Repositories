@@ -81,6 +81,43 @@ def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id, 
         web_driver.quit()
 
 
+def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostname, web_driver):
+    """
+    Create a cluster, enable all services, pass bootstrap data to Expressway
+
+    Note that this function requires the caller to either:
+     a) provide a web_driver that is already logged in to the Expressway
+     or
+     b) log in to the 2nd window left open in the web driver after this function returns
+    """
+    LOG.info("Logging in to control hub, %s, adding the Expressway, %s and activating all services.",
+             control_hub, exp_hostname)
+    web_driver.get('https://' + control_hub)
+    web_driver.find_element_by_name('email').send_keys(org_admin_user)
+    web_driver.find_element_by_xpath('//button').click()
+    web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
+    web_driver.find_element_by_xpath('//button').click()
+    time.sleep(5)
+    web_driver.find_element_by_link_text('Services').click()
+    time.sleep(2)
+    web_driver.find_element_by_link_text('View').click()
+    web_driver.find_element_by_css_selector('button[ng-click="$ctrl.addResource()"]').click()
+    web_driver.find_element_by_id('selectedType_expressway').send_keys(' ')
+    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+    web_driver.find_element_by_name('calendar').send_keys(' ')
+    web_driver.find_element_by_name('call').send_keys(' ')
+    web_driver.find_element_by_id('service_imp').send_keys(' ')
+    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+    web_driver.find_element_by_name('hostname').send_keys(exp_hostname)
+    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+    web_driver.find_element_by_name('name').send_keys(exp_hostname)
+    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+    time.sleep(3)
+    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+    web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
+    time.sleep(3)
+
+
 def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostname, admin_user, admin_pass, web_driver=None):
     """ Register Expressway through UI """
     LOG.info("Registering Expressway %s", exp_hostname)
@@ -90,32 +127,7 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
         web_driver = create_web_driver()
 
     try:
-        LOG.info("Logging in to control hub, %s, adding the Expressway, %s and activating all services.",
-                 control_hub, exp_hostname)
-        web_driver.get('https://' + control_hub)
-        web_driver.find_element_by_name('email').send_keys(org_admin_user)
-        web_driver.find_element_by_xpath('//button').click()
-        web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
-        web_driver.find_element_by_xpath('//button').click()
-        time.sleep(5)
-        web_driver.find_element_by_link_text('Services').click()
-        time.sleep(2)
-        web_driver.find_element_by_link_text('View').click()
-        web_driver.find_element_by_css_selector('button[ng-click="$ctrl.addResource()"]').click()
-        web_driver.find_element_by_id('selectedType_expressway').send_keys(' ')
-        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-        web_driver.find_element_by_name('calendar').send_keys(' ')
-        web_driver.find_element_by_name('call').send_keys(' ')
-        web_driver.find_element_by_id('service_imp').send_keys(' ')
-        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-        web_driver.find_element_by_name('hostname').send_keys(exp_hostname)
-        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-        web_driver.find_element_by_name('name').send_keys(exp_hostname)
-        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-        time.sleep(3)
-        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-        web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-        time.sleep(3)
+        bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostname, web_driver)
 
         LOG.info("Logging in to the Expressway, %s, and completing the registration.", exp_hostname)
         web_driver.switch_to.window(web_driver.window_handles[1])
