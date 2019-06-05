@@ -296,6 +296,8 @@ timestamps {
             stage('Tests against latest') {
                 checkpoint("Tests against latest")
                 node('fmc-build') {
+                    checkout scm
+
                     try {
                         logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
                         pythonLogsDir = "./"  + logsDir + "/"
