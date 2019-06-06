@@ -331,19 +331,21 @@ timestamps {
                             'Upgrade test': {
                                 lock(resource: resources.exp_hostname_reg_2) {
                                     print("Performing upgrade tests")
-                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_2} \
-                                         EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                         EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                         EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                         EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                         CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                         ORG_ID=${config.org.org_id} \
-                                         ORG_ADMIN_USER=${org_admin_user} \
-                                         ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                         LOGS_DIR=${pythonLogsDir} \
-                                         EXPECTED_VERSION=${DEB_VERSION} \
-                                        nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
-                                    junit allowEmptyResults: true, testResults: 'upgrade-latest-test-results.xml'
+                                    withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_2} \
+                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             ORG_ID=${config.org.org_id} \
+                                             ORG_ADMIN_USER=${org_admin_user} \
+                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                             LOGS_DIR=${pythonLogsDir} \
+                                             EXPECTED_VERSION=${DEB_VERSION} \
+                                            nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
+                                        junit allowEmptyResults: true, testResults: 'upgrade-latest-test-results.xml'
+                                    }
                                 }
                             }
                         )

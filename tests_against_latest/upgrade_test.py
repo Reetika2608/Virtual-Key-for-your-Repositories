@@ -39,14 +39,14 @@ class UpgradeTest(unittest.TestCase):
         else:
             LOG.info("Waiting for version %s to be installed on %s",
                      expected_version, cls.config.exp_hostname_primary())
-            cls.assertTrue(wait_until_true(is_expected_version_installed, 180, 5,
-                                           *(cls.config.exp_hostname_primary(),
-                                             cls.config.exp_root_user(),
-                                             cls.config.exp_root_pass(),
-                                             "c_mgmt",
-                                             expected_version)),
-                           "%s does not have the c_mgmt version %s installed." %
-                           (cls.config.exp_hostname_primary(), expected_version))
+            assert wait_until_true(is_expected_version_installed, 180, 5,
+                                   *(cls.config.exp_hostname_primary(),
+                                     cls.config.exp_root_user(),
+                                     cls.config.exp_root_pass(),
+                                     "c_mgmt",
+                                     expected_version)), "%s does not have the c_mgmt version %s installed.".format(
+                cls.config.exp_hostname_primary(),
+                expected_version)
 
     def test_rollback_and_upgrade_of_management_connector(self):
         """
