@@ -116,6 +116,11 @@ def has_version_changed(hostname, root_user, root_pass, connector, old_version):
     return installed_version is not None and installed_version != old_version
 
 
+def is_expected_version_installed(hostname, root_user, root_pass, connector, version):
+    installed_version = get_installed_connector_version(hostname, root_user, root_pass, connector)
+    return installed_version is not None and installed_version == version
+
+
 def is_text_on_page(expressway, admin_user, admin_pass, page, text):
     with requests.Session() as session:
         retries = Retry(total=5,

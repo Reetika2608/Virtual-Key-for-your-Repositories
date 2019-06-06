@@ -248,15 +248,6 @@ timestamps {
 
                                 junit allowEmptyResults: true, testResults: 'cluster-test-results.xml'
                             }
-                        },
-                        'Upgrade tests': {
-                            lock(resource: resources.exp_hostname_reg_2) {
-                                print("Installing .tlp on node 1...")
-                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_2} -w ${TLP_FILE}")
-
-                                print("Performing upgrade tests")
-                                // TODO: Upgrade tests here
-                            }
                         }
                     )
                 } finally {
@@ -303,37 +294,59 @@ timestamps {
                         pythonLogsDir = "./"  + logsDir + "/"
                         resources = getResources('./jenkins/test_resources/lysaker_resources.yaml')
 
-                        lock(resource: resources.exp_hostname_unreg_1) {
-                                print("Performing bootstrap & cert tests")
-                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                    try {
-                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
-                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                             ORG_ID=${config.org.org_id} \
-                                             ORG_ADMIN_USER=${org_admin_user} \
-                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                             LOGS_DIR=${pythonLogsDir} \
-                                             BROKEN_CERTS_LOCATION=./tests_against_latest/all_cas_removed.pem \
-                                            nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test.py""".stripIndent())
-                                        junit allowEmptyResults: true, testResults: 'bootstrap-latest-test-results.xml'
-                                    } finally {
-                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
-                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
-                                             ORG_ID=${config.org.org_id} \
-                                             ORG_ADMIN_USER=${org_admin_user} \
-                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                            ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_1}""".stripIndent())
+                        parallel(
+                            'Bootstrap & cert test': {
+                                lock(resource: resources.exp_hostname_unreg_1) {
+                                    print("Performing bootstrap & cert tests")
+                                    withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                        try {
+                                            sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                                 ORG_ID=${config.org.org_id} \
+                                                 ORG_ADMIN_USER=${org_admin_user} \
+                                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                                 LOGS_DIR=${pythonLogsDir} \
+                                                 BROKEN_CERTS_LOCATION=./tests_against_latest/all_cas_removed.pem \
+                                                nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test.py""".stripIndent())
+                                            junit allowEmptyResults: true, testResults: 'bootstrap-latest-test-results.xml'
+                                        } finally {
+                                            sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                                 ORG_ID=${config.org.org_id} \
+                                                 ORG_ADMIN_USER=${org_admin_user} \
+                                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                                ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_1}""".stripIndent())
+                                        }
                                     }
                                 }
+                            },
+                            'Upgrade test': {
+                                lock(resource: resources.exp_hostname_reg_2) {
+                                    print("Performing upgrade tests")
+                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_2} \
+                                         EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                         EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                         EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                         EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                         CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                         ORG_ID=${config.org.org_id} \
+                                         ORG_ADMIN_USER=${org_admin_user} \
+                                         ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                         LOGS_DIR=${pythonLogsDir} \
+                                         EXPECTED_VERSION=${DEB_VERSION} \
+                                        nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
+                                    junit allowEmptyResults: true, testResults: 'upgrade-latest-test-results.xml'
+                                }
                             }
+                        )
                     } finally {
                         archiveArtifacts artifacts: "${logsDir}/*.*", allowEmptyArchive: true
                     }

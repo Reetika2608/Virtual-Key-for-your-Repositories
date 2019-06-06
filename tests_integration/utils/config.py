@@ -199,3 +199,11 @@ class Config(object):
             LOG.error("Config item (expected_connectors) to run test was not found in config file")
             assert False
         return self._expected_connectors
+
+    @staticmethod
+    def expected_version():
+        version = os.environ.get("EXPECTED_VERSION")
+        if version:
+            return version
+        else:
+            return None
