@@ -49,16 +49,15 @@ class AtlasLogger(object):
 
         DEV_LOGGER.info('Detail="post_log: meta_file %s"' % (meta_file))
 
-        temp_url = self._get_temp_url(meta_file)
+        temp_url, log_file_name = self._get_temp_url(meta_file)
 
-        DEV_LOGGER.info('Detail="post_log: temp_url %s"' % (temp_url))
-
+        DEV_LOGGER.info('Detail="post_log: temp_url %s, log_file_name %s"' % (temp_url, log_file_name))
 
         start_log_timer = time.time()
         self._send_log(temp_url, log_path)
         end_log_timer = time.time()
 
-        self._send_meta_data(tracking_info, meta_file)
+        self._send_meta_data(tracking_info, log_file_name)
 
         return [0, end_log_timer - start_log_timer]
 
@@ -74,21 +73,21 @@ class AtlasLogger(object):
 
         DEV_LOGGER.info('Detail="_get_temp_url: response %s"' % (response))
 
-        return response['tempURL']
+        return response['tempURL'], response["logFilename"]
 
     @staticmethod
     def _send_log(temp_url, log_path):
         """ send the logs to Cloud """
 
         headers = {'Content-type': 'application/octet-stream',
-                   'X-Trans-Id': str(uuid())}
+                   'X-Trans-Id': str(uuid())}  # TODO: Check if we still need this now that we've moved to AWS
 
         with open(log_path, mode='rb') as file_handle: # b is important -> binary
             file_content = file_handle.read()
 
         response = Http.put(temp_url.encode('utf-8'), headers, file_content, silent=True)
 
-        DEV_LOGGER.info('Detail="_send_log: Rackspace transaction ID: %s' % response.info()['X-Trans-Id'])
+        DEV_LOGGER.info('Detail="_send_log: completed with status code {}'.format(response.getcode()))
 
     def _send_meta_data(self, tracking_info, file_name):
         """ send Meta Data to Cloud """
