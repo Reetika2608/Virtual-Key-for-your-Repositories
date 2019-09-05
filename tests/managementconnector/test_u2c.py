@@ -35,13 +35,46 @@ def config_read(path):
     return "config_value"
 
 
+def config_read_with_wrong_u2c_host(path):
+    """ config class mock """
+    DEV_LOGGER.debug("ConfigMock: read path %s" % path)
+
+    if path == ManagementConnectorProperties.U2C_HOST:
+        return {"value": "\\\"https://u2c-a.wbx2.com/u2c/api/v1\\\""}
+    else:
+        return config_read(path)
+
+
 def database_read(path):
     """ database class mock """
 
     if path == ManagementConnectorProperties.U2C_IDENTITY_HOST:
         return "some_identity_host"
     elif path == ManagementConnectorProperties.U2C_HOST:
+        return "some_u2c_host"
+
+    return None
+
+
+def database_read_u2c_not_set(path):
+    """ database class mock """
+
+    if path == ManagementConnectorProperties.U2C_IDENTITY_HOST:
+        return "some_identity_host"
+    elif path == ManagementConnectorProperties.U2C_HOST:
         return None
+
+    return None
+
+
+def database_read_with_wrong_u2c_host_value(path):
+    """ database class mock """
+
+    if path == ManagementConnectorProperties.U2C_IDENTITY_HOST:
+        return "some_identity_host"
+
+    elif path == ManagementConnectorProperties.U2C_HOST:
+        return "{\"value\": \"\\\"https://u2c-a.wbx2.com/u2c/api/v1\\\"\"}"
 
     return None
 
@@ -65,6 +98,7 @@ class U2CTest(unittest.TestCase):
             "ttl": -1}]
         }
         self.database = mock.Mock()
+        self.database.read.side_effect = database_read
 
     def test_update_user_catalog(self):
         """ Test U2C User Catalog Processed Correctly"""
@@ -124,12 +158,24 @@ class U2CTest(unittest.TestCase):
         on fuse. The U2C thread should do a test and write in the default value to CDB, if value not set in CDB'"""
         self.config_mock.read.side_effect = config_read
         test_u2c = U2C(self.config_mock, self.oauth, self.http, self.database)
-        self.database.read.side_effect = database_read
+        self.database.read.side_effect = database_read_u2c_not_set
 
         test_u2c.update_user_catalog()
 
-        self.config_mock.write_blob.assert_called_with('u2c_u2cHost',
-                                                       {'value': '"https://u2c-a.wbx2.com/u2c/api/v1"'})
+        self.config_mock.write_blob.assert_called_with('u2c_u2cHost', 'https://u2c-a.wbx2.com/u2c/api/v1')
+
+    def test_rewrite_u2c_host_to_cdb_if_u2c_is_incorrect(self):
+        """ Reported as SPARK-91437: If the u2c url was NOT set, we wrote the wrong value to the DB
+        This will ensure we get the new value (and rewrite it correctly)'"""
+        self.config_mock.read.side_effect = config_read_with_wrong_u2c_host
+        test_u2c = U2C(self.config_mock, self.oauth, self.http, self.database)
+        self.database.read.side_effect = database_read_with_wrong_u2c_host_value
+
+        test_u2c.update_user_catalog()
+
+        # TODO: Make this prettier, shouldn't reach into the object under test like this
+        self.assertEqual(self.http.get.call_args[0][0], "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM&services=" + test_u2c.build_services_list(U2C.service_map))
+        self.config_mock.write_blob.assert_called_with('u2c_u2cHost', 'https://u2c-a.wbx2.com/u2c/api/v1')
 
 
 if __name__ == "__main__":

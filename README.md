@@ -202,7 +202,7 @@ Go to the [Hybrid Management](https://console.ciscocrate.com/env/1a2816697/apps/
 is a dotted menu with the option to upgrade:
 ![Agent](docs/images/agent.png?raw=true)
 
-Click the upgarde option and on the next screen check the _Always pull image before creating_ option. Ensure that ```Interactive and TTY``` is selected on the Commands tab. Click upgrade and wait for crate to work:
+Click the upgrade option and on the next screen check the _Always pull image before creating_ option. Ensure that ```Interactive and TTY``` is selected on the Commands tab. Click upgrade and wait for crate to work:
 ![Upgrade](docs/images/upgrade.png?raw=true)
 
 Note that if after upgrade Jenkins reports the agents as offline you may need to manually start the ssh daemon on the nodes in Crate. The command you need to run on the console of each node in Crate is ```/usr/sbin/sshd -D```.
