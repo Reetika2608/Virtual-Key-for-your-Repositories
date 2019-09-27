@@ -282,6 +282,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     PACKAGE_EXTENSION = ".tlp"
     INSTALL_UPGRADES = "installed_"
     INSTALL_BLACK_LIST = INSTALL_UPGRADES + "blacklist"
+    ROLLBACK_BLACK_LIST = "rollback_blacklist"
     INSTALL_PREVIOUS_DIR = "/mnt/harddisk/persistent/fusion/previousversions"
     INSTALL_CURRENT_DIR = "/mnt/harddisk/persistent/fusion/currentversions"
     INSTALL_DOWNLOADS_DIR = "/mnt/harddisk/persistent/fusion/downloads"

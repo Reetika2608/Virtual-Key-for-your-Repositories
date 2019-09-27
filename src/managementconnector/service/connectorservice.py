@@ -4,14 +4,13 @@
 
 import time
 
-from managementconnector.service.service import Service
 from cafedynamic.cafexutil import CafeXUtils
-from managementconnector.platform.serviceutils import ServiceUtils
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.config.versionchecker import get_expressway_full_version
-
-from managementconnector.service.eventsender import EventSender
 from managementconnector.events.upgradeevent import UpgradeEvent
+from managementconnector.platform.serviceutils import ServiceUtils
+from managementconnector.service.eventsender import EventSender
+from managementconnector.service.service import Service
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
@@ -48,6 +47,11 @@ class ConnectorService(Service):
         prevent_upgrade = self._config.read(ManagementConnectorProperties.PREVENT_MGMT_CONN_UPGRADE)
 
         DEV_LOGGER.info('Detail="configure: ConnectorService: %s, url: %s, version: %s"' % (self._install_details, url, version))
+
+        black_list = self._config.read(ManagementConnectorProperties.ROLLBACK_BLACK_LIST, {})
+        if "c_mgmt" not in black_list:
+            self._config.write_blob(ManagementConnectorProperties.ROLLBACK_BLACK_LIST,
+                                    {"c_mgmt": {"version": "8.11-1.0.321357"}})
 
         # More-or-less inline with Service Equivalent - No disabling (or enabling) of these dependency types
         if (self.update_allowed(version) and prevent_upgrade.lower() == "off"):

@@ -405,6 +405,7 @@ JS;
 
         $blocked_version = $this->get_blocked_versions($service);
         $rollback_version = $this->get_rollback_details($service);
+        $blocked_rollback_version = $this->get_blocked_rollback_details($service);
 
         if($blocked_version && $this->is_app_version_different($blocked_version, $version))
         {
@@ -417,7 +418,7 @@ JS;
             $rollforward_fieldset->addRow("lbl.BLOCKED_ROLLFORWARD_VERSION", new Label($blocked_version));
             $this->rollforward_form->addSubmitButton("btn.ROLLFORWARD", $confirmRollbackJs, "rollforward");
         }
-        if($rollback_version)
+        else if($rollback_version && !($blocked_rollback_version && $blocked_rollback_version == $rollback_version))
         {
             $this->view->inline_javascript[] = $this->get_rollback_confirmation_js("ROLLBACK");
             $this->rollback_form = new DataForm( "", "", "rollback_form");
@@ -529,6 +530,21 @@ JS;
     private function get_blocked_versions($service)
     {
         $root = $this->rest_data_adapter->get_local("configuration/cafe/cafeblobconfiguration/name/c_mgmt_installed_blacklist");
+        if(isset($root->record[0]))
+        {
+            $record = $root->record[0];
+            $decoded = json_decode($record->value);
+            if( $decoded && isset($decoded->{$service}) )
+            {
+                return $decoded->{$service}->version;
+            }
+        }
+        return null;
+    }
+
+    private function get_blocked_rollback_details($service)
+    {
+        $root = $this->rest_data_adapter->get_local("configuration/cafe/cafeblobconfiguration/name/c_mgmt_rollback_blacklist");
         if(isset($root->record[0]))
         {
             $record = $root->record[0];
