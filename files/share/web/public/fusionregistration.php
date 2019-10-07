@@ -418,7 +418,7 @@ JS;
             $rollforward_fieldset->addRow("lbl.BLOCKED_ROLLFORWARD_VERSION", new Label($blocked_version));
             $this->rollforward_form->addSubmitButton("btn.ROLLFORWARD", $confirmRollbackJs, "rollforward");
         }
-        else if($rollback_version && !($blocked_rollback_version && $blocked_rollback_version == $rollback_version))
+        if($rollback_version && !($blocked_rollback_version && $blocked_rollback_version == $rollback_version))
         {
             $this->view->inline_javascript[] = $this->get_rollback_confirmation_js("ROLLBACK");
             $this->rollback_form = new DataForm( "", "", "rollback_form");
