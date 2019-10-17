@@ -271,10 +271,17 @@ timestamps {
                             projectName: provisioning_json_job_url,
                             selector: specific("${provisioning_build.number}"))
 
+                    copyArtifacts(filter: 'latest_provisioning.txt',
+                            fingerprintArtifacts: true,
+                            flatten: true,
+                            projectName: provisioning_json_job_url,
+                            selector: specific("${provisioning_build.number}"))
+
                     // Publish latest_provisioning_targeted.txt to maven
                     utils = load('jenkins/methods/utils.groovy')
                     maven_json_dir = 'provisioning/'
                     utils.uploadArtifactsToMaven('latest_provisioning_targeted.txt', maven_json_dir)
+                    utils.uploadArtifactsToMaven('latest_provisioning.txt', maven_json_dir)
 
                     build('platform/tlp-deploy/tlp-deploy-management-connector-integration-latest')
 
