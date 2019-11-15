@@ -35,7 +35,16 @@ timestamps {
 
                 print("Step 2. Trigger Binaries Deploy Job")
                 def binary_job_url = "platform/binaries/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
-                def binary_build = build(binary_job_url)
+                def binary_build
+                withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
+                    binary_build = triggerRemoteJob([],
+                            'https://sqbu-jenkins-01.cisco.com:8443/',
+                            username,
+                            token,
+                            binary_job_url,
+                            "provisioning_json_${RELEASE_CHANNEL}#${BUILD_NUMBER}")
+                }
+
                 sh("rm -rf manifest.yaml*")
                 copyArtifacts(filter: '_dist/manifest.yaml',
                         fingerprintArtifacts: true,

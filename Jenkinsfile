@@ -283,7 +283,14 @@ timestamps {
                     utils.uploadArtifactsToMaven('latest_provisioning_targeted.txt', maven_json_dir)
                     utils.uploadArtifactsToMaven('latest_provisioning.txt', maven_json_dir)
 
-                    build('platform/tlp-deploy/tlp-deploy-management-connector-integration-latest')
+                    withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
+                        triggerRemoteJob([],
+                                'https://sqbu-jenkins-01.cisco.com:8443/',
+                                username,
+                                token,
+                                'platform/tlp-deploy/tlp-deploy-management-connector-integration-latest',
+                                "management_connector#${BUILD_NUMBER}")
+                    }
 
                     // TODO - Remove call to sqbu, and replace with local INT pipeline
                     // Kicking Old INT pipeline
@@ -435,7 +442,14 @@ def deploy(String release, List<String> environments) {
                 if ((release == "stable") && (environment == "cfe")) {
                     deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}"
                 }
-                build(deploy_job)
+                withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
+                    triggerRemoteJob([],
+                            'https://sqbu-jenkins-01.cisco.com:8443/',
+                            username,
+                            token,
+                            deploy_job,
+                            "management_connector#${BUILD_NUMBER}")
+                }
             }
         } catch (Exception e) {
             if (environment == "cfe"){
