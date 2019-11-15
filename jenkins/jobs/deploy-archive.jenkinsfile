@@ -1,4 +1,5 @@
 #!/usr/bin/groovy
+@Library('sparkPipeline') _
 
 RELEASE_CHANNEL = params.RELEASE_CHANNEL
 TLP_FILE = ''
@@ -37,7 +38,7 @@ timestamps {
                 def binary_job_url = "platform/binaries/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
                 def binary_build
                 withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
-                    binary_build = triggerRemoteJob([],
+                    binary_build = sparkPipeline.triggerRemoteJob([],
                             'https://sqbu-jenkins-01.cisco.com:8443/',
                             username,
                             token,

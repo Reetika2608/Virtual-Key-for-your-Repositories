@@ -284,7 +284,7 @@ timestamps {
                     utils.uploadArtifactsToMaven('latest_provisioning.txt', maven_json_dir)
 
                     withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
-                        triggerRemoteJob([],
+                        sparkPipeline.triggerRemoteJob([],
                                 'https://sqbu-jenkins-01.cisco.com:8443/',
                                 username,
                                 token,
@@ -443,7 +443,7 @@ def deploy(String release, List<String> environments) {
                     deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}"
                 }
                 withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
-                    triggerRemoteJob([],
+                    sparkPipeline.triggerRemoteJob([],
                             'https://sqbu-jenkins-01.cisco.com:8443/',
                             username,
                             token,
