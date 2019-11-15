@@ -46,17 +46,22 @@ timestamps {
                             "provisioning_json_${RELEASE_CHANNEL}#${BUILD_NUMBER}")
                 }
 
-                sh("rm -rf manifest.yaml*")
-                copyArtifacts(filter: '_dist/manifest.yaml',
-                        fingerprintArtifacts: true,
-                        flatten: true,
-                        projectName: binary_job_url,
-                        selector: specific("${binary_build.number}"))
+                def build_number = binary_build.getBuildNumber()
+                if (build_number == 0) {
+                    error("Unexpected remote build number: 0")
+                } else {
+                    sh("rm -rf manifest.yaml*")
+                    copyArtifacts(filter: '_dist/manifest.yaml',
+                            fingerprintArtifacts: true,
+                            flatten: true,
+                            projectName: binary_job_url,
+                            selector: specific("${build_number}"))
 
-                print("Step 3. Create provisioning JSON file")
-                createProvisioning(RELEASE_CHANNEL)
+                    print("Step 3. Create provisioning JSON file")
+                    createProvisioning(RELEASE_CHANNEL)
 
-                archiveArtifacts(artifacts: "${TLP_FILE}, *targeted.txt, *provisioning.txt, manifest.yaml")
+                    archiveArtifacts(artifacts: "${TLP_FILE}, *targeted.txt, *provisioning.txt, manifest.yaml")
+                }
             }
         }
     }
