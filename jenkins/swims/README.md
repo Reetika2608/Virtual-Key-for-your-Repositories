@@ -31,7 +31,7 @@ Pass the newly created SWIMs ticket file to the build script to create a TLP.
 
 ## Process
 ### Creating a new SWIMs Ticket Request
-1. Open the FMC [SWIMs Ticket pipeline](https://sqbu-jenkins-01.cisco.com:8443/job/team/job/management-connector/job/swims/job/swims-ticket/).
+1. Open the FMC [SWIMs Ticket pipeline](https://sqbu-jenkins.wbx2.com/service07/job/team/job/management-connector/job/swims/job/swims-ticket/).
 2. Click the ```Build with Parameters``` menu item.
 3. Enter a one-time password (```creatorOTP```) from MobilePass, SofToken or PingID depending on which one you use.
 4. Press Build.
@@ -39,7 +39,7 @@ Pass the newly created SWIMs ticket file to the build script to create a TLP.
 _Once the job is started, it will reach out to SWIMs and request a ticket using the username and one-time password of the submitter. The ticket request number is stored and will be used in the next stage of the process._
 
 ### Approving a SWIMs Ticket Request
-1. Open the FMC [SWIMs Ticket pipeline](https://sqbu-jenkins-01.cisco.com:8443/job/team/job/management-connector/job/swims/job/swims-ticket/).
+1. Open the FMC [SWIMs Ticket pipeline](https://sqbu-jenkins.wbx2.com/service07/job/team/job/management-connector/job/swims/job/swims-ticket/).
 2. Click on the build that was created above and is pending approval. It's description should say "Ticket waiting for approval. Click here to approve ticket.
 3. Open the console for the build.
 4. Click on the "Input Requested" link at the bottom of the console.
@@ -66,6 +66,6 @@ _At this point the approver will receive an email._
 1. Log in to the [SWIMs portal](https://swims.cisco.com/swims/).
 2. Navigate to the [List my active tickets](https://swims.cisco.com/swims/ticket/list/active) page.
 3. Select the appropriate ticket and download it.
-4. Log in to Jenkins and navigate to the [fmc-swims credential](https://sqbu-jenkins-01.cisco.com:8443/job/team/job/management-connector/job/pipeline/credentials/store/folder/domain/_/credential/fmc-swims/).
+4. Log in to Jenkins and navigate to the [fmc-swims credential](https://sqbu-jenkins.wbx2.com/service07/job/team/job/management-connector/job/pipeline/credentials/store/folder/domain/_/credential/fmc-swims/).
 5. CLick Update.
 6. Paste the text from the SWIMs ticket into the ```Secret``` field and click Save.

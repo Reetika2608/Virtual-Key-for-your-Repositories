@@ -83,7 +83,7 @@ timestamps {
   <secret>$content</secret>
 </org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl>
 EOF""")
-                sh("ssh -p 2022 -o StrictHostKeyChecking=no -i ${private_key} cafefusion.gen@sqbu-jenkins-01.cisco.com update-credentials-by-xml folder::item::/team/management-connector/pipeline _ fmc-swims < credential.xml")
+                sh("ssh -p 2030 -o StrictHostKeyChecking=no -i ${private_key} cafefusion.gen@sqbu-jenkins.wbx2.com update-credentials-by-xml folder::item::/team/management-connector/pipeline _ fmc-swims < credential.xml")
             }
         }
     }
