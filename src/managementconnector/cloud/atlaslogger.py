@@ -67,7 +67,7 @@ class AtlasLogger(object):
         logging_url = self._config.read(ManagementConnectorProperties.LOGGING_HOST) + \
                       self._config.read(ManagementConnectorProperties.LOGGING_ASK_URL)
 
-        data = {"file" : logfile_name}
+        data = {"file" : logfile_name, 'uploadProtocol':'content-length'}
 
         response = Http.post(logging_url, self.get_headers(), json.dumps(data), schema=schema.ASK_URL_RESPONSE)
 
