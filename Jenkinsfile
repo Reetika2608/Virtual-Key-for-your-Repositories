@@ -416,7 +416,7 @@ def runOldIntPipeline() {
         def job = "team/mgmt-connector/fusion-mgt-connector-pipeline-release-channels"
 
         withCredentials([sshUserPrivateKey(credentialsId: "cafefusion.gen-ssh", keyFileVariable: 'priv_key')]) {
-            sh("ssh -p 2022 -o StrictHostKeyChecking=no -i ${priv_key} cafefusion.gen@sqbu-jenkins.cisco.com build '${job}'")
+            sh("ssh -p 2029 -o StrictHostKeyChecking=no -i ${priv_key} cafefusion.gen@sqbu-jenkins.wbx2.com build '${job}'")
         }
     }
 }
