@@ -37,9 +37,9 @@ timestamps {
                 print("Step 2. Trigger Binaries Deploy Job")
                 def binary_job_url = "platform/binaries/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
                 def binary_build
-                withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
+                withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
                     binary_build = sparkPipeline.triggerRemoteJob([],
-                            'https://sqbu-jenkins-01.cisco.com:8443/',
+                            'https://sqbu-jenkins.wbx2.com/support/',
                             username,
                             token,
                             binary_job_url,
@@ -51,13 +51,13 @@ timestamps {
                     error("Unexpected remote build number: 0")
                 } else {
                     sh("rm -rf manifest.yaml*")
-                    copyArtifacts(filter: '_dist/manifest.yaml',
-                            fingerprintArtifacts: true,
-                            flatten: true,
-                            projectName: binary_job_url,
-                            selector: specific("${build_number}"))
+                    print ("Step 3. Copy the artifacts from Remote Server")
+                    withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor',  usernameVariable: 'username', passwordVariable:'token')]) {
+                        sh """
+                        curl -X GET -u $username:$token https://sqbu-jenkins.wbx2.com/support/job/platform/job/binaries/job/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}/${build_number}/artifact/_dist/manifest.yaml -O """
+                    }
 
-                    print("Step 3. Create provisioning JSON file")
+                    print("Step 4. Create provisioning JSON file")
                     createProvisioning(RELEASE_CHANNEL)
 
                     archiveArtifacts(artifacts: "${TLP_FILE}, *targeted.txt, *provisioning.txt, manifest.yaml")
