@@ -283,9 +283,9 @@ timestamps {
                     utils.uploadArtifactsToMaven('latest_provisioning_targeted.txt', maven_json_dir)
                     utils.uploadArtifactsToMaven('latest_provisioning.txt', maven_json_dir)
 
-                    withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
+                    withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
                         sparkPipeline.triggerRemoteJob([],
-                                'https://sqbu-jenkins-01.cisco.com:8443/',
+                                'https://sqbu-jenkins.wbx2.com/support/',
                                 username,
                                 token,
                                 'platform/tlp-deploy/tlp-deploy-management-connector-integration-latest',
@@ -442,9 +442,9 @@ def deploy(String release, List<String> environments) {
                 if ((release == "stable") && (environment == "cfe")) {
                     deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}"
                 }
-                withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.token', usernameVariable: 'username', passwordVariable: 'token')]) {
+                withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
                     sparkPipeline.triggerRemoteJob([],
-                            'https://sqbu-jenkins-01.cisco.com:8443/',
+                            'https://sqbu-jenkins.wbx2.com/support/',
                             username,
                             token,
                             deploy_job,
