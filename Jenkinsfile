@@ -294,7 +294,14 @@ timestamps {
 
                     // TODO - Remove call to sqbu, and replace with local INT pipeline
                     // Kicking Old INT pipeline
-                    runOldIntPipeline()
+                     withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
+                        sparkPipeline.triggerRemoteJob([],
+                                'https://sqbu-jenkins.wbx2.com/support/',
+                                username,
+                                token,
+                                'platform/tlp-deploy/tlp-deploy-management-connector-production-latest',
+                                "management_connector#${BUILD_NUMBER}")
+                    }
                 }
             }
 
@@ -411,15 +418,6 @@ timestamps {
 /********************************************************************************/
 
 // TODO: Export targeted deploy and INT pipeline tests from SQBU to SQBU-01
-def runOldIntPipeline() {
-    node('fmc-build') {
-        def job = "team/mgmt-connector/fusion-mgt-connector-pipeline-release-channels"
-
-        withCredentials([sshUserPrivateKey(credentialsId: "cafefusion.gen-ssh", keyFileVariable: 'priv_key')]) {
-            sh("ssh -p 2029 -o StrictHostKeyChecking=no -i ${priv_key} cafefusion.gen@sqbu-jenkins.wbx2.com build '${job}'")
-        }
-    }
-}
 
 def deploy(String release, List<String> environments) {
     checkpoint("Deploy to ${release}")
