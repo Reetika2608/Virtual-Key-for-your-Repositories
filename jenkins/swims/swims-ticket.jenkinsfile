@@ -91,7 +91,7 @@ EOF""")
 
 
 def get_approver_list(user_id) {
-    def authorised_approvers = ["marnewel", "torjohan", "marolsdo"] as String[]
+    def authorised_approvers = ["marnewel", "torjohan", "marolsdo", "namalraj", "kribalac"] as String[]
     def skip = 0
     for (int i = 0; i < authorised_approvers.size(); i++) {
         if (user_id == authorised_approvers[i]) {
