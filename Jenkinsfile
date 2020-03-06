@@ -92,13 +92,13 @@ timestamps {
 
                 logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
                 pythonLogsDir = "./"  + logsDir + "/"
-                resources = getResources('./jenkins/test_resources/lysaker_resources.yaml')
+                resources = getResources('./jenkins/test_resources/bangalore_resources.yaml')
 
                 try {
                     parallel (
                         'Unregistered tests': {
                             lock(resource: resources.exp_hostname_unreg_1) {
-                                print("Installing .tlp...")
+                                print("Installing .tlp for Unregistered tests")
                                 sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
                                 print("Performing unregistered tests")
                                 sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
@@ -114,7 +114,7 @@ timestamps {
                          },
                         'API registration tests': {
                             lock(resource: resources.exp_hostname_unreg_1) {
-                                print("Installing .tlp...")
+                                print("Installing .tlp for API registration tests")
                                 sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
                                 print("Performing API tests")
 
@@ -124,7 +124,7 @@ timestamps {
                                      EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                      EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                      EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                     CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                     CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                      ORG_ID=${config.org.org_id} \
                                      ORG_ADMIN_USER=${org_admin_user} \
                                      ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -137,7 +137,7 @@ timestamps {
                         },
                         'UI registration tests': {
                             lock(resource: resources.exp_hostname_unreg_2) {
-                                print("Installing .tlp...")
+                                print("Installing .tlp for UI registration tests")
                                 sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${TLP_FILE}")
 
                                 print("Performing UI tests")
@@ -148,7 +148,7 @@ timestamps {
                                              EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                              EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                              EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                              ORG_ID=${config.org.org_id} \
                                              ORG_ADMIN_USER=${org_admin_user} \
                                              ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -162,7 +162,7 @@ timestamps {
                                              EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                              EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                              EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                              ORG_ID=${config.org.org_id} \
                                              ORG_ADMIN_USER=${org_admin_user} \
                                              ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -175,7 +175,7 @@ timestamps {
                                              EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                              EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                              EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                              ORG_ID=${config.org.org_id} \
                                              ORG_ADMIN_USER=${org_admin_user} \
                                              ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -189,7 +189,7 @@ timestamps {
                                              EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                              EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                              EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                              ORG_ID=${config.org.org_id} \
                                              ORG_ADMIN_USER=${org_admin_user} \
                                              ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -200,7 +200,7 @@ timestamps {
                         },
                         'Registered tests': {
                             lock(resource: resources.exp_hostname_reg_1) {
-                                print("Installing .tlp...")
+                                print("Installing .tlp for egistered tests")
                                 sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_1} -w ${TLP_FILE} ")
                                 print("Performing registered tests")
                                 withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
@@ -209,7 +209,7 @@ timestamps {
                                      EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                      EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                      EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                     CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                     CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                      ORG_ID=${config.org.org_id} \
                                      ORG_ADMIN_USER=${org_admin_user} \
                                      ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -225,9 +225,9 @@ timestamps {
                             // (without using label, which would require admin access or a custom Jenkins job).
                             // We therefore lock only the primary cluster node, even though we use both
                             lock(resource: resources.exp_hostname_unreg_cluster_node_1) {
-                                print("Installing .tlp on node 1...")
+                                print("Installing .tlp on node 1 for Clustered tests")
                                 sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_1} -w ${TLP_FILE}")
-                                print("Installing .tlp on node 2...")
+                                print("Installing .tlp on node 2 for Clustered tests")
                                 sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_2} -w ${TLP_FILE}")
 
                                 print("Performing cluster tests")
@@ -238,7 +238,7 @@ timestamps {
                                      EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                      EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                      EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                     CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                     CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                      ORG_ID=${config.org.org_id} \
                                      ORG_ADMIN_USER=${org_admin_user} \
                                      ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -313,7 +313,7 @@ timestamps {
                     try {
                         logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
                         pythonLogsDir = "./"  + logsDir + "/"
-                        resources = getResources('./jenkins/test_resources/lysaker_resources.yaml')
+                        resources = getResources('./jenkins/test_resources/bangalore_resources.yaml')
 
                         parallel(
                             'Bootstrap & cert test': {
@@ -326,7 +326,7 @@ timestamps {
                                                  EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                                  EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                                  EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                                 CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                                  ORG_ID=${config.org.org_id} \
                                                  ORG_ADMIN_USER=${org_admin_user} \
                                                  ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -340,7 +340,7 @@ timestamps {
                                                  EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                                  EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                                  EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                                 CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                                 CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                                  ORG_ID=${config.org.org_id} \
                                                  ORG_ADMIN_USER=${org_admin_user} \
                                                  ORG_ADMIN_PASSWORD=${org_admin_pass} \
@@ -358,7 +358,7 @@ timestamps {
                                              EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                              EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                              EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/lysaker_config.yaml \
+                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
                                              ORG_ID=${config.org.org_id} \
                                              ORG_ADMIN_USER=${org_admin_user} \
                                              ORG_ADMIN_PASSWORD=${org_admin_pass} \
