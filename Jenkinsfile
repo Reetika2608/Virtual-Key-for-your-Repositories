@@ -1,10 +1,10 @@
 #!/usr/bin/groovy
 @Library('sparkPipeline') _
 
-properties([
-        // number of builds to keep
-        buildDiscarder(logRotator(numToKeepStr: '20')),
-])
+pipelineProperties(name: 'management-connector',
+                   numToKeep: 20,
+                   integration: [
+                   runSecurityScans: true])
 
 DEB_VERSION = ''
 TLP_FILE = ''
@@ -272,6 +272,12 @@ timestamps {
                             selector: specific("${provisioning_build.number}"))
 
                     copyArtifacts(filter: 'latest_provisioning.txt',
+                            fingerprintArtifacts: true,
+                            flatten: true,
+                            projectName: provisioning_json_job_url,
+                            selector: specific("${provisioning_build.number}"))
+
+                    copyArtifacts(filter: 'library.yml',
                             fingerprintArtifacts: true,
                             flatten: true,
                             projectName: provisioning_json_job_url,

@@ -1,0 +1,18 @@
+id: management-connector
+name: management-connector
+version: ${project.version}
+deploy-file: c_mgmt*.tlp
+
+owner:
+  email: {roshin : "Roshin Thovarai", madanant : "Madhuri Ananthanarayana" }
+  pagerduty: https://ciscospark.pagerduty.com/services/P34VTKY
+  spark: ef2b7270-f821-11e6-b202-e9da7e0adafd
+  askspark: c8ae4850-ff8f-11e6-a94c-7915fd222062
+
+security-automation:
+  credentials-id: "hybrid-bot.gen"
+  corona-pid: 4869
+  enabled_scans: ['corona']
+  threat-model-id: 21796
+  ctsm_jira_id: CTSM-45288
+  roomId: 'Y2lzY29zcGFyazovL3VzL1JPT00vZGMxYmZjYjAtNTlmNi0xMWVhLThmMzgtNjkwZTcwMTI0YWY3'

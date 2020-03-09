@@ -1,6 +1,10 @@
 #!/usr/bin/groovy
 @Library('sparkPipeline') _
 
+pipelineProperties(
+                   integration: [
+                   runSecurityScans: true])
+
 RELEASE_CHANNEL = params.RELEASE_CHANNEL
 TLP_FILE = ''
 
@@ -60,7 +64,7 @@ timestamps {
                     print("Step 4. Create provisioning JSON file")
                     createProvisioning(RELEASE_CHANNEL)
 
-                    archiveArtifacts(artifacts: "${TLP_FILE}, *targeted.txt, *provisioning.txt, manifest.yaml")
+                    archiveArtifacts(artifacts: "${TLP_FILE}, library.yml, *targeted.txt, *provisioning.txt, manifest.yaml")
                 }
             }
         }
