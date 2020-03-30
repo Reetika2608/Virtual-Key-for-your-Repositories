@@ -525,7 +525,11 @@ case $1 in
         if user_exists _c_mgmt; then
             dev_log_debug "c_mgmt:general"
             # Ensure ca.pem is updated on an e
-            if is_option_key_set "T00" ; then
+            # check expressway type in 12.6+ versions
+            if is_box_type_set "e" ; then
+                updatefusioncerts
+            # check expressway type till 12.5 versions
+            elif is_option_key_set "T00" ; then
                 updatefusioncerts
             else
                 # Cleanup any fusion certs which were added to ca.pem by older installations
