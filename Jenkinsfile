@@ -382,19 +382,6 @@ timestamps {
                 }
             }
 
-            // This stage publishes the tested debian to the Expressway "wood" build
-            // which will get injected in the Expressway image
-            stage('Deploy to wood repo') {
-                checkpoint("Deploy to Expressway repo")
-                node('fmc-build') {
-                    // Get the stashed debian from the previous stages
-                    unstash('debian')
-                    sshagent(credentials: ['cafefusion.gen-sshNoPass']) {
-                        sh('scp -o StrictHostKeyChecking=no c_mgmt.deb cafefusion.gen@nfstool.rd.cisco.com:/export/tandberg/system/releases/c_mgmt/master/c_mgmt.deb')
-                    }
-                }
-            }
-
             stage('Deploy to Alpha') {
                 // Generate and Deploy Provisioning Data to FMS
                 deploy('alpha', ['production', 'cfe'])
@@ -408,6 +395,20 @@ timestamps {
             stage('Deploy to Stable') {
                 // Generate and Deploy Provisioning Data to FMS
                 deploy('stable', ['integration', 'production', 'cfe'])
+            }
+
+            // This stage publishes the tested debian to the Expressway "wood" build
+            // which will get injected in the Expressway image
+            // This stage is moved  after stable so that the Expressway "wood" build always has a stable c_mgmt debian which is thoroughly tested.
+            stage('Deploy to wood repo') {
+                checkpoint("Deploy to Expressway repo")
+                node('fmc-build') {
+                    // Get the stashed debian from the previous stages
+                    unstash('debian')
+                    sshagent(credentials: ['cafefusion.gen-sshNoPass']) {
+                        sh('scp -o StrictHostKeyChecking=no c_mgmt.deb cafefusion.gen@nfstool.rd.cisco.com:/export/tandberg/system/releases/c_mgmt/master/c_mgmt.deb')
+                    }
+                }
             }
         }
     }
