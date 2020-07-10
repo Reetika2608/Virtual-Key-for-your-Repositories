@@ -10,7 +10,7 @@ owner:
   askspark: c8ae4850-ff8f-11e6-a94c-7915fd222062
 
 security-automation:
-  credentials-id: "hybrid-bot.gen"
+  credentials-id: "hybrid-services.gen"
   corona-pid: 4869
   enabled_scans: ['corona']
   threat-model-id: 21796
