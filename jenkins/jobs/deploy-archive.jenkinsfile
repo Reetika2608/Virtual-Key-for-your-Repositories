@@ -13,7 +13,17 @@ timestamps {
         stage('Copy FMC TLP') {
             node('fmc-build') {
                 sh("rm -rf c_mgmt_*.tlp")
+                sh("rm -rf library.yml")
                 copyArtifacts(filter: '*.tlp',
+                        fingerprintArtifacts: true,
+                        flatten: true,
+                        projectName: 'team/management-connector/pipeline/master',
+                        selector: [$class                   : 'TriggeredBuildSelector',
+                                   allowUpstreamDependencies: false,
+                                   fallbackToLastSuccessful : true,
+                                   upstreamFilterStrategy   : 'UseGlobalSetting'])
+              //copy  library.yml
+              copyArtifacts(filter: 'library.yml',
                         fingerprintArtifacts: true,
                         flatten: true,
                         projectName: 'team/management-connector/pipeline/master',
@@ -24,6 +34,7 @@ timestamps {
 
                 TLP_FILE = sh(script: "ls c_mgmt_*.tlp", returnStdout: true).trim()
                 stash(includes: "${TLP_FILE}", name: 'tlp')
+                stash(includes: 'library.yml', name: 'library')
             }
         }
 
@@ -31,6 +42,7 @@ timestamps {
             node('fmc-build') {
                 checkout scm
                 unstash('tlp')
+                unstash('library')
                 // maven is the current approach for static url file storage of release channel tlp, for the binary
                 // deploy job, alternatively you could have a downstream jenkins job archiving all TLP also
                 print("Step 1. Publish c_mgmt.tlp to maven")

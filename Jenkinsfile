@@ -34,6 +34,10 @@ timestamps {
                 sh("mv ./debian/_build/c_mgmt.deb c_mgmt.deb")
                 archiveArtifacts('c_mgmt.deb')
                 stash(includes: 'c_mgmt.deb', name: 'debian')
+              
+              //archive library.yml file
+                archiveArtifacts('library.yml')
+                stash(includes: 'library.yml', name: 'library')
             }
         }
 
