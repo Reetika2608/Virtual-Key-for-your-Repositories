@@ -29,6 +29,7 @@ build(){
     duplicate_and_symlink_transform
     audit_import_paths
     install_external_dependencies
+    cleanup_external_dependencies
     generate_debian_version ${BUILD_NUMBER}
     remove_group_write_permissions
     package_debian

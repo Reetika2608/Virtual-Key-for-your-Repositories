@@ -130,7 +130,7 @@ generate_symlinks(){
 
 install_external_dependencies(){
     WEBSOCKET_DIR=debian/data/opt/c_mgmt/lib/websocket_client/
-    pip install websocket-client==0.37.0 --target=${WEBSOCKET_DIR} --no-dependencies
+    pip install websocket-client==0.55.0 --target=${WEBSOCKET_DIR} --no-dependencies
     [[ ! -d ${WEBSOCKET_DIR}websocket/ ]] && echo "External Dependencies Failure: ${WEBSOCKET_DIR}websocket/ install failure" && exit 1
 
     # Extra python dependencies
@@ -140,10 +140,16 @@ install_external_dependencies(){
     pip install pyratemp==0.3.2 --target=debian/data/opt/c_mgmt/lib/pyratemp/ --no-dependencies
     pip install functools32==3.2.3.post2 --target=debian/data/opt/c_mgmt/lib/functools32/ --no-dependencies
     pip install jsonschema==2.5.1 --target=debian/data/opt/c_mgmt/lib/jsonschema/ --no-dependencies
-    pip install cryptography==2.4.2 --target=debian/data/opt/c_mgmt/lib/cryptography/
+    pip install cryptography==2.9 --target=debian/data/opt/c_mgmt/lib/cryptography/
     pip install defusedxml==0.5.0 --target=debian/data/opt/c_mgmt/lib/defusedxml/ --no-dependencies
 }
 
+cleanup_external_dependencies(){
+    rm -rf debian/data/opt/c_mgmt/lib/websocket_client/websocket/tests
+    rm -rf debian/data/opt/c_mgmt/lib/websocket_client/websocket/cacert.pem
+    cp files/opt/c_mgmt/etc/cacert.pem  ./debian/data/opt/c_mgmt/lib/websocket_client/websocket/
+
+}
 generate_debian_version(){
     PIPELINE_VERSION=1.0
     PR_VERSION=555
