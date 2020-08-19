@@ -130,7 +130,7 @@ generate_symlinks(){
 
 install_external_dependencies(){
     WEBSOCKET_DIR=debian/data/opt/c_mgmt/lib/websocket_client/
-    pip install websocket-client==0.55.0 --target=${WEBSOCKET_DIR} --no-dependencies
+    pip install websocket-client==0.46.0 --target=${WEBSOCKET_DIR} --no-dependencies
     [[ ! -d ${WEBSOCKET_DIR}websocket/ ]] && echo "External Dependencies Failure: ${WEBSOCKET_DIR}websocket/ install failure" && exit 1
 
     # Extra python dependencies

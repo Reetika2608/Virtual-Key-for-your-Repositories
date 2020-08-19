@@ -71,8 +71,9 @@ def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id, 
     web_driver.find_element_by_xpath('//button').click()
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
-    time.sleep(3)
+    time.sleep(10)
     web_driver.get('https://' + control_hub + '/services/cluster/expressway/' + cluster_id + '/settings')
+    time.sleep(10)
     web_driver.find_element_by_css_selector(
         'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
     web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
