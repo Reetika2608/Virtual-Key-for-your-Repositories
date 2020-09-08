@@ -127,6 +127,9 @@ msgstr "Unsupported Expressway version"
 msgid "link.PRODUCT_DOWNLOAD"
 msgstr "Read more, and download the new version."
 
+msgid "link.NETWORK_REQUIREMENTS"
+msgstr "here."
+
 # This is not to be translated. Provides the link to download new product versions
 msgid "link.PRODUCT_DOWNLOAD_SOURCE"
 msgstr "https://collaborationhelp.cisco.com/article/en-us/ruyceab"
@@ -612,6 +615,21 @@ msgstr "60073"
 
 msgid "alm.38d69632-5fd8-4b44-94d7-a517b8329eb8.severity"
 msgstr "alert"
+
+msgid "alm.43800ef2-217d-483c-8412-9cbfdade19a8.title"
+msgstr "[Hybrid services] Connectivity error"
+
+msgid "alm.43800ef2-217d-483c-8412-9cbfdade19a8.description"
+msgstr "Unable to reach Cisco Collaboration Cloud."
+
+msgid "alm.43800ef2-217d-483c-8412-9cbfdade19a8.solution"
+msgstr "Check Network requirements for Teams Service and follow the proxy guidelines as highlighted %s"
+
+msgid "alm.43800ef2-217d-483c-8412-9cbfdade19a8.id"
+msgstr "60074"
+
+msgid "alm.43800ef2-217d-483c-8412-9cbfdade19a8.severity"
+msgstr "error"
 
 
 msgid "lbl.CONNECTOR_NOT_CONFIGURED"
