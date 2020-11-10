@@ -1,7 +1,8 @@
 ## SWIMs Overview
 The files in this folder are utilised as part of the FMC build pipeline's interaction with SWIMs.
 
-* [code_sign](code_sign) is the SWIMs tool used in both ticket creation and TLP creation. (_Note that this a 64bit binary._)
+* [code_sign_2.1j](code_sign_2.1j) is the SWIMs tool used in both ticket creation and TLP creation. (_Note that this a 64bit binary._)
+* [code_sign_2.5](code_sign_2.5) is the Latest SWIMs tool used in both ticket creation and TLP creation. This supports and requires DUO. (_Note that this a 64bit binary._)
 * [swims-ticket.jenkinsfile](swims-ticket.jenkinsfile) is the pipeline file used to create a SWIMs ticket
 
 ## Pipeline Stages
@@ -33,7 +34,7 @@ Pass the newly created SWIMs ticket file to the build script to create a TLP.
 ### Creating a new SWIMs Ticket Request
 1. Open the FMC [SWIMs Ticket pipeline](https://sqbu-jenkins.wbx2.com/service07/job/team/job/management-connector/job/swims/job/swims-ticket/).
 2. Click the ```Build with Parameters``` menu item.
-3. Enter a one-time password (```creatorOTP```) from MobilePass, SofToken or PingID depending on which one you use.
+3. Enter a one-time password (```creatorOTP```) from DUO depending on which one you use. The DUO can support both push and passcode. FMC seleted passcode support and it can be modified to support push as well if necessary.
 4. Press Build.
 
 _Once the job is started, it will reach out to SWIMs and request a ticket using the username and one-time password of the submitter. The ticket request number is stored and will be used in the next stage of the process._
@@ -43,7 +44,7 @@ _Once the job is started, it will reach out to SWIMs and request a ticket using 
 2. Click on the build that was created above and is pending approval. It's description should say "Ticket waiting for approval. Click here to approve ticket.
 3. Open the console for the build.
 4. Click on the "Input Requested" link at the bottom of the console.
-5. Enter two one-time passwords (```otp1``` and ```otp2```) from MobilePass, SofToken or PingID depending on which one you use.
+5. Enter two one-time passwords (```otp1``` and ```otp2```) from DUO depending on which one you use.
 6. Click Proceed.
 
 _Once the stage is started, it will reach out to SWIMs and approve the ticket request using the username and one-time password of the submitter. Once the ticket is approved the second one-time password is used to download the SWIMs ticket. This ticket is then validated in the next stage. In the final stage the ticket is uploaded to a secret text type credentials object called ```fmc-swims``` on Jenkins._
