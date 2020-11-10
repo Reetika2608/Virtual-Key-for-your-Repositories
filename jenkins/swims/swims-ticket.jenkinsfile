@@ -47,10 +47,18 @@ timestamps {
             unstash("swims_ticket")
             ticket = sh(returnStdout: true, script: "cat swims_ticket.txt")
             print("Run approve command with this username: ${approverOTPs.user_id} and the ticket ID: ${approverOTPs.otp1} to create tic file")
-            sh("rm -rf *.tic")
+            sh(script: """
+                if [ -f *.tic]; then
+                    rm -rf *.tic
+                fi
+            """.trim())
             sh("./jenkins/swims/code_sign_2.5 swims ticket approve -host swims-rtp.cisco.com -ticket ${ticket} -authType OTP -username1 ${approverOTPs.user_id} -password1 ${approverOTPs.otp1}")
             sh("./jenkins/swims/code_sign_2.5 swims ticket download -host swims-rtp.cisco.com -ticket ${ticket} -authType OTP -username1 ${approverOTPs.user_id} -password1 ${approverOTPs.otp2} -out FMC.tic.RELEASE")
-            sh("rm *output.txt")
+            sh(script: """
+                if [ -f *output.txt]; then
+                    rm *output.txt
+                fi
+            """.trim())
             print("SWIMS ticket ${ticket} was approved by ${approverOTPs.user_id}")
             stash(name: "swims_ticket", includes: "FMC.tic.RELEASE")
         }
