@@ -306,6 +306,7 @@ timestamps {
             stage('Deploy to Latest') {
                 checkpoint("Deploy to latest")
                 node('SPARK_BUILDER') {
+                    checkout scm
                     // Setup provisioning data
                     def provisioning_json_job_url = 'team/management-connector/deploy_files/provisioning_json_latest'
                     def provisioning_build = build(provisioning_json_job_url)
@@ -350,6 +351,7 @@ timestamps {
                                 'platform/tlp-deploy/tlp-deploy-management-connector-production-latest',
                                 "management_connector#${BUILD_NUMBER}")
                     }
+                    cleanWs()
                 }
             }
             stage('Tests against latest') {
