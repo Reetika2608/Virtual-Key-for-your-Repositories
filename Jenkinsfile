@@ -8,65 +8,88 @@ pipelineProperties(name: 'management-connector',
 
 DEB_VERSION = ''
 TLP_FILE = ''
+def pythonBuilder = 'containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave:latest'
+def builderName = 'local-spark-pythonbuilder-fmc'
 
 timestamps {
     try {
+
         stage('Build') {
-            node('fmc-build') {
-                checkout scm
 
-                print('static analysis')
-                sh("python setup.py pylint")
-                sh("bandit -r src/ -x src/unittests,src/base_platform -f xml -o bandit-results.xml")
+            node('SPARK_BUILDER') {
+                try {
+                      checkout scm
 
-                // Archive bandit tests results
-                junit allowEmptyResults: true, testResults: 'bandit-results.xml'
+                      def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
+                      sh("docker cp ./ ${builderName}:/home/jenkins")
+                      sh("docker exec ${builderName} pwd")
+                      sh("docker exec ${builderName} ls -ltr")
 
-                print('unit test')
-                sh("nosetests tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml")
+                      print('static analysis')
+                      sh("docker exec ${builderName} python lint.py pylint")
 
-                // Archive unit tests results
-                junit allowEmptyResults: true, testResults: 'test-results.xml'
+                      // Archive bandit tests results
+                      sh("docker exec ${builderName} bandit -r src/ -x src/unittests,src/base_platform -f xml -o bandit-results.xml")
+                      sh("docker cp ${builderName}:/home/jenkins/bandit-results.xml ./")
+                      junit allowEmptyResults: true, testResults: 'bandit-results.xml'
 
-                sh("./build_and_upgrade.sh -c build -v ${BUILD_ID};")
-                DEB_VERSION = sh(script: 'dpkg-deb --field debian/_build/c_mgmt.deb Version', returnStdout: true).trim()
+                      // Archive unit tests results
+                      sh("docker exec ${builderName} nosetests tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml")
+                      sh("docker cp ${builderName}:/home/jenkins/test-results.xml ./")
+                      junit allowEmptyResults: true, testResults: 'test-results.xml'
 
-                sh("mv ./debian/_build/c_mgmt.deb c_mgmt.deb")
-                archiveArtifacts('c_mgmt.deb')
-                stash(includes: 'c_mgmt.deb', name: 'debian')
-              
-              //archive library.yml file
-                archiveArtifacts('library.yml')
-                stash(includes: 'library.yml', name: 'library')
+                      sh("docker exec ${builderName} ./build_and_upgrade.sh -c build -v ${BUILD_ID};")
+
+                      sh("docker cp ${builderName}:/home/jenkins/debian/_build/c_mgmt.deb ./")
+
+                      print("check for debian")
+                      DEB_VERSION = sh(script: 'dpkg-deb --field ./c_mgmt.deb Version', returnStdout: true).trim()
+
+                      archiveArtifacts('c_mgmt.deb')
+                      stash(includes: 'c_mgmt.deb', name: 'debian')
+
+                      //archive library.yml file
+                      archiveArtifacts('library.yml')
+                      stash(includes: 'library.yml', name: 'library')
+
+                      //archive pem file
+                      //To-Do: The key to be removed once the lys-git.cisco.com is whitelisted
+                      archiveArtifacts('private.pem')
+                      stash(includes: 'private.pem', name: 'key')
+
+                      container_builder.stop()
+                } catch (err) {
+                      error('Deploy failed')
+                } finally {
+                      deleteDir()
+                      cleanWs()
+                      sh returnStatus: true, script: """
+                      # Remove any previous support containers
+                      ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
+                      [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
+                      """
+                }
             }
         }
 
         stage('Build TLP') {
             checkpoint("We have a debian. Let's create a TLP.")
-            node('fmc-build') {
+            node('SPARK_BUILDER') {
                 checkout scm
-                unstash('debian')
 
-                // setup file locations
+                unstash('debian')
+                unstash('key')
                 debian = "c_mgmt.deb"
                 private_key = "private.pem"
                 swims_ticket = "FMC.tic.RELEASE"
                 folder_path = pwd()
+                sh("ls -ltr")
 
                 print("Gather required components - debian, key and swims ticket.")
-                sshagent(credentials: ['cafefusion.gen-sshNoPass']) {
-                    try {
-                        sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
-                    }
-                    catch (e) {
-                        println("Initial checkout failed. Has the crate node upgraded? Retrying without host key verification.")
-                        sh("ssh -o StrictHostKeyChecking=no -T git@lys-git.cisco.com")
-                        sh("git archive --remote=git@lys-git.cisco.com:projects/system-trunk-os HEAD:linux/tblinbase/files ${private_key} | tar -x")
-                    }
-                }
 
                 print("Package debian into a TLP.")
                 withCredentials([string(credentialsId: 'fmc-swims', variable: 'swims_content')]) {
+                    sh("echo ${swims_content}")
                     sh("echo ${swims_content} >> ${swims_ticket}")
                     sh("./build_and_upgrade.sh -c build_tlp ${folder_path}/${debian} ${folder_path}/${private_key} ${folder_path}/${swims_ticket}")
                     sh("rm -rf ${folder_path}/${swims_ticket}")
@@ -88,174 +111,191 @@ timestamps {
             }
         }
 
-        stage('System tests') {
+        stage('System Tests') {
             checkpoint("We have a tlp. Let's run system tests.")
-            node('fmc-build') {
-                checkout scm
-                unstash('tlp')
-
-                logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
-                pythonLogsDir = "./"  + logsDir + "/"
-                resources = getResources('./jenkins/test_resources/bangalore_resources.yaml')
-
+            node('SPARK_BUILDER') {
                 try {
-                    parallel (
-                        'Unregistered tests': {
-                            lock(resource: resources.exp_hostname_unreg_1) {
-                                print("Installing .tlp for Unregistered tests")
-                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
-                                print("Performing unregistered tests")
-                                sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
-                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                 LOGS_DIR=${pythonLogsDir} \
-                                 nosetests --with-xunit --xunit-file=unregistered-test-results.xml tests_integration/unregistered_tests""".stripIndent())
 
-                                junit allowEmptyResults: true, testResults: 'unregistered-test-results.xml'
-                            }
-                         },
-                        'API registration tests': {
-                            lock(resource: resources.exp_hostname_unreg_1) {
-                                print("Installing .tlp for API registration tests")
-                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
-                                print("Performing API tests")
+                      checkout scm
 
-                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
-                                     EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                     EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                     EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                     EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                     CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                     ORG_ID=${config.org.org_id} \
-                                     ORG_ADMIN_USER=${org_admin_user} \
-                                     ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                     LOGS_DIR=${pythonLogsDir} \
-                                    nosetests --with-xunit --xunit-file=api-based-test-results.xml tests_integration/api_based_tests""".stripIndent())
-                                }
+                      def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
+                      sh("docker cp ./ ${builderName}:/home/jenkins")
+                      sh("docker exec ${builderName} pwd")
 
-                                junit allowEmptyResults: true, testResults: 'api-based-test-results.xml'
-                            }
-                        },
-                        'UI registration tests': {
-                            lock(resource: resources.exp_hostname_unreg_2) {
-                                print("Installing .tlp for UI registration tests")
-                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${TLP_FILE}")
+                      def logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
+                      def pythonLogsDir = "./"  + logsDir + "/"
+                      print("directory set for logs")
+                      def resources = getResources('./jenkins/test_resources/bangalore_resources.yaml')
 
-                                print("Performing UI tests")
-                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                    try {
-                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
-                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                             ORG_ID=${config.org.org_id} \
-                                             ORG_ADMIN_USER=${org_admin_user} \
-                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                             LOGS_DIR=${pythonLogsDir} \
-                                            nosetests --with-xunit --xunit-file=ui-based-deregister-test-results.xml tests_integration/ui_based_tests/basic_deregister_test.py""".stripIndent())
-                                        junit allowEmptyResults: true, testResults: 'ui-based-deregister-test-results.xml'
+                      unstash('tlp')
+                      sh("docker cp ${TLP_FILE} ${builderName}:/home/jenkins")
+                      sleep(10)
+
+                      try {
+                          parallel (
+                              'Unregistered tests': {
+                                    lock(resource: resources.exp_hostname_unreg_1) {
+                                        print("Installing .tlp for Unregistered tests")
+                                        sh("docker cp ${TLP_FILE} ${builderName}:/home/jenkins")
+                                        sh("docker exec ${builderName} ./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
+                                        print("Performing unregistered tests")
+                                        sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                         -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                         -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                         -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                         -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                         -e LOGS_DIR=${pythonLogsDir} \
+                                         ${builderName} nosetests --with-xunit --xunit-file=unregistered-test-results.xml tests_integration/unregistered_tests""".stripIndent())
+
+                                         sh("docker cp ${builderName}:/home/jenkins/unregistered-test-results.xml ./")
+
+                                         junit allowEmptyResults: true, testResults: 'unregistered-test-results.xml'
+
                                     }
-                                    finally {
-                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
-                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                             ORG_ID=${config.org.org_id} \
-                                             ORG_ADMIN_USER=${org_admin_user} \
-                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                            ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_2}""".stripIndent())
+                              },
+                              'API registration tests': {
+                                    lock(resource: resources.exp_hostname_unreg_1) {
+                                        print("Installing .tlp for API registration tests")
+                                        sh("docker cp ${TLP_FILE} ${builderName}:/home/jenkins")
+                                        sh("docker exec ${builderName} ./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_1} -w ${TLP_FILE}")
+                                        print("Performing API tests")
+
+                                        withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                            sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                             -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                             -e ORG_ID=${config.org.org_id} \
+                                             -e ORG_ADMIN_USER=${org_admin_user} \
+                                             -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                             -e LOGS_DIR=${pythonLogsDir} \
+                                             ${builderName} nosetests --with-xunit --xunit-file=api-based-test-results.xml tests_integration/api_based_tests""".stripIndent())
+
+                                             sh("docker cp ${builderName}:/home/jenkins/api-based-test-results.xml ./")
+
+                                             junit allowEmptyResults: true, testResults: 'api-based-test-results.xml'
+                                        }
+
                                     }
+                              },
+                              'UI registration tests': {
+                                    lock(resource: resources.exp_hostname_unreg_2) {
+                                        print("Installing .tlp for UI registration tests")
+                                        sh("docker cp ${TLP_FILE} ${builderName}:/home/jenkins")
+                                        sh("docker exec ${builderName} ./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${TLP_FILE}")
 
-                                    try {
-                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
-                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                             ORG_ID=${config.org.org_id} \
-                                             ORG_ADMIN_USER=${org_admin_user} \
-                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                             LOGS_DIR=${pythonLogsDir} \
-                                            nosetests --with-xunit --xunit-file=ui-based-register-test-results.xml tests_integration/ui_based_tests/basic_register_test.py""".stripIndent())
-                                        junit allowEmptyResults: true, testResults: 'ui-based-register-test-results.xml'
+                                        print("Performing UI tests")
+                                        withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+
+                                            try {
+                                                sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
+                                                 -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                                 -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                                 -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                                 -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                                 -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                                 -e ORG_ID=${config.org.org_id} \
+                                                 -e ORG_ADMIN_USER=${org_admin_user} \
+                                                 -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                                 -e LOGS_DIR=${pythonLogsDir} \
+                                                 ${builderName} nosetests --with-xunit --xunit-file=ui-based-register-test-results.xml tests_integration/ui_based_tests/basic_register_test.py""".stripIndent())
+
+                                                 sh("docker cp ${builderName}:/home/jenkins/ui-based-register-test-results.xml ./")
+
+                                                 junit allowEmptyResults: true, testResults: 'ui-based-register-test-results.xml'
+                                            }
+                                            finally {
+                                                sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
+                                                 -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                                 -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                                 -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                                 -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                                 -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                                 -e ORG_ID=${config.org.org_id} \
+                                                 -e ORG_ADMIN_USER=${org_admin_user} \
+                                                 -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                                 ${builderName} ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_2}""".stripIndent())
+                                            }
+                                        }
                                     }
-                                    finally {
-                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
-                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                             ORG_ID=${config.org.org_id} \
-                                             ORG_ADMIN_USER=${org_admin_user} \
-                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                            ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_2}""".stripIndent())
+                              },
+                              'Registered tests': {
+                                    lock(resource: resources.exp_hostname_reg_1) {
+                                        print("Installing .tlp for registered tests")
+                                        sh("docker cp ${TLP_FILE} ${builderName}:/home/jenkins")
+                                        sh("docker exec ${builderName} ./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_1} -w ${TLP_FILE}")
+                                        print("Performing registered tests")
+                                        withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                            sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_1} \
+                                             -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                             -e ORG_ID=${config.org.org_id} \
+                                             -e ORG_ADMIN_USER=${org_admin_user} \
+                                             -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                             -e LOGS_DIR=${pythonLogsDir} \
+                                             ${builderName} nosetests --with-xunit --xunit-file=registered-test-results.xml tests_integration/registered_tests""".stripIndent())
+
+                                             sh("docker cp ${builderName}:/home/jenkins/registered-test-results.xml ./")
+
+                                             junit allowEmptyResults: true, testResults: 'registered-test-results.xml'
+                                        }
+
                                     }
-                                }
-                            }
-                        },
-                        'Registered tests': {
-                            lock(resource: resources.exp_hostname_reg_1) {
-                                print("Installing .tlp for egistered tests")
-                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_reg_1} -w ${TLP_FILE} ")
-                                print("Performing registered tests")
-                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_1} \
-                                     EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                     EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                     EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                     EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                     CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                     ORG_ID=${config.org.org_id} \
-                                     ORG_ADMIN_USER=${org_admin_user} \
-                                     ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                     LOGS_DIR=${pythonLogsDir} \
-                                     nosetests --with-xunit --xunit-file=registered-test-results.xml tests_integration/registered_tests""".stripIndent())
-                                }
+                              },
+                              'Clustered tests': {
+                                    // The plugin is unable to handle locking of multiple resources
+                                    // (without using label, which would require admin access or a custom Jenkins job).
+                                    // We therefore lock only the primary cluster node, even though we use both
+                                    lock(resource: resources.exp_hostname_unreg_cluster_node_1) {
+                                        print("Installing .tlp on node 1 for Clustered tests")
+                                        sh("docker exec ${builderName} ./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_1} -w ${TLP_FILE}")
+                                        print("Installing .tlp on node 2 for Clustered tests")
+                                        sh("docker exec ${builderName} ./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_2} -w ${TLP_FILE}")
 
-                                junit allowEmptyResults: true, testResults: 'registered-test-results.xml'
-                            }
-                        },
-                        'Clustered tests': {
-                            // The plugin is unable to handle locking of multiple resources
-                            // (without using label, which would require admin access or a custom Jenkins job).
-                            // We therefore lock only the primary cluster node, even though we use both
-                            lock(resource: resources.exp_hostname_unreg_cluster_node_1) {
-                                print("Installing .tlp on node 1 for Clustered tests")
-                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_1} -w ${TLP_FILE}")
-                                print("Installing .tlp on node 2 for Clustered tests")
-                                sh("./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_cluster_node_2} -w ${TLP_FILE}")
+                                        print("Performing cluster tests")
+                                        withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                            sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_cluster_node_1} \
+                                             -e EXP_HOSTNAME_SECONDARY=${resources.exp_hostname_unreg_cluster_node_2} \
+                                             -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                             -e ORG_ID=${config.org.org_id} \
+                                             -e ORG_ADMIN_USER=${org_admin_user} \
+                                             -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                             -e LOGS_DIR=${pythonLogsDir} \
+                                             ${builderName} nosetests --with-xunit --xunit-file=cluster-test-results.xml tests_integration/cluster_tests/""".stripIndent())
 
-                                print("Performing cluster tests")
-                                withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                    sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_cluster_node_1} \
-                                     EXP_HOSTNAME_SECONDARY=${resources.exp_hostname_unreg_cluster_node_2} \
-                                     EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                     EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                     EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                     EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                     CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                     ORG_ID=${config.org.org_id} \
-                                     ORG_ADMIN_USER=${org_admin_user} \
-                                     ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                     LOGS_DIR=${pythonLogsDir} \
-                                    nosetests --with-xunit --xunit-file=cluster-test-results.xml tests_integration/cluster_tests/""".stripIndent())
-                                }
+                                             sh("docker cp ${builderName}:/home/jenkins/cluster-test-results.xml ./")
 
-                                junit allowEmptyResults: true, testResults: 'cluster-test-results.xml'
-                            }
-                        }
-                    )
+                                             junit allowEmptyResults: true, testResults: 'cluster-test-results.xml'
+                                        }
+
+                                    }
+                              }
+                          )
+                      } finally {
+                            sh("docker cp ${builderName}:/home/jenkins/logs ./")
+                            archiveArtifacts artifacts: "${logsDir}/*.*", allowEmptyArchive: true
+                      }
+
+                      container_builder.stop()
+                } catch (err) {
+                      error('Deploy failed')
                 } finally {
-                    archiveArtifacts artifacts: "${logsDir}/*.*", allowEmptyArchive: true
+                      deleteDir()
+                      cleanWs()
+                      sh returnStatus: true, script: """
+                      # Remove any previous support containers
+                      ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
+                      [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
+                      """
                 }
             }
         }
@@ -265,7 +305,7 @@ timestamps {
 
             stage('Deploy to Latest') {
                 checkpoint("Deploy to latest")
-                node('fmc-build') {
+                node('SPARK_BUILDER') {
                     // Setup provisioning data
                     def provisioning_json_job_url = 'team/management-connector/deploy_files/provisioning_json_latest'
                     def provisioning_build = build(provisioning_json_job_url)
@@ -296,8 +336,7 @@ timestamps {
                     withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
                         sparkPipeline.triggerRemoteJob([],
                                 'https://sqbu-jenkins.wbx2.com/support/',
-                                username,
-                                token,
+                                'cafefusion.gen.job.executor',
                                 'platform/tlp-deploy/tlp-deploy-management-connector-integration-latest',
                                 "management_connector#${BUILD_NUMBER}")
                     }
@@ -307,23 +346,28 @@ timestamps {
                      withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
                         sparkPipeline.triggerRemoteJob([],
                                 'https://sqbu-jenkins.wbx2.com/support/',
-                                username,
-                                token,
+                                'cafefusion.gen.job.executor',
                                 'platform/tlp-deploy/tlp-deploy-management-connector-production-latest',
                                 "management_connector#${BUILD_NUMBER}")
                     }
                 }
             }
-
             stage('Tests against latest') {
                 checkpoint("Tests against latest")
-                node('fmc-build') {
+                node('SPARK_BUILDER') {
                     checkout scm
 
                     try {
-                        logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
-                        pythonLogsDir = "./"  + logsDir + "/"
-                        resources = getResources('./jenkins/test_resources/bangalore_resources.yaml')
+
+                        def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
+                        sh("docker cp ./ ${builderName}:/home/jenkins")
+                        sh("docker exec ${builderName} pwd")
+
+                        def logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
+                        def pythonLogsDir = "./"  + logsDir + "/"
+                        print("directory set for logs")
+                        def resources = getResources('./jenkins/test_resources/bangalore_resources.yaml')
+
 
                         parallel(
                             'Bootstrap & cert test': {
@@ -331,30 +375,33 @@ timestamps {
                                     print("Performing bootstrap & cert tests")
                                     withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
                                         try {
-                                            sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
-                                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                                 CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                                 ORG_ID=${config.org.org_id} \
-                                                 ORG_ADMIN_USER=${org_admin_user} \
-                                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                                 LOGS_DIR=${pythonLogsDir} \
-                                                 BROKEN_CERTS_LOCATION=./tests_against_latest/all_cas_removed.pem \
-                                                nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test.py""".stripIndent())
-                                            junit allowEmptyResults: true, testResults: 'bootstrap-latest-test-results.xml'
+                                            sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                                 -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                                 -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                                 -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                                 -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                                 -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                                 -e ORG_ID=${config.org.org_id} \
+                                                 -e ORG_ADMIN_USER=${org_admin_user} \
+                                                 -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                                 -e LOGS_DIR=${pythonLogsDir} \
+                                                 -e BROKEN_CERTS_LOCATION=./tests_against_latest/all_cas_removed.pem \
+                                                 ${builderName} nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test.py""".stripIndent())
+
+                                                 sh("docker cp ${builderName}:/home/jenkins/bootstrap-latest-test-results.xml ./")
+
+                                                 junit allowEmptyResults: true, testResults: 'bootstrap-latest-test-results.xml'
                                         } finally {
-                                            sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
-                                                 EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                                 EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                                 EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                                 EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                                 CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                                 ORG_ID=${config.org.org_id} \
-                                                 ORG_ADMIN_USER=${org_admin_user} \
-                                                 ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                                ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_1}""".stripIndent())
+                                            sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                                 -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                                 -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                                 -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                                 -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                                 -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                                 -e ORG_ID=${config.org.org_id} \
+                                                 -e ORG_ADMIN_USER=${org_admin_user} \
+                                                 -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                                 ${builderName} ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_1}""".stripIndent())
                                         }
                                     }
                                 }
@@ -363,25 +410,35 @@ timestamps {
                                 lock(resource: resources.exp_hostname_reg_2) {
                                     print("Performing upgrade tests")
                                     withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                        sh("""EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_2} \
-                                             EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                             EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                             EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                             EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                             ORG_ID=${config.org.org_id} \
-                                             ORG_ADMIN_USER=${org_admin_user} \
-                                             ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                             LOGS_DIR=${pythonLogsDir} \
-                                             EXPECTED_VERSION=${DEB_VERSION} \
-                                            nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
-                                        junit allowEmptyResults: true, testResults: 'upgrade-latest-test-results.xml'
+                                        sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_2} \
+                                             -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                             -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                             -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                             -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                             -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                             -e ORG_ID=${config.org.org_id} \
+                                             -e ORG_ADMIN_USER=${org_admin_user} \
+                                             -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                             -e LOGS_DIR=${pythonLogsDir} \
+                                             -e EXPECTED_VERSION=${DEB_VERSION} \
+                                             ${builderName} nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
+
+                                             sh("docker cp ${builderName}:/home/jenkins/upgrade-latest-test-results.xml ./")
+
+                                             junit allowEmptyResults: true, testResults: 'upgrade-latest-test-results.xml'
                                     }
                                 }
                             }
                         )
                     } finally {
                         archiveArtifacts artifacts: "${logsDir}/*.*", allowEmptyArchive: true
+                        deleteDir()
+                        cleanWs()
+                        sh returnStatus: true, script: """
+                        # Remove any previous support containers
+                        ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
+                        [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
+                        """
                     }
                 }
             }
@@ -406,7 +463,7 @@ timestamps {
             // This stage is moved  after stable so that the Expressway "wood" build always has a stable c_mgmt debian which is thoroughly tested.
             stage('Deploy to wood repo') {
                 checkpoint("Deploy to Expressway repo")
-                node('fmc-build') {
+                node('SPARK_BUILDER') {
                     // Get the stashed debian from the previous stages
                     unstash('debian')
                     sshagent(credentials: ['cafefusion.gen-sshNoPass']) {
@@ -417,7 +474,7 @@ timestamps {
         }
     }
     finally {
-        node('fmc-build') {
+        node('SPARK_BUILDER') {
             print('Cleaning ws')
             cleanWs()
         }
@@ -435,7 +492,7 @@ def deploy(String release, List<String> environments) {
     timeout(time: 20, unit: 'MINUTES') {
         input "Deploy ${DEB_VERSION} to ${release} release channel?"
     }
-    node('fmc-build') {
+    node('SPARK_BUILDER') {
         // Setup provisioning data
         build("team/management-connector/deploy_files/provisioning_json_${release}")
 
@@ -454,8 +511,7 @@ def deploy(String release, List<String> environments) {
                 withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
                     sparkPipeline.triggerRemoteJob([],
                             'https://sqbu-jenkins.wbx2.com/support/',
-                            username,
-                            token,
+                            'cafefusion.gen.job.executor',
                             deploy_job,
                             "management_connector#${BUILD_NUMBER}")
                 }

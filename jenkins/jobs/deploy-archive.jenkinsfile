@@ -11,9 +11,18 @@ TLP_FILE = ''
 timestamps {
     try {
         stage('Copy FMC TLP') {
-            node('fmc-build') {
-                sh("rm -rf c_mgmt_*.tlp")
-                sh("rm -rf library.yml")
+            node('SPARK_BUILDER') {
+                sh(script: """
+                if [ -f c_mgmt_*.tlp]; then
+                    rm -rf c_mgmt_*.tlp
+                fi
+                """.trim())
+                sh(script: """
+                if [ -f library.yml]; then
+                    rm -rf library.yml
+                fi
+                """.trim())
+
                 copyArtifacts(filter: '*.tlp',
                         fingerprintArtifacts: true,
                         flatten: true,
@@ -39,7 +48,7 @@ timestamps {
         }
 
         stage('Prepare Provisioning') {
-            node('fmc-build') {
+            node('SPARK_BUILDER') {
                 checkout scm
                 unstash('tlp')
                 unstash('library')
@@ -56,8 +65,7 @@ timestamps {
                 withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
                     binary_build = sparkPipeline.triggerRemoteJob([],
                             'https://sqbu-jenkins.wbx2.com/support/',
-                            username,
-                            token,
+                            'cafefusion.gen.job.executor',
                             binary_job_url,
                             "provisioning_json_${RELEASE_CHANNEL}#${BUILD_NUMBER}")
                 }
@@ -82,7 +90,7 @@ timestamps {
         }
     }
     finally {
-        node('fmc-build') {
+        node('SPARK_BUILDER') {
             print('Cleaning ws')
             cleanWs()
         }

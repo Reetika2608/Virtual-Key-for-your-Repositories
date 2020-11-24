@@ -96,6 +96,7 @@ uninstall(){
 
 wait_for_install(){
     echo "Waiting for install..."
+    sleep 5
     for i in `seq 1 45`;
     do
         installed_version=$(sshpass -p ${TARGET_PASSWORD} ssh root@${TARGET} '(dpkg -s c_mgmt || true) | grep Version')

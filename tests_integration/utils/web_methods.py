@@ -43,6 +43,7 @@ def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_i
         try:
             web_driver.find_element_by_css_selector(
                 'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
+            time.sleep(3)
             web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
             time.sleep(3)
         except NoSuchElementException:
@@ -76,6 +77,7 @@ def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id, 
     time.sleep(10)
     web_driver.find_element_by_css_selector(
         'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
+    time.sleep(3)
     web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
     time.sleep(3)
     if close_web_driver:
@@ -99,7 +101,7 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(5)
-    web_driver.find_element_by_xpath('//*[@title="Services"]').click()
+    web_driver.find_element_by_xpath("//span[contains(text(),'Hybrid')]").click()
     time.sleep(2)
     web_driver.find_element_by_link_text('View').click()
     web_driver.find_element_by_css_selector('button[ng-click="$ctrl.addResource()"]').click()
