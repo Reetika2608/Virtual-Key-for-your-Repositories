@@ -20,6 +20,12 @@ timestamps {
                 try {
                       checkout scm
 
+                      sh returnStatus: true, script: """
+                      # Remove any previous unremoved containers,if they weren't removed earlier
+                      ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
+                      [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
+                      """
+
                       def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
                       sh("docker cp ./ ${builderName}:/home/jenkins")
                       sh("docker exec ${builderName} pwd")
@@ -118,6 +124,11 @@ timestamps {
 
                       checkout scm
 
+                      sh returnStatus: true, script: """
+                      # Remove any previous unremoved containers,if they weren't removed earlier
+                      ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
+                      [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
+                      """
                       def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
                       sh("docker cp ./ ${builderName}:/home/jenkins")
                       sh("docker exec ${builderName} pwd")
@@ -357,10 +368,15 @@ timestamps {
             stage('Tests against latest') {
                 checkpoint("Tests against latest")
                 node('SPARK_BUILDER') {
-                    checkout scm
 
                     try {
+                        checkout scm
 
+                        sh returnStatus: true, script: """
+                        # Remove any previous unremoved containers,if they weren't removed earlier
+                        ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
+                        [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
+                        """
                         def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
                         sh("docker cp ./ ${builderName}:/home/jenkins")
                         sh("docker exec ${builderName} pwd")
@@ -370,14 +386,49 @@ timestamps {
                         print("directory set for logs")
                         def resources = getResources('./jenkins/test_resources/bangalore_resources.yaml')
 
+                        try {
+                            parallel(
+                                'Bootstrap & cert test': {
+                                    lock(resource: resources.exp_hostname_unreg_1) {
+                                        print("Performing bootstrap & cert tests")
+                                        withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                            try {
+                                                sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                                     -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                                     -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                                     -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                                     -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                                     -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                                     -e ORG_ID=${config.org.org_id} \
+                                                     -e ORG_ADMIN_USER=${org_admin_user} \
+                                                     -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                                     -e LOGS_DIR=${pythonLogsDir} \
+                                                     -e BROKEN_CERTS_LOCATION=./tests_against_latest/all_cas_removed.pem \
+                                                     ${builderName} nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test.py""".stripIndent())
 
-                        parallel(
-                            'Bootstrap & cert test': {
-                                lock(resource: resources.exp_hostname_unreg_1) {
-                                    print("Performing bootstrap & cert tests")
-                                    withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                        try {
-                                            sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                                     sh("docker cp ${builderName}:/home/jenkins/bootstrap-latest-test-results.xml ./")
+
+                                                     junit allowEmptyResults: true, testResults: 'bootstrap-latest-test-results.xml'
+                                            } finally {
+                                                sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
+                                                     -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                                                     -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                                                     -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                                                     -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                                                     -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                                                     -e ORG_ID=${config.org.org_id} \
+                                                     -e ORG_ADMIN_USER=${org_admin_user} \
+                                                     -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                                                     ${builderName} ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_1}""".stripIndent())
+                                            }
+                                        }
+                                    }
+                                },
+                                'Upgrade test': {
+                                    lock(resource: resources.exp_hostname_reg_2) {
+                                        print("Performing upgrade tests")
+                                        withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                                            sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_2} \
                                                  -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
                                                  -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
                                                  -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
@@ -387,53 +438,21 @@ timestamps {
                                                  -e ORG_ADMIN_USER=${org_admin_user} \
                                                  -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                                  -e LOGS_DIR=${pythonLogsDir} \
-                                                 -e BROKEN_CERTS_LOCATION=./tests_against_latest/all_cas_removed.pem \
-                                                 ${builderName} nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test.py""".stripIndent())
+                                                 -e EXPECTED_VERSION=${DEB_VERSION} \
+                                                 ${builderName} nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
 
-                                                 sh("docker cp ${builderName}:/home/jenkins/bootstrap-latest-test-results.xml ./")
+                                                 sh("docker cp ${builderName}:/home/jenkins/upgrade-latest-test-results.xml ./")
 
-                                                 junit allowEmptyResults: true, testResults: 'bootstrap-latest-test-results.xml'
-                                        } finally {
-                                            sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_1} \
-                                                 -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                                 -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                                 -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                                 -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                                 -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                                 -e ORG_ID=${config.org.org_id} \
-                                                 -e ORG_ADMIN_USER=${org_admin_user} \
-                                                 -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                                 ${builderName} ./build_and_upgrade.sh -c clean_exp -t ${resources.exp_hostname_unreg_1}""".stripIndent())
+                                                 junit allowEmptyResults: true, testResults: 'upgrade-latest-test-results.xml'
                                         }
                                     }
                                 }
-                            },
-                            'Upgrade test': {
-                                lock(resource: resources.exp_hostname_reg_2) {
-                                    print("Performing upgrade tests")
-                                    withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
-                                        sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_reg_2} \
-                                             -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
-                                             -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
-                                             -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
-                                             -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
-                                             -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
-                                             -e ORG_ID=${config.org.org_id} \
-                                             -e ORG_ADMIN_USER=${org_admin_user} \
-                                             -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
-                                             -e LOGS_DIR=${pythonLogsDir} \
-                                             -e EXPECTED_VERSION=${DEB_VERSION} \
-                                             ${builderName} nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
-
-                                             sh("docker cp ${builderName}:/home/jenkins/upgrade-latest-test-results.xml ./")
-
-                                             junit allowEmptyResults: true, testResults: 'upgrade-latest-test-results.xml'
-                                    }
-                                }
-                            }
-                        )
+                            )
+                        } finally {
+                              sh("docker cp ${builderName}:/home/jenkins/logs ./")
+                              archiveArtifacts artifacts: "${logsDir}/*.*", allowEmptyArchive: true
+                        }
                     } finally {
-                        archiveArtifacts artifacts: "${logsDir}/*.*", allowEmptyArchive: true
                         deleteDir()
                         cleanWs()
                         sh returnStatus: true, script: """
