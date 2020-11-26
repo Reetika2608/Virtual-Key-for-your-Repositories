@@ -155,7 +155,7 @@ class UpgradeTest(unittest.TestCase):
             #     a. The installed version changes
             #     b. The connector reaches a fully installed state
             #     c. The PID changes
-            self.assertTrue(wait_until_true(has_version_changed, 60, 1, *(self.config.exp_hostname_primary(),
+            self.assertTrue(wait_until_true(has_version_changed, 90, 1, *(self.config.exp_hostname_primary(),
                                                                           self.config.exp_root_user(),
                                                                           self.config.exp_root_pass(),
                                                                           "c_mgmt",

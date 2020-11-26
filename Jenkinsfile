@@ -439,7 +439,7 @@ timestamps {
                                                  -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                                  -e LOGS_DIR=${pythonLogsDir} \
                                                  -e EXPECTED_VERSION=${DEB_VERSION} \
-                                                 ${builderName} nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
+                                                 ${builderName} nosetests --with-xunit --xunit-file=upgrade-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
 
                                                  sh("docker cp ${builderName}:/home/jenkins/upgrade-latest-test-results.xml ./")
 
