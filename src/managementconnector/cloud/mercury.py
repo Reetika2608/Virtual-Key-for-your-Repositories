@@ -14,7 +14,6 @@ import websocket
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.platform.http import Http
-from managementconnector.platform.alarms import MCAlarm
 from managementconnector.cloud.metrics import Metrics
 from managementconnector.cloud.wdm import DeviceManager
 from managementconnector.cloud.remotedispatcher import RemoteDispatcher
@@ -36,7 +35,6 @@ class Mercury(threading.Thread):
 
         self._oauth = oauth
         self._config = config
-        self._alarms = MCAlarm(self._config)
         self._metrics = Metrics(self._config, self._oauth)
 
         self._proxy = None
@@ -235,7 +233,6 @@ class Mercury(threading.Thread):
         self._latest_ws_error = traceback.format_exc()
 
         DEV_LOGGER.error('Detail="FMC_Websocket on_error callback: error=%s, type=%s"', error, traceback.format_exc())
-        self._alarms.raise_alarm('43800ef2-217d-483c-8412-9cbfdade19a8')
 
         # If the websocket goes down due to an error, we want to restart immediately, not wait for the next heartbeat
         self._restart_needed = True
@@ -276,7 +273,6 @@ class Mercury(threading.Thread):
         """ Message Handler """
         try:
             message = json.loads(message)
-            self._alarms.clear_alarm('43800ef2-217d-483c-8412-9cbfdade19a8')
 
             try:
                 # Mercury probe comes in as a message without a command field
