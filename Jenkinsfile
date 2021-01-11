@@ -44,7 +44,7 @@ timestamps {
                       sh("docker cp ${builderName}:/home/jenkins/test-results.xml ./")
                       junit allowEmptyResults: true, testResults: 'test-results.xml'
 
-                      sh("docker exec ${builderName} ./build_and_upgrade.sh -c build -v ${BUILD_ID};")
+                      sh("docker exec ${builderName} ./build_and_upgrade.sh -c build -v ${BUILD_ID} -n ${env.BRANCH_NAME};")
 
                       sh("docker cp ${builderName}:/home/jenkins/debian/_build/c_mgmt.deb ./")
 

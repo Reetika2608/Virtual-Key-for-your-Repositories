@@ -7,6 +7,7 @@ usage(){
     echo "Usage:    ./build_and_upgrade.sh -c <command> -t <target>"
     echo "          -c   Command: {build|clean_install|upgrade}"
     echo "          -t   Target: sets the target you want to upgrade"
+    echo "          -n   Branch Name: The Branch Name helps to set the build type for build numbering. {PR|Local|Master}"
     echo "          -p   Password: sets the password for your target"
     echo "          -v   Version: sets the version number of the build"
     echo "          -h   Help: Displays the help option Display this help message"
@@ -14,9 +15,14 @@ usage(){
 
 build(){
     BUILD_NUMBER=$1
+    BUILD_TYPE=$2
     if [[ -z "${BUILD_NUMBER}" ]]
     then
         BUILD_NUMBER=12345
+    fi
+    if [[ -z "${BUILD_TYPE}" ]]
+    then
+        BUILD_TYPE='Developer_build_type'
     fi
 
     clean_working_directory
@@ -30,7 +36,7 @@ build(){
     audit_import_paths
     install_external_dependencies
     cleanup_external_dependencies
-    generate_debian_version ${BUILD_NUMBER}
+    generate_debian_version ${BUILD_NUMBER} ${BUILD_TYPE}
     remove_group_write_permissions
     package_debian
     audit_debian_contents
@@ -148,7 +154,7 @@ fi
 
 # Settings defaults
 TARGET_PASSWORD=x
-while getopts ":ht:pv:c:w" opt; do
+while getopts ":ht:pv:c:n:w" opt; do
     case ${opt} in
         h )
           usage
@@ -169,6 +175,9 @@ while getopts ":ht:pv:c:w" opt; do
         w )
             WAIT_FOR_INSTALL=true
             ;;
+        n )
+            BUILD_TYPE=$OPTARG
+            ;;
         \? )
           echo "Invalid Option: -$OPTARG" 1>&2
           usage
@@ -181,7 +190,7 @@ shift $((OPTIND -1))
 [ -z "${CMD}" ] && echo "Command must be set: use option: -c" && usage && exit 1
 
 if [ "${CMD}" = "build" ]; then
-    build ${VERSION}
+    build ${VERSION} ${BUILD_TYPE}
 elif [ "${CMD}" = "upgrade" ]; then
     [ -z "${TARGET}" ] && echo "Target must be set to install/upgrade: use option: -t" && usage && exit 1
     upgrade

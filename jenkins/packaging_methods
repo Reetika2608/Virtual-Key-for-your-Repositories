@@ -156,6 +156,7 @@ generate_debian_version(){
     DEVELOPER_VERSION=999.0
 
     BUILD_NUMBER=$1
+    BUILD_TYPE=$2
 
     # Creating a staging directory for the control files, and copy the source for manipulation and packing
     CONTROL_BUILD=debian/control/_build
@@ -166,13 +167,14 @@ generate_debian_version(){
     cp debian/control/* ${CONTROL_BUILD}
 
     # Find out what type of build it is, local, PR or pipeline
-    if [ "$CHANGE_ID" != "" ]; then
+    if [[ $BUILD_TYPE == PR-* ]]; then
         # Example: 8.10-555.53.1, 555 is a hardcoded PR identifier, 53, is the PR number, and the 1 is the build number
         # as there may be multiple builds within a PR
+        CHANGE_ID="${BUILD_TYPE:3}"
         BUILD_VERSION=${PR_VERSION}.${CHANGE_ID}.${BUILD_NUMBER}
         echo "generate_debian_version: This is a PR build: ${BUILD_VERSION}"
 
-    elif [ "$JOB_BASE_NAME" == "master" ]; then
+    elif [ "$BUILD_TYPE" == "master" ]; then
         # Example: 8.10-1.0.321353
         BUILD_VERSION=${PIPELINE_VERSION}.${BUILD_NUMBER}
         echo "generate_debian_version: This is a master branch build: ${BUILD_VERSION}"
