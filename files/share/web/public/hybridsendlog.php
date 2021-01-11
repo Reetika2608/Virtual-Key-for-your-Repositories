@@ -168,7 +168,7 @@ EOT;
     {
         http_response_code(404);
         echo "<h1>Not Found</h1>\n";
-        echo "<p>The requested URL " . $_SERVER['REQUEST_URI'] . " was not found on this server.</p>\n";
+        echo "<p>The requested URL " . htmlspecialchars($_SERVER['REQUEST_URI']) . " was not found on this server.</p>\n";
         die();
     }
 
