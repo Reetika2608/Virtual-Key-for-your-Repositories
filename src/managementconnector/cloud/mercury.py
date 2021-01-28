@@ -86,7 +86,7 @@ class Mercury(threading.Thread):
                     self._last_refreshed = self._mercury_details['last_refreshed']
 
                     self._metrics.send_mercury_metrics(self._oauth.get_header(),
-                                                       ManagementConnectorProperties.SERVICE_NAME,
+                                                       self._config.read(ManagementConnectorProperties.TARGET_TYPE),
                                                        self.get_status())
 
             except Exception as wdm_error:
@@ -244,7 +244,7 @@ class Mercury(threading.Thread):
         DEV_LOGGER.info('Detail="FMC_Websocket on_close callback"')
 
         try:
-            DeviceManager.deregister_from_wdm(self._oauth.get_header())
+            DeviceManager.deregister_from_wdm(self._oauth.get_header(), self._config.read(ManagementConnectorProperties.TARGET_TYPE))
         except Exception as wdm_error:  # pylint: disable=W0703
             DEV_LOGGER.error('Detail="Un-handled Exception occurred:%s, stacktrace=%s"',
                              repr(wdm_error), traceback.format_exc())
@@ -367,7 +367,7 @@ class Mercury(threading.Thread):
         # Try sending Mercury Exception to Metrics, in order to track live issues
         try:
             self._metrics.send_mercury_error_metrics(self._oauth.get_header(),
-                                                     ManagementConnectorProperties.SERVICE_NAME,
+                                                     self._config.read(ManagementConnectorProperties.TARGET_TYPE),
                                                      error_content)
         except Exception as metrics_error:  # pylint: disable=W0703
             DEV_LOGGER.error('Detail="Error sending Mercury exception to metrics. Exception=%s, stacktrace=%s"'
@@ -401,7 +401,7 @@ class Mercury(threading.Thread):
                              repr(remote_dispatcher_error), traceback.format_exc())
             if self._mercury_probe_timer:
                 self._run_probe_timer(False)
-            RemoteDispatcher.delete_config_from_disk()
+            RemoteDispatcher.delete_config_from_disk(self._config)
 
     def _run_probe_timer(self, start):
         """ Control Mercury probe timer lifecycle """

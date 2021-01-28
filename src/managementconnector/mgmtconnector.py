@@ -105,8 +105,9 @@ class ManagementConnector(object):
         self.write_schema_version()
 
         enabled_services_states = self._config.read(ManagementConnectorProperties.ENABLED_SERVICES_STATE)
+        target_type = self._config.read(ManagementConnectorProperties.TARGET_TYPE)
 
-        if ServiceUtils.blob_mode_on(ManagementConnectorProperties.SERVICE_NAME, enabled_services_states):
+        if ServiceUtils.blob_mode_on(target_type, enabled_services_states):
             self.deployed = True
             ServiceUtils.set_operational_state(True)
             self._watchdog_runner.start()
@@ -170,12 +171,14 @@ class ManagementConnector(object):
         # Service states we want to apply
         enabled_services_states = self._config.read(ManagementConnectorProperties.ENABLED_SERVICES_STATE)
 
+        target_type = self._config.read(ManagementConnectorProperties.TARGET_TYPE)
+
         if enabled_services is not None and enabled_services_states:
             for name in enabled_services_states.keys():
-                if name == ManagementConnectorProperties.SERVICE_NAME:
+                if name == target_type:
                     # Check if Enabled and not already deployed
-                    DEV_LOGGER.debug('Detail="ManagementConnector checking blob mode to manage deploy state"')
-                    if ServiceUtils.blob_mode_on(ManagementConnectorProperties.SERVICE_NAME, enabled_services_states):
+                    DEV_LOGGER.debug('Detail="ManagementConnector checking blob mode to manage deploy state for Connector:%s"', target_type)
+                    if ServiceUtils.blob_mode_on(target_type, enabled_services_states):
                         if not self.deployed:
                             DEV_LOGGER.debug('Detail="FMC_Lifecycle ManagementConnector initial deploy"')
                             self.deployed = True

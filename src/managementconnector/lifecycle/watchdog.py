@@ -119,12 +119,14 @@ class WatchdogThread(threading.Thread):
         for connection in connections:
             working_state[connection] = self.get_connection_state(status_info, connection)
 
+        DEV_LOGGER.debug('Detail="FMC_Watchdog: checking {} working_state"'.format(working_state))
         return working_state
 
     def get_connection_state(self, status_info, file_extension):
         """ Compare file last modified time and expiry period """
         connection_name = file_extension[1:]
         DEV_LOGGER.debug('Detail="FMC_Watchdog: checking {} connection"'.format(connection_name))
+        DEV_LOGGER.debug('Detail="FMC_Watchdog: checking {} status_info"'.format(status_info))
 
         connection_state = {}
         if file_extension in status_info:

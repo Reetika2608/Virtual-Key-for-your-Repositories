@@ -117,6 +117,7 @@ class ManagementConnectorTest(unittest.TestCase):
         mc._config.write(ManagementConnectorProperties.ADD_FUSION_CERTS, None)
         mc._config.write(ManagementConnectorProperties.ENABLED_SERVICES, ["c_mgmt"])
         mc._config.write(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {"c_mgmt": "true"})
+        mc._config.write(ManagementConnectorProperties.TARGET_TYPE, "c_mgmt")
         mc.on_config_update()
         self.assertTrue(mc.deployed, msg="mc.deployed: %s" % mc.deployed)
 
@@ -148,6 +149,7 @@ class ManagementConnectorTest(unittest.TestCase):
         mc._config.write(ManagementConnectorProperties.ENABLED_SERVICES, [])
         # Check Mode is set to on
         mc._config.write(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {"c_cal": "true"})
+        mc._config.write(ManagementConnectorProperties.TARGET_TYPE, "c_mgmt")
         mc.on_config_update()
         mode = mc._config.read(service_path)
         self.assertTrue(mode['mode'] == "on")
@@ -155,6 +157,7 @@ class ManagementConnectorTest(unittest.TestCase):
         # Check Mode is set to off
         mc._config.write(ManagementConnectorProperties.ENABLED_SERVICES, ["c_cal"])
         mc._config.write(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {"c_cal": "false"})
+        mc._config.write(ManagementConnectorProperties.TARGET_TYPE, "c_mgmt")
         mc.on_config_update()
         mode = mc._config.read(service_path)
         self.assertTrue(mode['mode'] == "off")
@@ -188,6 +191,7 @@ class ManagementConnectorTest(unittest.TestCase):
         mc._config.write(ManagementConnectorProperties.ADD_FUSION_CERTS, None)
         mc._config.write(ManagementConnectorProperties.ENABLED_SERVICES, [])
         mc._config.write(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {"c_mgmt": "true", "c_cal": "true"})
+        mc._config.write(ManagementConnectorProperties.TARGET_TYPE, "c_mgmt")
         mc.on_config_update()
         self.assertTrue(mc.deployed)
         self.assertTrue(mock_mercury.start.called, "mercury_runner start was not called when expected, called: %s" % mock_mercury.start.called)

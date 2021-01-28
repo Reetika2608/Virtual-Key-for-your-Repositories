@@ -49,6 +49,11 @@ init_files()
 
     c_mgmt_uid="804"
 
+    # Created as part of CCUC Solutions support
+    if [ ! -d /var/run/c_ccucmgmt ]; then
+        mkdir -p /var/run/c_ccucmgmt
+    fi
+
     if [ ! -d /tandberg/persistent/fusion/config ]; then
         mkdir -p /tandberg/persistent/fusion/config
     fi
@@ -72,6 +77,11 @@ init_files()
     # On startup ensure there is no stale installing file.
     if [ -f /var/run/c_mgmt/installing_status.json ]; then
         rm /var/run/c_mgmt/installing_status.json
+    fi
+
+    # On startup ensure there is no stale installing file.
+    if [ -f /var/run/c_ccucmgmt/installing_status.json ]; then
+        rm /var/run/c_ccucmgmt/installing_status.json
     fi
 
     # Change ownership of the c_mgmt connector files and directories
@@ -201,6 +211,11 @@ init_files()
     # Pid file Directory
     if [ -d /var/run/c_mgmt/ ]; then
         chown -R _c_mgmt:_c_mgmt /var/run/c_mgmt/
+    fi
+
+    # Pid file Directory
+    if [ -d /var/run/c_ccucmgmt/ ]; then
+        chown -R _c_mgmt:_c_mgmt /var/run/c_ccucmgmt/
     fi
 
     #

@@ -4,6 +4,7 @@ import json
 import time
 
 from managementconnector.platform.http import Http
+from managementconnector.config.config import Config
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.platform.serviceutils import ServiceUtils
 from managementconnector.service.eventdampener import EventDampener
@@ -26,16 +27,18 @@ class EventSender(object):
     @staticmethod
     def post(oauth, config, event_type, service=ManagementConnectorProperties.SERVICE_NAME, timestamp=int(time.time()),
              detailed_info="", dampener=event_dampener):
+
         """ Sends Details of a Hybrid Event to FMS """
 
         org_id = config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
         serial_number = config.read(ManagementConnectorProperties.SERIAL_NUMBER)
         cluster_id = config.read(ManagementConnectorProperties.CLUSTER_ID)
+        target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
 
         event = {
             "orgId": org_id,
-            "connectorId": service + "@" + serial_number,
-            "connectorType": service,
+            "connectorId": target_type + "@" + serial_number,
+            "connectorType": target_type,
             "connectorVersion": ServiceUtils.get_version(service) or 'None',
             "clusterId": cluster_id,
             "timestamp": timestamp,
@@ -65,7 +68,7 @@ class EventSender(object):
                         # 1-1 (success/failure) first attempt approach for upgrade metrics
                         detailed_info["fields"]["value"] = -999
                         event["details"]["detailed_info"] = json.dumps(detailed_info)
-
+            DEV_LOGGER.debug('Detail="Sending event: {}"'.format(event))
             return Http.post(atlas_url_prefix + event_url, oauth.get_header(), json.dumps(event))
         except Exception as ex:  # pylint: disable=W0703
             DEV_LOGGER.error('Detail="Failed to post crash data: %s"' % ex)
@@ -78,11 +81,12 @@ class EventSender(object):
         org_id = config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
         serial_number = config.read(ManagementConnectorProperties.SERIAL_NUMBER)
         cluster_id = config.read(ManagementConnectorProperties.CLUSTER_ID)
+        target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
 
         event = {
             "orgId": org_id,
-            "connectorId": service + "@" + serial_number,
-            "connectorType": service,
+            "connectorId": target_type + "@" + serial_number,
+            "connectorType": target_type,
             "connectorVersion": ServiceUtils.get_version(service) or 'None',
             "clusterId": cluster_id,
             "timestamp": timestamp,

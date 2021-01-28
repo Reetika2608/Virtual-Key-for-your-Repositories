@@ -39,10 +39,9 @@ class PrecheckPage extends AjaxPage
         // fake the box looking like an expressway if no release key
         $proxy_configured = $this->is_proxy_configured();
 
-
         if ( !$this->is_bootstrap_data_present() )
         {
-            $registration_form = FusionLib::create_goto_cloud_form();
+            $registration_form = FusionLib::create_goto_cloud_form($this->rest_data_adapter, $this->IProduct->isExpresswayEnabled());
         }
         else
         {
@@ -57,11 +56,11 @@ class PrecheckPage extends AjaxPage
             }
             $on_latest = FusionLib::on_latest_c_mgmt($this->rest_data_adapter);
             if ( $prevent_upgrade || $on_latest ) {
-                $registration_form = FusionLib::create_register_form();
+                $registration_form = FusionLib::create_register_form($this->rest_data_adapter, $this->IProduct->isExpresswayEnabled());
             }
             else
             {
-                $registration_form = FusionLib::create_bootstrap_form();
+                $registration_form = FusionLib::create_bootstrap_form($this->rest_data_adapter);
             }
         }
         $registration_form->render(); 

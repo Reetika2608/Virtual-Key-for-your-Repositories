@@ -138,7 +138,7 @@ class U2CTest(unittest.TestCase):
         test_u2c.update_user_catalog()
 
         self.http.get.assert_called_with(
-            "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM&services=atlasFusionAdminPortal,clientLogs,feature,fms,metrics,remoteDispatcher,wdm",
+            "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM&services=atlasFusionAdminPortal,clientLogs,feature,fms,metrics,remoteDispatcher,ucmgmt-controller,ucmgmt-gateway,ucmgmt-licensing,ucmgmt-migration,ucmgmt-telemetry-mgmt,ucmgmt-upgrade,ucmgmt-web,wdm",
             headers=mock.ANY,
             schema=mock.ANY)
 
@@ -150,7 +150,7 @@ class U2CTest(unittest.TestCase):
 
         services_list = test_u2c.build_services_list(U2C.service_map)
 
-        self.assertEqual(services_list, "atlasFusionAdminPortal,clientLogs,feature,fms,metrics,remoteDispatcher,wdm",
+        self.assertEqual(services_list, "atlasFusionAdminPortal,clientLogs,feature,fms,metrics,remoteDispatcher,ucmgmt-controller,ucmgmt-gateway,ucmgmt-licensing,ucmgmt-migration,ucmgmt-telemetry-mgmt,ucmgmt-upgrade,ucmgmt-web,wdm",
                          "services list is not correct")
 
     def test_write_u2c_host_to_cdb_if_u2c_is_none(self):

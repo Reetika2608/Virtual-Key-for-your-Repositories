@@ -260,7 +260,7 @@ class ServiceManager():
 
                     try:
 
-                        if connector != ManagementConnectorProperties.SERVICE_NAME:
+                        if connector not in ManagementConnectorProperties.SERVICE_LIST:
                             self.purge(connector, False)
                             time.sleep(5)
 
@@ -322,7 +322,7 @@ class ServiceManager():
             if dependency:
                 service = ServiceDependency(service_name, self._config, self._oauth)
             else:
-                if service_name == ManagementConnectorProperties.SERVICE_NAME:
+                if service_name in ManagementConnectorProperties.SERVICE_LIST:
                     service = ConnectorService(service_name, self._config, self._oauth)  # pylint: disable=R0204
                 else:
                     service = Service(service_name, self._config, self._oauth)
@@ -334,7 +334,7 @@ class ServiceManager():
 
     def add(self, service):
         ''' add service to list'''
-        DEV_LOGGER.debug('Detail="FMC_Lifecycle ServiceManager: add: "')
+        DEV_LOGGER.debug('Detail="FMC_Lifecycle ServiceManager: add: service=%s"' % (service))
         self._services.append(service)
 
     # -------------------------------------------------------------------------

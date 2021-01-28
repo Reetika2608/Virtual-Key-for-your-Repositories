@@ -32,6 +32,17 @@
         "loggingLevels": [$!setvar('hybridserviceslogger', 'CDB["/configuration/hybridserviceslogger", ""]')!$ <!--(for logger_index, logger in enumerate(hybridserviceslogger))-->$!setvar('comma', '"," if logger_index < len(hybridserviceslogger) - 1 else ""')!${"name": "@!logger['name']!@", "level": "@!logger['level']!@"}@!comma!@ <!--(end)-->]
     },
 
+    "ucmgmt": {
+        "controllerHost": $!setvar("controllerHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_ucmgmt_controllerHost_u2c"]')!$<!--(if len(controllerHost))-->$!controllerHost[0]['value']!$<!--(else)-->"https://controller.na.ucmgmt.cisco.com"<!--(end)-->,
+        "gatewayHost": $!setvar("gatewayHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_ucmgmt_gatewayHost_u2c"]')!$<!--(if len(gatewayHost))-->$!gatewayHost[0]['value']!$<!--(else)-->"https://gw.telemetry.ucmgmt.cisco.com"<!--(end)-->,
+        "licensingHost": $!setvar("licensingHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_ucmgmt_licensingHost_u2c"]')!$<!--(if len(licensingHost))-->$!licensingHost[0]['value']!$<!--(else)-->"https://licensing.na.ucmgmt.cisco.com"<!--(end)-->,
+        "migrationHost": $!setvar("migrationHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_ucmgmt_migrationHost_u2c"]')!$<!--(if len(migrationHost))-->$!migrationHost[0]['value']!$<!--(else)-->"https://migration.na.ucmgmt.cisco.com"<!--(end)-->,
+        "telemetryMgmtHost": $!setvar("telemetryMgmtHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_ucmgmt_telemetryMgmtHost_u2c"]')!$<!--(if len(telemetryMgmtHost))-->$!telemetryMgmtHost[0]['value']!$<!--(else)-->"https://telemetry-mgmt.na.ucmgmt.cisco.com"<!--(end)-->,
+        "upgradeHost": $!setvar("upgradeHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_ucmgmt_upgradeHost_u2c"]')!$<!--(if len(upgradeHost))-->$!upgradeHost[0]['value']!$<!--(else)-->"https://upgrade.na.ucmgmt.cisco.com"<!--(end)-->,
+        "webHost": $!setvar("webHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_ucmgmt_webHost_u2c"]')!$<!--(if len(webHost))-->$!webHost[0]['value']!$<!--(else)-->"https://web.telemetry.ucmgmt.cisco.com"<!--(end)-->
+
+    },
+
     "installed":
     {
         "blacklist": $!setvar("c_mgmt_installed_blacklist", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_installed_blacklist"]')!$<!--(if len(c_mgmt_installed_blacklist))-->$!c_mgmt_installed_blacklist[0]['value']!$<!--(else)-->{}<!--(end)-->,
@@ -55,6 +66,7 @@
         "clusterId" :  $!setvar("clusterId", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_clusterId"]')!$<!--(if len(clusterId))-->$!clusterId[0]['value']!$<!--(else)-->""<!--(end)-->,
         "tempTargetOrgId" :  $!setvar("orgId", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_tempTargetOrgId"]')!$<!--(if len(orgId))-->$!orgId[0]['value']!$<!--(else)-->""<!--(end)-->,
         "fused" :  $!setvar("fused", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_fused"]')!$<!--(if len(fused))-->$!fused[0]['value']!$<!--(else)-->""<!--(end)-->,
+        "targetType" :  $!setvar("targetType", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_system_targetType"]')!$<!--(if len(targetType))-->$!targetType[0]['value']!$<!--(else)-->"c_mgmt"<!--(end)-->,
         "cdb_version" : $!setvar("cdb_version", 'CDB["/configuration/cafe/cafestaticconfiguration", "name/c_mgmt_system_cdb_version]')!$<!--(if len(cdb_version))-->$!cdb_version[0]['value']!$<!--(else)-->{}<!--(end)-->,
         "serialNumber" : "$!setvar("serialNumber", 'CDB["/status/system", "?peer=local"]')!$<!--(if len(serialNumber))-->$!serialNumber[0]['hardware_serial_number']!$<!--(else)-->{}<!--(end)-->",
         "clusterSerials" : [

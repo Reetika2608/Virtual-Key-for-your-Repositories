@@ -39,6 +39,8 @@ def config_read(path):
         return "version"
     elif path == ManagementConnectorProperties.SERIAL_NUMBER:
         return "serialnumber"
+    elif path == ManagementConnectorProperties.TARGET_TYPE:
+        return "c_mgmt"
     elif path == ManagementConnectorProperties.IPV4_ADDRESS:
         return "ipv4_address"
     elif path == ManagementConnectorProperties.HOSTNAME:
@@ -100,7 +102,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         self.assertTrue(mock_post.called, "mock_post not called as expected %s" % mock_post.called)
 
         mock_json.assert_called_with(ManagementConnectorProperties.MERCURY_FILE
-                                     % ManagementConnectorProperties.SERVICE_NAME, expected_write_data)
+                                     % (ManagementConnectorProperties.SERVICE_NAME, ManagementConnectorProperties.SERVICE_NAME), expected_write_data)
 
     @mock.patch('managementconnector.cloud.remotedispatcher.RemoteDispatcher.register')
     @mock.patch('managementconnector.cloud.wdm.time.time')
@@ -148,7 +150,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         self.assertTrue(mock_put.called, "mock_put not called as expected %s" % mock_put.called)
         self.assertTrue(mock_metrics.called, "send_mercury_metrics not called as expected %s" % mock_metrics.called)
         mock_write_json.assert_called_with(ManagementConnectorProperties.MERCURY_FILE
-                                           % ManagementConnectorProperties.SERVICE_NAME, expected_write_data)
+                                           % (ManagementConnectorProperties.SERVICE_NAME, ManagementConnectorProperties.SERVICE_NAME), expected_write_data)
         mock_metrics.assert_called_with(header_val, ManagementConnectorProperties.SERVICE_NAME,
                                         expected_metrics)
         mock_remotedispatcher_register.assert_called_with(mock_oauth, mock_config)
@@ -204,7 +206,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         mercury.heartbeat()
 
         mock_delete_config.assert_called_with(ManagementConnectorProperties.MERCURY_FILE
-                                              % ManagementConnectorProperties.SERVICE_NAME)
+                                              % (ManagementConnectorProperties.SERVICE_NAME, ManagementConnectorProperties.SERVICE_NAME))
 
     @mock.patch('managementconnector.cloud.wdm.time.time')
     @mock.patch('managementconnector.cloud.mercury.websocket')
@@ -243,7 +245,8 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         with self.assertRaises(Exception):
             mercury.heartbeat()
         mock_file_delete.assert_called_with(ManagementConnectorProperties.MERCURY_FILE
-                                            % ManagementConnectorProperties.SERVICE_NAME)
+                                            % (ManagementConnectorProperties.SERVICE_NAME,
+                                               ManagementConnectorProperties.SERVICE_NAME))
         self.assertTrue(mock_socket.close.called, "ws close not called as expected: %s" % mock_socket.close.called)
 
     @mock.patch('managementconnector.cloud.mercury.Mercury.handle_mercury_exception')
@@ -309,7 +312,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         mercury.heartbeat()
 
         mock_delete_config.assert_called_with(ManagementConnectorProperties.REMOTE_DISPATCHER_FILE
-                                              % ManagementConnectorProperties.SERVICE_NAME)
+                                              % (ManagementConnectorProperties.SERVICE_NAME, ManagementConnectorProperties.SERVICE_NAME))
 
     @mock.patch('managementconnector.cloud.mercury.Metrics.send_mercury_error_metrics')
     @mock.patch('managementconnector.cloud.oauth.OAuth')
@@ -365,6 +368,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         expected_content = {"error_type": str(http_exception.__class__), "stacktrace": mocked_format,
                             "error_reason": "reason", "error_response": error_response, "device_url": device_url}
 
+        mock_config.read.side_effect = config_read
         mock_oauth.get_header.return_value = header_val
         mock_format.return_value = mocked_format
         mock_get_device.return_value = device_url
@@ -375,7 +379,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         mercury.handle_mercury_exception(http_exception)
 
         # Assert Send error is called when an exception is passed
-        mock_metrics.send_mercury_error_metrics.assert_called_with(header_val, ManagementConnectorProperties.SERVICE_NAME, expected_content)
+        mock_metrics.send_mercury_error_metrics.assert_called_with(header_val, config_read(ManagementConnectorProperties.TARGET_TYPE), expected_content)
 
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch('managementconnector.cloud.mercury.Mercury.handle_missing_mercury_probe')

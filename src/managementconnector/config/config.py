@@ -39,6 +39,12 @@ class Config(object):
         for callback in self._registered_callbacks:
             callback()
 
+    def get_targetType(self):
+        """
+            Return CAFE developer/hybridservices logger depending on Expressway Version
+        """
+        return self.read(ManagementConnectorProperties.TARGET_TYPE)
+
     def add_observer(self, callback):
         """ Add a new observer """
 

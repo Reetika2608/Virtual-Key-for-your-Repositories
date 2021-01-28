@@ -224,6 +224,13 @@ class Metrics(object):
         connector_version = ServiceUtils.get_version(service_name)
         vcs_version = self._config.read(ManagementConnectorProperties.VERSION)
         cluster_id = self._config.read(ManagementConnectorProperties.CLUSTER_ID)
+        target_type = self._config.read(ManagementConnectorProperties.TARGET_TYPE)
+
+        #Check the targrttype and based on that provide connector type with service name or connector type
+        if(target_type != self._config.read(ManagementConnectorProperties.SERVICE_NAME)):
+            service_name = target_type
+        else:
+            service_name = ManagementConnectorProperties.SERVICE_NAME
 
         context = {"cluster_id": cluster_id, "connector_type": service_name,
                    "connector_id": service_name + "@" + serial_number,

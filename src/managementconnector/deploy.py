@@ -61,7 +61,7 @@ class Deploy(object):
         self._oauth = OAuth(self._config)
 
         self._service_manager = ServiceManager(self._config, self._oauth)
-        self._crash_monitor = CrashMonitor()
+        self._crash_monitor = CrashMonitor(self._config)
 
         # Atlas
         self._atlas = Atlas(self._config)
@@ -87,8 +87,17 @@ class Deploy(object):
         DEV_LOGGER.info('Detail="FMC_Lifecycle ManagementConnector deploying with %s"' %
                         (self.is_undeploy_in_progress()))
         ADMIN_LOGGER.info('Detail="FMC_Lifecycle ManagementConnector deploying"')
+
         mc_type = ManagementConnectorProperties.SERVICE_NAME
 
+        DEV_LOGGER.info('Detail="FMC_Lifecycle ManagementConnector Target_Type before %s"' % (
+        self._config.read(ManagementConnectorProperties.TARGET_TYPE)))
+
+        if (self._config.read(ManagementConnectorProperties.TARGET_TYPE) == ''):
+            self._config.write_blob(ManagementConnectorProperties.TARGET_TYPE, 'c_mgmt')
+
+        DEV_LOGGER.info('Detail="FMC_Lifecycle ManagementConnector Target_Type after the default %s"' % (
+            self._config.read(ManagementConnectorProperties.TARGET_TYPE)))
         self._oauth_init = False
 
         # Process any TLP left behind in the downloads directory before we started up
@@ -213,7 +222,7 @@ class Deploy(object):
             if installed_connectors:
                 currently_installed += installed_connectors
             for connector in currently_installed:
-                if connector != ManagementConnectorProperties.SERVICE_NAME:
+                if connector not in ManagementConnectorProperties.SERVICE_LIST:
                     services.append(self._service_manager.get(connector))
 
             excluded_alarms = list()
@@ -225,7 +234,7 @@ class Deploy(object):
                     if service_alarms:
                         excluded_alarms += service_alarms
 
-                    if service_name != ManagementConnectorProperties.SERVICE_NAME:
+                    if service_name not in ManagementConnectorProperties.SERVICE_LIST:
                         try:
                             DEV_LOGGER.info('Detail="FMC_Lifecycle Removing Service %s "' % service_name)
 
@@ -261,6 +270,7 @@ class Deploy(object):
                              % (mc_type, send_status_metric))
 
             service = self._service_manager.get(mc_type)
+
             system_mem = System.get_system_mem()
             DEV_LOGGER.info('Detail="Resource usage expressway. '
                             'Current CPU usage [%s%%], current RAM usage[%s%%, %s GB]"' %
@@ -300,7 +310,7 @@ class Deploy(object):
 
             # Post Status
             for config in connectors_config:
-                if config['name'] != ManagementConnectorProperties.SERVICE_NAME:
+                if config['name'] not in ManagementConnectorProperties.SERVICE_LIST:
                     # Register Connector Details
                     dependency = 'dependency' in config
                     service = self._service_manager.get(config['name'], dependency)
@@ -372,6 +382,7 @@ class Deploy(object):
             self._alarms.raise_alarm('dc463c51-d111-4cc5-9eba-9e09292183b0')
 
         except urllib2.HTTPError as http_error:
+            DEV_LOGGER.debug('Detail="FMC_Lifecycle HTTP ERROR Triggered%s"', http_error)
             self._handle_http_exception(http_error, service)
 
         except urllib2.URLError as url_error:
@@ -450,7 +461,6 @@ class Deploy(object):
         """
             _get_config
         """
-
         if mc_provisioning is not None:
 
             connectors_config, entitled_services = Atlas.parse_mc_config(mc_provisioning)
@@ -561,7 +571,7 @@ class Deploy(object):
         Purge all backup TLPs from the filesystem except for the current c_mgmt.tlp
         """
         self._system.delete_tlps(ManagementConnectorProperties.INSTALL_CURRENT_DIR,
-                                 exclude_list=[ManagementConnectorProperties.SERVICE_NAME])
+                                 exclude_list=ManagementConnectorProperties.SERVICE_NAME)
         self._system.delete_tlps(ManagementConnectorProperties.INSTALL_PREVIOUS_DIR)
 
     # -------------------------------------------------------------------------
@@ -622,12 +632,17 @@ class Deploy(object):
         DEV_LOGGER.info('Detail="Trigger deregister across the cluster"')
 
         fused = config.read(ManagementConnectorProperties.FUSED)
+        targetType = config.read(ManagementConnectorProperties.TARGET_TYPE)
 
         # Only trigger a defuse - if in defused state
         if fused == "true":
+            DEV_LOGGER.info('Detail="Defuse before its true"')
             config.write_blob(ManagementConnectorProperties.FUSED, 'false')
-            config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {'c_mgmt': 'false'})
-
+            DEV_LOGGER.info('Detail="Defuse before its false now"')
+            if targetType == config.read(ManagementConnectorProperties.SERVICE_NAME):
+                config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {config.read(ManagementConnectorProperties.SERVICE_NAME): 'false'})
+            else:
+               config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {config.read(ManagementConnectorProperties.TARGET_TYPE): 'false'})
             # delete create configured file (TBD - This block could be removed as the file is no longer created)
             if os.path.isfile(ManagementConnectorProperties.CONFIG_FILE_STATUS_MGMT):
                 os.remove(ManagementConnectorProperties.CONFIG_FILE_STATUS_MGMT)

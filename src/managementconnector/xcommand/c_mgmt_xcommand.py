@@ -305,8 +305,12 @@ def run(command_name, parameters, callback, error_callback):
             u2c.update_user_catalog()
 
             config.write_blob(ManagementConnectorProperties.FUSED, 'true')
-            config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {'c_mgmt': 'true'})
 
+            target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
+            if(target_type == config.read(ManagementConnectorProperties.SERVICE_NAME)):
+                config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {config.read(ManagementConnectorProperties.SERVICE_NAME): 'true'})
+            else:
+                config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {config.read(ManagementConnectorProperties.TARGET_TYPE): 'true'})
             if reregister:
                 DEV_LOGGER.debug('Detail="Management Connector: Xcommand reregister: set reregister flag to false"')
                 config.write_blob(ManagementConnectorProperties.REREGISTER, 'false')
@@ -524,7 +528,8 @@ def run(command_name, parameters, callback, error_callback):
             config.write_blob(ManagementConnectorProperties.TEAMS_CLUSTER_ID, bootstrap_json["teamsClusterId"])
         if "identityUrl" in bootstrap_json:
             config.write_blob(ManagementConnectorProperties.U2C_IDENTITY_HOST, bootstrap_json["identityUrl"])
-
+        if "targetType" in bootstrap_json:
+            config.write_blob(ManagementConnectorProperties.TARGET_TYPE, bootstrap_json["targetType"])
     def get_bare_url(raw_url):
         """ get_bare_url """
         parsed_url = urlsplit(raw_url)

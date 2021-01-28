@@ -164,6 +164,7 @@ def mock_get_config(self):
             "hostname" : "gwydlvm340",
             "clusterName" : "clustername",
             "clusterId" : "guid",
+            "targetType": "c_mgmt",
             "serialNumber" : "0E4D1FA5",
             "version" : "X8.6PreAlpha0 (Test SW)"
         },

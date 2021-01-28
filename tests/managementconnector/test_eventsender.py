@@ -34,6 +34,8 @@ def config_read(path):
         return "serial"
     elif path == ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS:
         return {"organization_id": "org"}
+    elif path == ManagementConnectorProperties.TARGET_TYPE:
+        return "c_mgmt"
     elif path == ManagementConnectorProperties.SERIAL_NUMBER:
         return "serial"
     elif path == ManagementConnectorProperties.CLUSTER_ID:
@@ -47,7 +49,7 @@ def config_read(path):
     elif path == ManagementConnectorProperties.EVENT_FAILURE:
         return "failure"
     elif path == ManagementConnectorProperties.SERVICE_NAME:
-        return "c_ucmc"
+        return "c_mgmt"
 
     return "config_value"
 
@@ -192,7 +194,7 @@ class EventSenderTest(unittest.TestCase):
         }
 
         mock_post.assert_called_with(atlas_url_prefix + event_url, oauth.get_header(), json.dumps(event))
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_ucmc": "1.2.3"})
+        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_mgmt": "1.2.3"})
 
         # Second event - should not be called
         EventSender.post(oauth,
@@ -219,7 +221,8 @@ class EventSenderTest(unittest.TestCase):
     @mock.patch("managementconnector.config.jsonhandler.write_json_file")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("managementconnector.service.eventsender.Http.post")
-    def test_first_event_sent_for_two_different_upgrades(self, mock_post, mock_get_package_version, mock_write, mock_read):
+    @mock.patch('managementconnector.config.config.Config')
+    def test_first_event_sent_for_two_different_upgrades(self, mock_config, mock_post, mock_get_package_version, mock_write, mock_read):
         """
             SPARK-1983: Make fms-connector-upgrades dashboard useable
             Expected: V1 failure sent, V1 second failure not sent, V2 failure sent
@@ -289,7 +292,7 @@ class EventSenderTest(unittest.TestCase):
         }
 
         mock_post.assert_called_with(atlas_url_prefix + event_url, oauth.get_header(), json.dumps(event))
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_ucmc": "1.2.3"})
+        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_mgmt": "1.2.3"})
 
         # Second event - should not be called
         EventSender.post(oauth,

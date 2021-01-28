@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <subsitecollection>
     <subsites insertAtMountPoint="additional_applications">
-        <site visible_unless="non_fusion">
+        <site visible_unless="cloud_service">
             <pagealias>
                 <link>fusionregistration</link>
             </pagealias>
@@ -37,6 +37,35 @@
                     </menu>
                 </site>
                 <mountpoint id="fusion"/> 
+            </subsites>
+        </site>
+        <site hidden_unless="cloud_service">
+            <pagealias>
+                <link>cloudregistration</link>
+            </pagealias>
+            <menu>
+                <title>ttl.CLOUD_SERVICES</title>
+            </menu>
+            <subsites>
+                <site>
+                    <page>
+                        <title>lbl.CLOUD_CONNECTOR_HEADER</title>
+                        <link>cloudregistration</link>
+                    </page>
+                    <menu>
+                        <title>ttl.FUSION_SERVICES</title>
+                    </menu>
+                </site>
+                <site>
+                    <page>
+                        <title>ttl.FUSION_PROXY</title>
+                        <link>cloudproxy</link>
+                    </page>
+                    <menu>
+                        <title>ttl.FUSION_PROXY</title>
+                    </menu>
+                </site>
+                <mountpoint id="fusion"/>
             </subsites>
         </site>
         <site visible_unless="control">

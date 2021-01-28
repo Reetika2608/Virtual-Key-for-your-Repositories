@@ -57,7 +57,7 @@ def set_cdb_entry(hostname, admin_user, admin_pass, cdb_path, entry):
 
 hostname = sys.argv[1]
 admin_user = "admin"
-admin_pass = "x"
+admin_pass = "Cisco!23"
 
 set_cdb_entry(hostname, admin_user, admin_pass, c_ucmc_config_path, fake_c_ucmc_config)
 set_cdb_entry(hostname, admin_user, admin_pass, c_cal_config_path, fake_c_cal_config)

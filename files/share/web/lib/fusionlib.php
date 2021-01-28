@@ -87,9 +87,11 @@ class FusionLib
     }
 
     // looks up a given service in cdb, returns true | false
-    static public function get_connector_enabled_state($name, $rest_data_adapter)
+    static public function get_connector_enabled_state($rest_data_adapter)
     {
+        $target_type = self::get_target_type($rest_data_adapter);
         $table_name = "c_mgmt_system_enabledServicesState";
+
         $enabled = false;
         $root = $rest_data_adapter->get_local("configuration/cafe/cafeblobconfiguration/name/" . $table_name);
         if(isset($root->record[0]))
@@ -101,7 +103,7 @@ class FusionLib
             {
                 foreach($decoded as $service_name => $service_enabled)
                 {
-                    if($service_name == $name && $service_enabled == "true")
+                    if($service_name == $target_type && $service_enabled == "true")
                     {
                         $enabled = true;
                         break;
@@ -120,20 +122,32 @@ class FusionLib
     // checks if we're currently registered by checking for a c_mgmt in active service list.
     static public function is_registered($rest_data_adapter)
     {
-        return self::get_connector_enabled_state("c_mgmt", $rest_data_adapter);
+        return self::get_connector_enabled_state($rest_data_adapter);
     }
 
     // dangerously similar to get_connector_enabled_state("c_mgmt", $rest_data_adapter),
     // except we detect the difference between missing status -> defused, and status = false -> defusing
     static public function get_defused_state($rest_data_adapter)
     {
+        $target_type = self::get_target_type($rest_data_adapter);
         $table_name = "c_mgmt_system_enabledServicesState";
         $root = $rest_data_adapter->get_local("configuration/cafe/cafeblobconfiguration/name/" . $table_name);
         if(isset($root->record[0]))
         {
             $record = $root->record[0];
             $decoded = json_decode($record->value);
-            if ($decoded && isset($decoded->c_mgmt)) 
+            if ($decoded && isset($decoded->c_ccucmgmt))
+            {
+                if( (string)$decoded->c_ccucmgmt == "true")
+                {
+                    return "fused";
+                }
+                else
+                {
+                    return "defusing";
+                }
+            }
+            if ($decoded && isset($decoded->c_mgmt))
             {
                 if( (string)$decoded->c_mgmt == "true")
                 {
@@ -218,16 +232,28 @@ class FusionLib
         return $container;
     }
 
-    static public function create_goto_cloud_form()
+    static public function create_goto_cloud_form($rest_data_adapter, $isExpresswayEnabled)
     {
         // init cloud form
-        $cloud_form = new DataForm( "fusionregistration", "", "dataform", "" );
+        $target_type = self::get_target_type($rest_data_adapter);
+        $actionlink = "fusionregistration";
+        if($target_type != 'c_mgmt')
+        {
+            $actionlink = "cloudregistration";
+        }
+      
+        $cloud_form = new DataForm( $actionlink, "", "dataform", "" );
 
         // renderable submit button created below
         $cloud_form->removeDefaultSubmitButton();
-
-        $fieldset = $cloud_form->createFieldset("fieldset.CLOUD_FUSION_SERVICES");
-        
+        if($target_type == "c_mgmt" && !$isExpresswayEnabled)
+        {
+            $fieldset = $cloud_form->createFieldset("fieldset.CLOUD_FUSION_SERVICES");
+        }
+        else
+        {
+            $fieldset = $cloud_form->createFieldset("fieldset.CLOUD_SERVICES");
+        } 
         // form doesn't need labels. This makes messages more readable
         $fieldset->hide_labels();
 
@@ -248,16 +274,27 @@ class FusionLib
         return $cloud_form;
     }
 
-    static public function create_bootstrap_form()
+    static public function create_bootstrap_form($rest_data_adapter)
     {
         // init bootstrap form
-        $bootstrap_form = new DataForm( "fusionregistration", "", "dataform", "" );
+        $target_type = self::get_target_type($rest_data_adapter);
+        $actionlink = "fusionregistration";
+        if($target_type != 'c_mgmt')
+        {
+            $actionlink = "cloudregistration";
+        }
+        $bootstrap_form = new DataForm( $actionlink, "", "dataform", "" );
 
         // renderable submit button created below
         $bootstrap_form->removeDefaultSubmitButton();
-
-        $fieldset = $bootstrap_form->createFieldset("fieldset.CLOUD_FUSION_SERVICES");
-        
+        if($target_type != 'c_mgmt')
+        {
+            $fieldset = $bootstrap_form->createFieldset("fieldset.CLOUD_SERVICES");         
+        }
+        else
+        {
+            $fieldset = $bootstrap_form->createFieldset("fieldset.CLOUD_FUSION_SERVICES");
+        }
         // form doesn't need labels. This makes messages more readable
         $fieldset->hide_labels();
 
@@ -298,20 +335,32 @@ class FusionLib
         return $bootstrap_form;
     }
 
-    static public function create_register_form()
+    static public function create_register_form($rest_data_adapter, $isExpresswayEnabled)
     {
         // init registration form
-        $registration_form = new DataForm( "fusionregistration", "", "dataform", "" );
+        $target_type = self::get_target_type($rest_data_adapter);
+        $actionlink = "fusionregistration";
+        if($target_type != 'c_mgmt')
+        {   
+            $actionlink = "cloudregistration";
+        } 
+        $registration_form = new DataForm( $actionlink, "", "dataform", "" );
 
         // renderable submit button created below
         $registration_form->removeDefaultSubmitButton();
-
-        $fieldset = $registration_form->createFieldset("fieldset.CLOUD_FUSION_SERVICES");
+        if($target_type != 'c_mgmt')
+        {
+            $fieldset = $registration_form->createFieldset("fieldset.CLOUD_SERVICES");         
+        }
+        else
+        {
+            $fieldset = $registration_form->createFieldset("fieldset.CLOUD_FUSION_SERVICES");
+        }
         
         // form doesn't need labels. This makes messages more readable
         $fieldset->hide_labels();
 
-        $registration_ready = new Label(tt_gettext("lbl.FUSION_REGISTRATION_READY"));
+        $registration_ready = new Label(sprintf(tt_gettext("lbl.FUSION_REGISTRATION_READY"), self::get_target_service($rest_data_adapter, $isExpresswayEnabled)));
         $fieldset->addRow("", $registration_ready);
 
         if(self::are_fusion_certs_installed())
@@ -342,6 +391,33 @@ class FusionLib
         $fieldset->addRow("Register", $register_widget);
 
         return $registration_form;
+    }
+
+    static public function get_target_service($rest_data_adapter, $isExpresswayEnabled)
+    {
+        $target_type = self::get_target_type($rest_data_adapter);
+        if($target_type == "c_mgmt" && !$isExpresswayEnabled)
+        {
+            $registered_tt = sprintf(tt_gettext("ttl.CLOUD_FUSION"), $target_type);
+            return $registered_tt;
+        }
+        else {
+            $registered_tt = sprintf(tt_gettext("ttl.CLOUD_SERVICES"), $target_type);
+            return $registered_tt;
+        }
+
+    }
+
+    //targetType is used as a criteria for managment connector to decide which service it is running as part of.
+    static public function get_target_type($rest_data_adapter)
+    {
+        $target_type = $rest_data_adapter->get_local("configuration/cafe/cafeblobconfiguration/name/c_mgmt_system_targetType");
+        if($target_type->num_recs[0] > 0)
+        {
+           $target_value = $target_type->record[0]->value;
+           return str_replace('"', '', $target_value);
+        }
+        return 'c_mgmt';
     }
 
     static private function set_curl_options($ch, $decoded_json_conf) {

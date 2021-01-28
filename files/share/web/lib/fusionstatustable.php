@@ -8,19 +8,20 @@ require_once( getenv("PHP_LIBDIR") . "/internalconnection.php" );
 require_once( getenv("PHP_LIBDIR") . "/widgets/statuswidget.php");
 require_once( getenv("PHP_LIBDIR") . "/widgets/textwithhyperlinks.php");
 require_once( getenv("PHP_LIBDIR") . "/widgets/hyperlink.php");
-
+require_once( getenv("PHP_LIBDIR") . "/fusionlib.php" );
 
 class FusionStatus extends AjaxStatus
 {
     private $rest_data_adapter;
     protected $setEvalScripts = true;
     static private $config_path = "/mnt/harddisk/current/fusion/config_links/";
-
+    private $target_type;
     // PUBLIC
 
     final public function __construct($rest_data_adapter )
     {
         $this->rest_data_adapter = $rest_data_adapter;
+        $this->target_type = FusionLib::get_target_type($this->rest_data_adapter);
     }
 
     public static function get_service_status_blob()
@@ -184,7 +185,15 @@ class FusionStatus extends AjaxStatus
                 $alarm_text = tt_gettext("lbl.SERVICE_NO_ALARMS");
                 $new_record = array();
                 $new_record['name'] = $display_name;
-
+                if($service === 'c_ccucmgmt' || $this->target_type !== 'c_mgmt')
+                {
+                    //$service = "c_mgmt";
+                    $link_text = "cloudregistration?uuid=" . $service;
+                }
+                else
+                {
+                    $link_text = "fusionregistration?uuid=" . $service;
+                }
                 $new_record['uuid'] = $service;
 
                 $status = new StatusWidget(tt_gettext("lbl.CONNECTOR_NOT_INSTALLED"), "error");
@@ -193,7 +202,7 @@ class FusionStatus extends AjaxStatus
                 {
                     $status_node = $connector_status->{$service};
 
-                    if( $status_node->version != "None")
+                    if( $status_node->version !== "None")
                     {
                         $version = $status_node->version;
                     }
@@ -204,7 +213,7 @@ class FusionStatus extends AjaxStatus
                         if ($alarm_number > 0)
                         {
                             $alarm_text = sprintf(tt_ngettext('lbl.SERVICE_ALARMS_%d','lbl.SERVICE_ALARMS_%d.plural', $alarm_number), $alarm_number);
-                            $alarm_text = new hyperlink("", $alarm_text, "fusionregistration?uuid=" . $service);
+                            $alarm_text = new hyperlink("", $alarm_text, $link_text);
                             $alarm_column_needed = true;
                         }
                     }
@@ -234,8 +243,13 @@ class FusionStatus extends AjaxStatus
 
                 // c_mgmt should never be able to be enabled / disabled
                 $new_record['service'] = $service;
-                if($service === "c_mgmt")
+                $link_text = "fusionregistration?uuid=";
+                if($this->target_type !== 'c_mgmt')
                 {
+                   $link_text = "cloudregistration?uuid=";
+                }
+                if($service === "c_mgmt" || $service === "c_ccucmgmt")
+                { 
                     $new_record['active'] = tt_gettext("Enabled");
                     array_unshift($records, $new_record); // prepend c_mgmt so it appears first by default
                 }
@@ -243,7 +257,7 @@ class FusionStatus extends AjaxStatus
                 {
                     $enabled = self::get_service_enabled($this->rest_data_adapter, $service);
                     $active = $enabled ? tt_gettext("Enabled") : tt_gettext("Disabled");
-                    $new_record['active'] = new hyperlink("", $active, "fusionregistration?uuid=" . $service . "#enable_service");
+                    $new_record['active'] = new hyperlink("", $active, $link_text . $service . "#enable_service");
 
                     $records[] = $new_record;
                 }
@@ -268,6 +282,10 @@ class FusionStatus extends AjaxStatus
         $services_table->setTableName("fusion_services");
         // have to hardcode url to return to, as this can be loaded by fusionajax page.
         $services_table->setLinkBase("fusionregistration");
+        if($this->target_type !== "c_mgmt")
+        {
+           $services_table->setLinkBase("cloudregistration");
+        }
         $services_table->set_listing_only(true);
         $services_table->set_link_id("service");
         $services_table->has_link_field("service");

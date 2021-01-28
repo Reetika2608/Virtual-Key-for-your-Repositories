@@ -153,6 +153,7 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         StashedData.set(current, previous)
 
         mock_config.write(ManagementConnectorProperties.INSTALL_BLACK_LIST, {})
+        mock_config.write(ManagementConnectorProperties.TARGET_TYPE, "c_mgmt")
 
         mock_xutils.get_package_version.return_value = "8.6-1.0.0"
         mock_os.isfile.return_value = True

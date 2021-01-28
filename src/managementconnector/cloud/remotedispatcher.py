@@ -15,6 +15,7 @@ from managementconnector.platform.serviceutils import ServiceUtils
 from managementconnector.service.servicemanager import ServiceManager
 from managementconnector.platform.system import System
 from cafedynamic.cafexutil import CafeXUtils
+from managementconnector.config.config import Config
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.cloud import schema
 from managementconnector.platform.logarchiver import LogArchiver
@@ -24,7 +25,7 @@ from managementconnector.platform.connectivitycheck import ConnectivityCheck
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
-
+TARGET_TYPE = Config(inotify=False).read(ManagementConnectorProperties.TARGET_TYPE)
 
 class RemoteDispatcher(object):
     """ RemoteDispatcher class """
@@ -32,7 +33,7 @@ class RemoteDispatcher(object):
     @staticmethod
     def get_connector():
         """Get connector name@serialNumber"""
-        return ManagementConnectorProperties.SERVICE_NAME + "@" \
+        return RemoteDispatcher.TARGET_TYPE + "@" \
             + RemoteDispatcher.config.read(ManagementConnectorProperties.SERIAL_NUMBER)
 
     @staticmethod
@@ -43,7 +44,7 @@ class RemoteDispatcher(object):
     @staticmethod
     def get_mercury_config():
         """Get mercury config"""
-        return jsonhandler.read_json_file(ManagementConnectorProperties.MERCURY_FILE % ManagementConnectorProperties.SERVICE_NAME)
+        return jsonhandler.read_json_file(ManagementConnectorProperties.MERCURY_FILE % (RemoteDispatcher.TARGET_TYPE, RemoteDispatcher.TARGET_TYPE))
 
     @staticmethod
     def get_remotedispatcher_url():
@@ -62,13 +63,14 @@ class RemoteDispatcher(object):
         """ Register with RemoteDispatcher """
         RemoteDispatcher.config = config
         RemoteDispatcher.oauth = oauth
+        RemoteDispatcher.TARGET_TYPE = config.read(ManagementConnectorProperties.TARGET_TYPE)
 
         mercury_config = RemoteDispatcher.get_mercury_config()
         if mercury_config:
             post_data = {
                 "orgId": RemoteDispatcher.get_org_id(),
                 "connectorId": RemoteDispatcher.get_connector(),
-                "connectorType": ManagementConnectorProperties.SERVICE_NAME,
+                "connectorType": RemoteDispatcher.TARGET_TYPE,
                 "deviceId": mercury_config['route'],
                 "hostname": config.read(ManagementConnectorProperties.HOSTNAME),
                 "clusterName": config.read(ManagementConnectorProperties.CLUSTER_NAME),
@@ -82,7 +84,7 @@ class RemoteDispatcher(object):
             RemoteDispatcher.write_config_to_disk(response)
         else:
             DEV_LOGGER.error('Detail="No mercury configuration was found"')
-            RemoteDispatcher.delete_config_from_disk()
+            RemoteDispatcher.delete_config_from_disk(config)
 
     @staticmethod
     def write_config_to_disk(config):
@@ -92,13 +94,13 @@ class RemoteDispatcher(object):
                                     "clusterName": config["clusterName"], "clusterId": config["clusterId"]}
 
         jsonhandler.write_json_file(ManagementConnectorProperties.REMOTE_DISPATCHER_FILE
-                                    % ManagementConnectorProperties.SERVICE_NAME, remote_dispatcher_config)
+                                    % (RemoteDispatcher.TARGET_TYPE, RemoteDispatcher.TARGET_TYPE), remote_dispatcher_config)
 
     @staticmethod
-    def delete_config_from_disk():
+    def delete_config_from_disk(config):
         """ Remove Remote Dispatcher registration information from disk """
         jsonhandler.delete_file(ManagementConnectorProperties.REMOTE_DISPATCHER_FILE
-                                % ManagementConnectorProperties.SERVICE_NAME)
+                                % (config.read(ManagementConnectorProperties.TARGET_TYPE), config.read(ManagementConnectorProperties.TARGET_TYPE)))
 
 
     @staticmethod

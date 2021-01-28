@@ -20,7 +20,14 @@ class U2C(object):
                    "remoteDispatcher": ManagementConnectorProperties.U2C_RD,
                    "feature": ManagementConnectorProperties.U2C_FEATURE,
                    "fms": ManagementConnectorProperties.U2C_FMS,
-                   "atlasFusionAdminPortal": ManagementConnectorProperties.U2C_ADMIN_PORTAL}
+                   "atlasFusionAdminPortal": ManagementConnectorProperties.U2C_ADMIN_PORTAL,
+                   "ucmgmt-controller":ManagementConnectorProperties.U2C_UCMGMT_CONTROLLER_HOST,
+                   "ucmgmt-gateway": ManagementConnectorProperties.U2C_UCMGMT_GATEWAY_HOST,
+                   "ucmgmt-licensing": ManagementConnectorProperties.U2C_UCMGMT_LICENSING_HOST,
+                   "ucmgmt-migration": ManagementConnectorProperties.U2C_UCMGMT_MIGRATION_HOST,
+                   "ucmgmt-telemetry-mgmt": ManagementConnectorProperties.U2C_UCMGMT_TELEMETRY_MGMT_HOST,
+                   "ucmgmt-upgrade": ManagementConnectorProperties.U2C_UCMGMT_UPGRADE_HOST,
+                   "ucmgmt-web": ManagementConnectorProperties.U2C_UCMGMT_WEB_HOST}
 
     def __init__(self, config, oauth, http, database):
         self._http = http

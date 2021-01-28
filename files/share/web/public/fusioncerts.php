@@ -416,7 +416,15 @@ class FusionCertPage extends SecurityCertificatesPageBase
                  $this->certs_details->render();
             }
             $xref = new CrossReferencePanel("RELATED TASKS");
-            $xref->addEntry( "btn.REDIRECT_TO_FUSION", "fusionregistration" );
+            $target_type =  FusionLib::get_target_type($this->rest_data_adapter);
+            if($target_type != "c_mgmt")
+            {
+                $xref->addEntry( "btn.REDIRECT_TO_CLOUD", "cloudregistration" );
+            }
+            else
+            {
+                $xref->addEntry( "btn.REDIRECT_TO_FUSION", "fusionregistration" );
+            }
             $xref->addEntry( "Additional Certificate Management", "trustedcacertificate" );
             $xref->render();
         }

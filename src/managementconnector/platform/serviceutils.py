@@ -10,6 +10,7 @@ from base_platform.expressway.i18n import translate
 
 from cafedynamic.cafexutil import CafeXUtils
 from managementconnector.config import jsonhandler
+from managementconnector.config.config import Config
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.platform.system import System
 
@@ -22,14 +23,14 @@ class ServiceUtils(object):
     """
     Utilities methods for Services
     """
-
+    TARGET_TYPE = Config(inotify=False).read(ManagementConnectorProperties.TARGET_TYPE)
     # -------------------------------------------------------------------------
 
     @staticmethod
     def remove_installing_state(name):
         """ Remove installing state file """
-        DEV_LOGGER.info('Detail="remove_installing_state: Removing installing state file for %s"' % name)
-        jsonhandler.delete_file(ManagementConnectorProperties.INSTALLING_STATUS_FILE)
+        DEV_LOGGER.info('Detail="remove_installing_state: Removing installing state file for %s, target_type: %s"' % (name, ServiceUtils.TARGET_TYPE))
+        jsonhandler.delete_file((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE))
 
     # -------------------------------------------------------------------------
 
@@ -37,8 +38,8 @@ class ServiceUtils(object):
     def remove_upgrade_events_file():
         """ Remove upgrade events sent file """
         DEV_LOGGER.info('Detail="remove_upgrade_events_file: Removing upgrade events file: {}"'
-                        .format(ManagementConnectorProperties.UPGRADE_EVENTS_FILE))
-        jsonhandler.delete_file(ManagementConnectorProperties.UPGRADE_EVENTS_FILE)
+                        .format((ManagementConnectorProperties.UPGRADE_EVENTS_FILE % ServiceUtils.TARGET_TYPE)))
+        jsonhandler.delete_file((ManagementConnectorProperties.UPGRADE_EVENTS_FILE % ServiceUtils.TARGET_TYPE))
 
     # -------------------------------------------------------------------------
 
@@ -46,7 +47,7 @@ class ServiceUtils(object):
     def set_installing_state(name, version, state):
         """ Set the installing state of the service """
         DEV_LOGGER.info('Detail="set_installing_state: name: %s, version: %s, state: %s"' % (name, version, state))
-        jsonhandler.write_json_file(ManagementConnectorProperties.INSTALLING_STATUS_FILE,
+        jsonhandler.write_json_file((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE),
                                     {name: state, 'version': version})
 
     # -------------------------------------------------------------------------
@@ -59,10 +60,10 @@ class ServiceUtils(object):
 
         try:
             # if file does not exists not installing
-            if not os.path.isfile(ManagementConnectorProperties.INSTALLING_STATUS_FILE):
+            if not os.path.isfile((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE)):
                 return installing_state
 
-            state = jsonhandler.read_json_file(ManagementConnectorProperties.INSTALLING_STATUS_FILE)
+            state = jsonhandler.read_json_file((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE))
 
             if state:
                 if name in state:
@@ -82,7 +83,7 @@ class ServiceUtils(object):
 
         version = CafeXUtils.get_package_version(name)
         if not version:
-            installing_details = jsonhandler.read_json_file(ManagementConnectorProperties.INSTALLING_STATUS_FILE)
+            installing_details = jsonhandler.read_json_file((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE))
             if installing_details:
                 if 'version' in installing_details and name in installing_details:
                     version = installing_details['version']
@@ -104,13 +105,17 @@ class ServiceUtils(object):
         # Service states we want to apply
         enabled_services_states = config.read(ManagementConnectorProperties.ENABLED_SERVICES_STATE)
 
+        #TargetType to state where to store the installing status
+        target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
+
         if enabled_service is not None and enabled_services_states:
             for name, enabled in enabled_services_states.items():
-                if name != ManagementConnectorProperties.SERVICE_NAME:
+                if name not in ManagementConnectorProperties.SERVICE_LIST:
                     # If the service is in an installing state do not apply service mode state, otherwise
                     #  mimic blob enable flag to service flag, if Name is a new entry or it's value has changed
                     if (name not in enabled_service and enabled == "true") or (name in enabled_service and enabled == "false"):
-                        if not CafeXUtils.is_package_installing(name, DEV_LOGGER):
+                        if not CafeXUtils.is_package_installing(name, target_type, DEV_LOGGER):
+                        #if not CafeXUtils.is_package_installing(name, DEV_LOGGER):
                             if ServiceUtils.blob_mode_on(name, enabled_services_states):
                                 DEV_LOGGER.info('Detail="Service: setting connector:%s, mode: on"' % name)
                                 config.write("/configuration/service/name/%s" % name, {"mode": "on"})
@@ -131,6 +136,7 @@ class ServiceUtils(object):
     @staticmethod
     def blob_mode_on(name, enabled_services_states):
         """ Checks if service mode is on in blob table """
+        DEV_LOGGER.debug('Detail="Blob Mode Check name: %s state: %s"' % (name, enabled_services_states.items()))
         blob_on = False
         if enabled_services_states:
             for service_name, enabled in enabled_services_states.items():
@@ -165,7 +171,7 @@ class ServiceUtils(object):
         enabled_services_states = config.read(ManagementConnectorProperties.ENABLED_SERVICES_STATE)
         if enabled_services_states:
             for name, enabled in enabled_services_states.items():
-                if name != ManagementConnectorProperties.SERVICE_NAME:
+                if name != config.read(ManagementConnectorProperties.TARGET_TYPE):
                     if (enabled == "true") != CafeXUtils.is_connector_running(name, DEV_LOGGER):
                         DEV_LOGGER.debug('Detail="is_service_descrepency: found descrepency: name:%s, enabled=%s "' % (name, enabled))
                         ret_val = True
@@ -180,14 +186,14 @@ class ServiceUtils(object):
             save_tlps_for_rollback
             save off tlp to current/previous directories
         """
-
+        ServiceUtils.TARGET_TYPE = config.read(ManagementConnectorProperties.TARGET_TYPE)
         downloaded_tlp = ManagementConnectorProperties.INSTALL_DOWNLOAD_FILE % name
         current_versions = ServiceUtils.get_current_versions(config)
         previous_versions = ServiceUtils.get_previous_versions(config)
         installed_version = CafeXUtils.get_package_version(name)
         black_listed_versions = config.read(ManagementConnectorProperties.INSTALL_BLACK_LIST, {})
-        DEV_LOGGER.info('Detail="save_tlps_for_rollback: start: rollback related code: current name=%s, installed_version=%s, current versions=%s, previous versions=%s, blacklisted version=%s"' %
-                        (name, installed_version, current_versions, previous_versions, black_listed_versions))
+        DEV_LOGGER.info('Detail="save_tlps_for_rollback: start: rollback related code: current name=%s, installed_version=%s, current versions=%s, previous versions=%s, blacklisted version=%s, target_type=%s"' %
+                        (name, installed_version, current_versions, previous_versions, black_listed_versions, ServiceUtils.TARGET_TYPE))
 
         current = current_versions[name] if name in current_versions else None
         previous = previous_versions[name] if name in previous_versions else None
@@ -362,7 +368,7 @@ class ServiceUtils(object):
 
         if state is True:
 
-            jsonhandler.write_json_file(ManagementConnectorProperties.STATUS_FILE,
+            jsonhandler.write_json_file((ManagementConnectorProperties.STATUS_FILE),
                                         ManagementConnectorProperties.WHITEBOX_STATUS)
         else:
             jsonhandler.delete_file(ManagementConnectorProperties.STATUS_FILE)
@@ -589,7 +595,7 @@ class ServiceUtils(object):
 
         release_channel = ""
 
-        heartbeat_contents = jsonhandler.read_json_file(ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % ManagementConnectorProperties.SERVICE_NAME)
+        heartbeat_contents = jsonhandler.read_json_file(ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % (ServiceUtils.TARGET_TYPE, ServiceUtils.TARGET_TYPE))
 
         if heartbeat_contents:
             try:
@@ -616,7 +622,7 @@ class ServiceUtils(object):
     def is_configured_status(config, name):
         """ determines if connector has been configured or not """
         cdb_configured = None
-        if name == ManagementConnectorProperties.SERVICE_NAME:
+        if name in ManagementConnectorProperties.SERVICE_LIST:
             ret_val = True
         else:
             cdb_configured = ServiceUtils.get_configured_via_cdb_entry(config, name)

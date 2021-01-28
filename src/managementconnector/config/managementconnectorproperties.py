@@ -105,6 +105,8 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
 
     SERVICE_NAME = 'c_mgmt'
 
+    SERVICE_LIST = {'c_mgmt', 'c_ccucmgmt'}
+
     DEPENDENCY_MAP = {"Calendar Connector": ["d_openj"]}
 
     HTTP_TIMEOUT = 15
@@ -119,11 +121,11 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
 
     STATUS_FILE = GENERIC_STATUS_FILE % SERVICE_NAME
 
-    UPGRADE_EVENTS_FILE = '/var/run/%s/upgrade_events.json' % SERVICE_NAME
+    UPGRADE_EVENTS_FILE = '/var/run/%s/upgrade_events.json'
 
     WHITEBOX_STATUS = {"state": "operational", "initialized": "true"}
 
-    INSTALLING_STATUS_FILE = '/var/run/%s/installing_status.json' % SERVICE_NAME
+    INSTALLING_STATUS_FILE = '/var/run/%s/installing_status.json'
 
     LAST_KNOWN_LOG_ID = '/mnt/harddisk/persistent/fusion/log/log_id.json'
 
@@ -148,15 +150,16 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
 
     HEARTBEAT_EXTENSION = ".heartbeat"
     C_MGMT_VAR_RUN = '/var/run/' + SERVICE_NAME
-    UPGRADE_HEARTBEAT_FILE = C_MGMT_VAR_RUN + '/%s' + HEARTBEAT_EXTENSION
+    #C_MGMT_VAR_RUN = '/var/run/' + SERVICE_NAME
+    UPGRADE_HEARTBEAT_FILE = '/var/run/%s' + '/%s' + HEARTBEAT_EXTENSION
 
     EVENT_DAMPENER_INTERVAL = 10
 
     MERCURY_EXTENSION = ".mercury"
-    MERCURY_FILE = C_MGMT_VAR_RUN + '/%s' + MERCURY_EXTENSION
+    MERCURY_FILE = '/var/run/%s' + '/%s' + MERCURY_EXTENSION
 
     REMOTE_DISPATCHER_EXTENSION = ".remotedispatcher"
-    REMOTE_DISPATCHER_FILE = C_MGMT_VAR_RUN + '/%s' + REMOTE_DISPATCHER_EXTENSION
+    REMOTE_DISPATCHER_FILE = '/var/run/%s' + '/%s' + REMOTE_DISPATCHER_EXTENSION
 
     WATCHDOG_EXTENSION = ".watchdog"
     WATCHDOG_FILE = C_MGMT_VAR_RUN + '/%s' + WATCHDOG_EXTENSION
@@ -233,6 +236,20 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     FEATURES_PREFIX = "fmc-"
     FEATURE_VAL_ID = "val"
     FEATURES_GROUP = "developer"
+
+    # -------------------------------------------------------------------------
+    # UCMGMT API Paths
+    # -------------------------------------------------------------------------
+
+    UCMGMT_API = "ucmgmt_"
+
+    UCMGMT_CONTROLLER_HOST = UCMGMT_API + "controllerHost"
+    UCMGMT_GATEWAY_HOST = UCMGMT_API + "gatewayHost"
+    UCMGMT_LICENSING_HOST = UCMGMT_API + "licensingHost"
+    UCMGMT_MIGRATION_HOST = UCMGMT_API + "migrationHost"
+    UCMGMT_TELEMETRY_MGMT_HOST = UCMGMT_API + "telemetryMgmtHost"
+    UCMGMT_UPGRADE_HOST = UCMGMT_API + "upgradeHost"
+    UCMGMT_WEB_HOST = UCMGMT_API + "webHost"
 
     # -------------------------------------------------------------------------
     # Metrics Paths
@@ -330,6 +347,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     BOOTSTRAP_PARAMS = SYSTEM + "bootstrapParams"
     CDB_VERSION = SYSTEM + "cdb_version"
     FUSED = SYSTEM + "fused"
+    TARGET_TYPE = SYSTEM + "targetType"
     SERIAL_NUMBER = SYSTEM + "serialNumber"
     CLUSTER_SERIALS = SYSTEM + "clusterSerials"
     VERSION = SYSTEM + "version"
@@ -391,6 +409,13 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     U2C_METRICS = BLOB_CDB_PATH + METRICS_HOST + "_u2c"
     U2C_RD = BLOB_CDB_PATH + REMOTE_DISPATCHER_HOST + "_u2c"
     U2C_FEATURE = BLOB_CDB_PATH + FEATURES_HOST + "_u2c"
+    U2C_UCMGMT_CONTROLLER_HOST = BLOB_CDB_PATH + UCMGMT_CONTROLLER_HOST + "_u2c"
+    U2C_UCMGMT_GATEWAY_HOST = BLOB_CDB_PATH + UCMGMT_GATEWAY_HOST + "_u2c"
+    U2C_UCMGMT_LICENSING_HOST = BLOB_CDB_PATH + UCMGMT_LICENSING_HOST + "_u2c"
+    U2C_UCMGMT_MIGRATION_HOST = BLOB_CDB_PATH + UCMGMT_MIGRATION_HOST + "_u2c"
+    U2C_UCMGMT_TELEMETRY_MGMT_HOST = BLOB_CDB_PATH + UCMGMT_TELEMETRY_MGMT_HOST + "_u2c"
+    U2C_UCMGMT_UPGRADE_HOST = BLOB_CDB_PATH + UCMGMT_UPGRADE_HOST + "_u2c"
+    U2C_UCMGMT_WEB_HOST = BLOB_CDB_PATH + UCMGMT_WEB_HOST + "_u2c"
     U2C_IDB_HOST = "system_idpHost_u2c"
     U2C_IDBROKER = BLOB_CDB_PATH + U2C_IDB_HOST
     U2C_IDENTITY_HOST = "system_identityHost_u2c"

@@ -49,7 +49,7 @@ def config_read(path):
     elif path == ManagementConnectorProperties.REGISTER_URL:
         return "/v1/fusion_reg_url"
     elif path == ManagementConnectorProperties.TARGET_TYPE:
-        return "c_mgmt"
+        return "c_ccucmgmt"
     elif path == ManagementConnectorProperties.SERIAL_NUMBER:
         return "serialnumber"
     elif path == ManagementConnectorProperties.IPV4_ADDRESS:
@@ -90,16 +90,16 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
         """ Test Parse MC Config"""
 
         DEV_LOGGER.info('test_parse_mc_config: start')
-        connectors = {'connectors': [{'connector_type': 'calendar-connector', 'version': '8.5-1.0.322', 'display_name' : 'expressway_exchange', 'packages': [{'tlp_url': 'https://sqfusion-jenkins.cisco.com/calendar-connector/calendar-connector_8.5-1.0.322.tlp'}], 'enabled': False}]}
+        connectors = {'connectors': [{'connector_type': 'c_ccucmgmt', 'version': '12.7.1-1.0.322', 'display_name' : 'ccuc_telemetry', 'packages': [{'tlp_url': 'https://sqfusion-jenkins.cisco.com/ccuc-connector/ccuc-connector_8.5-1.0.322.tlp'}], 'enabled': False}]}
         response_config, response_services = self.atlas.parse_mc_config(connectors)
 
         self.assertTrue(len(response_config) == 1)
-        self.assertTrue(response_config[0]['name'] == "calendar-connector")
-        self.assertTrue(response_config[0]['version'] == "8.5-1.0.322")
-        self.assertTrue(response_config[0]['display_name'] == "expressway_exchange")
+        self.assertTrue(response_config[0]['name'] == "c_mgmt")
+        self.assertTrue(response_config[0]['version'] == "12.7.1-1.0.322")
+        self.assertTrue(response_config[0]['display_name'] == "ccuc_telemetry")
 
         self.assertTrue(len(response_services) == 1)
-        self.assertTrue(response_services[0]['name'] == "calendar-connector")
+        self.assertTrue(response_services[0]['name'] == "c_mgmt")
 
         # No Packages
         connectors = {'connectors': [{'connector_type': 'calendar-connector', 'version' : '8.5-1.0.322', 'display_name' : 'expressway_exchange', 'packages': [], 'enabled': False}]}
@@ -142,7 +142,7 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
         mock_json.return_value= {"provisioning":{"maintenanceMode":"off"}}
         mock_service.get_composed_status.return_value = 'installed'
         mock_service.has_alarm.return_value = True
-        mock_service.get_name.return_value = 'service_name'
+        mock_service.get_name.return_value = 'c_mgmt'
         mock_system.get_system_mem.return_value = {'total_gb': '0.1', 'percent': '8.0', 'total_kb': 128266.3896484375}
         mock_system.get_system_disk.return_value = {'total_gb': '0.1', 'percent': '8.0', 'total_kb': 128266.3896484375}
         mock_system.get_platform_type.return_value = "virtual"
@@ -162,9 +162,9 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
         DEV_LOGGER.info('test_post_status: RESPONSE %s' %(json_response))
 
         self.assertTrue(json_response['version'] == "test_version")
-        self.assertTrue(json_response['id'] == "service_name@serialnumber")
+        self.assertTrue(json_response['id'] == "c_ccucmgmt@serialnumber")
         self.assertTrue(json_response['host_name'] == "hostname.domain.com")
-        self.assertTrue(json_response['cluster_id'] == "guid")        
+        self.assertTrue(json_response['cluster_id'] == "guid")
         self.assertTrue(json_response['status']['state'] == "installed")
         self.assertTrue(len(json_response['status']['alarms']) == 1)
         self.assertTrue(json_response['status']['connectorStatus'] == {})
@@ -220,7 +220,8 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
 
         DEV_LOGGER.info('test_get_post_request_data: RESPONSE %s' %(json_request))
 
-        self.assertEqual(json_request['connector_type'], 'c_mgmt')
+        self.assertEqual(json_request['connector_type'], 'c_ccucmgmt')
+        self.assertEqual(json_request['id'], 'c_ccucmgmt@serialnumber')
         self.assertEqual(json_request['status']['alarms'][0]['solution_replacement_values'], [])
         self.assertIn( "60051", json_request['status']['alarms'][0]['id'])
 

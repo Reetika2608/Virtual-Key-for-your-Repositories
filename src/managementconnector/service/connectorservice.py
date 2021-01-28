@@ -20,7 +20,7 @@ class ConnectorService(Service):
         Model a Service (Management Connector)
     """
     # -------------------------------------------------------------------------
-    def __init__(self, name, config, oauth):
+    def __init__(self, name,  config, oauth):
         ''' Dependency __init__'''
         DEV_LOGGER.debug('Detail="Initialising ConnectorService object for %s"' % name)
         Service.__init__(self, name, config, oauth)

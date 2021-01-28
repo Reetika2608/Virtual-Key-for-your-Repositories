@@ -2,12 +2,14 @@
 
 import time
 
+from managementconnector.config.config import Config
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.config import jsonhandler
 from managementconnector.service.eventsender import EventSender
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
+TARGET_TYPE = Config(inotify=False).read(ManagementConnectorProperties.TARGET_TYPE)
 
 
 class CrashMonitor(object):
@@ -16,9 +18,10 @@ class CrashMonitor(object):
     """
 
     # -------------------------------------------------------------------------
-    def __init__(self):
+    def __init__(self, config):
+        TARGET_TYPE = config.read(ManagementConnectorProperties.TARGET_TYPE)
         self._last_crash_check = jsonhandler.get_last_modified_timestamp(
-                ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % ManagementConnectorProperties.SERVICE_NAME)
+                ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % (TARGET_TYPE, TARGET_TYPE))
 
     def crash_check(self, oauth, config):
         """ Check for any crashes """

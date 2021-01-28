@@ -31,7 +31,7 @@ def get_current_time(unused):
 
 
 class MetricsTest(unittest.TestCase):
-
+    maxDiff = None
     def setUp(self):
         """ setUp """
         self.oauth = mock.Mock()
@@ -50,6 +50,8 @@ class MetricsTest(unittest.TestCase):
             return "vcs_version"
         elif path == ManagementConnectorProperties.SERIAL_NUMBER:
             return "serialnumber"
+        elif path == ManagementConnectorProperties.TARGET_TYPE:
+            return "service_name"
         elif path == ManagementConnectorProperties.METRICS_ENABLED:
             return "true"
         elif path == ManagementConnectorProperties.METRICS_TESTMODE:
@@ -236,7 +238,7 @@ class MetricsTest(unittest.TestCase):
                           u'solution_replacement_values': [], u'first_reported': u'2014-11-26T14:20:12', u'id': u'66666',
                           u'severity': u'error'}
 
-        metrics_value = {"metrics": [{"value": expected_alarm, "context": {"connector_version": "service_version", "connector_type": "c_mgmt", "cluster_id": "guid", "vcs_version": "vcs_version", "connector_id": "c_mgmt@serialnumber"}, "key": "connector_alarm", "time": "current_time"}]}
+        metrics_value = {"metrics": [{"value": expected_alarm, "context": {"connector_version": "service_version", "connector_type": "service_name", "cluster_id": "guid", "vcs_version": "vcs_version", "connector_id": "service_name@serialnumber"}, "key": "connector_alarm", "time": "current_time"}]}
 
         # Step 3.
         self.assertEquals(json_value, metrics_value)

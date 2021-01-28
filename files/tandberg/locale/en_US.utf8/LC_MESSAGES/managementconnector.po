@@ -92,7 +92,7 @@ msgid "link.ACKNOWLEDGE_ALARMS"
 msgstr "Acknowledge these alarms on the alarms page"
 
 msgid "lbl.FUSION_REGISTERED"
-msgstr "This Expressway cluster is registered with the Cisco Webex Cloud and is now ready for Hybrid Services."
+msgstr "This Expressway cluster is registered with the Cisco Webex Cloud and is now ready for %s."
 
 msgid "lbl.FUSION_SERVICES_MESSAGE_%s"
 msgstr "%s - configure your hybrid services, enable users for features, manage your hybrid service clusters, and set upgrade schedules for connectors."
@@ -941,4 +941,28 @@ msgid "lbl.FUSION_BOOTSTRAP_READY"
 msgstr "The Webex cloud handed out a token to the Expressway. Next you must meet the following requirements to continue the registration of this Expressway for Hybrid Services."
 
 msgid "lbl.FUSION_REGISTRATION_READY"
-msgstr "The latest software was successfully installed and all the prerequisites are met for this Expressway to be registered for Hybrid Services."
+msgstr "The latest software was successfully installed and all the prerequisites are met for this Expressway to be registered for %s."
+
+msgid "lbl.FUSION_BOOTSTRAP_READY_%s"
+msgstr "The Webex cloud handed out a token to the Expressway. Next you must meet the following requirements to continue the registration of this Expressway for %s."
+
+msgid "lbl.FUSION_REGISTRATION_READY_%s"
+msgstr "The latest software was successfully installed and all the prerequisites are met for this Expressway to be registered for %s."
+
+msgid "ttl.CLOUD_SERVICES"
+msgstr "Cloud Services"
+
+msgid "fieldset.CLOUD_SERVICES_REGISTERED"
+msgstr "Cloud Services"
+
+msgid "fieldset.CLOUD_SERVICES"
+msgstr "Welcome to Cloud Services"
+
+msgid "lbl.CLOUD_CONNECTOR_HEADER"
+msgstr "Cisco Webex Cloud-Connected UC (CCUC)"
+
+msgid "btn.REDIRECT_TO_CLOUD"
+msgstr "Back to Cloud Services"
+
+msgid "lbl.CLOUD_SERVICES_MESSAGE_%s"
+msgstr "%s - configure your cloud services, enable users for features, manage your cloud service clusters, and set upgrade schedules for connectors."

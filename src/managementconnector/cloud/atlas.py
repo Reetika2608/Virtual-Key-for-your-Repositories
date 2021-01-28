@@ -82,6 +82,8 @@ class Atlas(object):
                 if connector['version'] > version:
                     version = connector['version']
                     latest = connector
+                if(connector['connector_type'] in ManagementConnectorProperties.SERVICE_LIST):
+                    connector['connector_type'] = ManagementConnectorProperties.SERVICE_NAME
 
                 name = connector['connector_type']
                 packages_exist = len(connector['packages']) > 0
@@ -129,8 +131,9 @@ class Atlas(object):
 
     def _get_post_request_data(self, service):
         """ used by Register a connector, returns json which will be posted to FMS per connector """
-        device_type = service.get_name()
+        service_name = service.get_name()
 
+        device_type = self._config.read(ManagementConnectorProperties.TARGET_TYPE)
         serial_number = self._config.read(ManagementConnectorProperties.SERIAL_NUMBER)
         cluster_name = self._config.read(ManagementConnectorProperties.CLUSTER_NAME)
         cluster_id = self._config.read(ManagementConnectorProperties.CLUSTER_ID)
@@ -138,7 +141,12 @@ class Atlas(object):
         ip_v6 = self._config.read(ManagementConnectorProperties.IPV6_ADDRESS)
         domain_name = self._config.read(ManagementConnectorProperties.DOMAINNAME)
         host_name = self._config.read(ManagementConnectorProperties.HOSTNAME)
-        heartbeat_contents = jsonhandler.read_json_file(ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % device_type)
+        if service.get_name() in ManagementConnectorProperties.SERVICE_LIST:
+            heartbeat_contents = jsonhandler.read_json_file(
+                ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % (device_type, device_type))
+        else:
+            heartbeat_contents = jsonhandler.read_json_file(
+                ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % (device_type, service_name))
         sys_mem = System.get_system_mem()
         sys_disk = System.get_system_disk()
         platform_type = System.get_platform_type()
@@ -149,10 +157,10 @@ class Atlas(object):
             # Update the Metrics
             service.update_service_metrics()
             connector_status = ServiceUtils.get_connector_status(service)
-            if device_type is ManagementConnectorProperties.SERVICE_NAME and System.am_i_master():
+            if service_name is ManagementConnectorProperties.SERVICE_NAME and System.am_i_master():
                 connector_status["clusterSerials"] = self._config.read(ManagementConnectorProperties.CLUSTER_SERIALS)
 
-            if device_type is ManagementConnectorProperties.SERVICE_NAME:
+            if service_name is ManagementConnectorProperties.SERVICE_NAME:
                 if heartbeat_contents:
                     try:
                         connector_status["maintenanceMode"] = heartbeat_contents['provisioning']['maintenanceMode']
@@ -161,7 +169,7 @@ class Atlas(object):
                 else:
                     connector_status["maintenanceMode"] = "off"
 
-            start_time = ServiceUtils.get_service_start_time(device_type)
+            start_time = ServiceUtils.get_service_start_time(service_name)
         else:
             DEV_LOGGER.debug('Detail="post_status: service %s is not running"', service.get_name())
             start_time = ''
@@ -180,9 +188,15 @@ class Atlas(object):
                         "totalMemory": str(long(sys_mem['total_kb']) * 1024),
                         "totalDisk": str(long(sys_disk['total_kb']) * 1024),
                         "hostType": platform_type
+
                        }
 
-        version = ServiceUtils.get_version(device_type)
+        if (device_type != ManagementConnectorProperties.SERVICE_NAME and service_name == ManagementConnectorProperties.SERVICE_NAME):
+            device_type = device_type
+        else:
+            device_type = service_name
+
+        version = ServiceUtils.get_version(service_name)
         if version is None:
             version = 'None'
 
@@ -208,16 +222,17 @@ class Atlas(object):
         """ Register a connector, returns provisioning data """
         register_url = self._config.read(ManagementConnectorProperties.REGISTER_URL)
         atlas_url_prefix = self._config.read(ManagementConnectorProperties.ATLAS_URL_PREFIX)
+        device_type = self._config.read(ManagementConnectorProperties.TARGET_TYPE)
         full_url = atlas_url_prefix + register_url
 
         response = Http.post(full_url, header, json.dumps(self._get_post_request_data(service)),
                              schema=schema.MANAGEMENT_CONNECTOR_REGISTER_RESPONSE)
 
-        Atlas._write_heatbeat_to_disk(service, response)
+        Atlas._write_heatbeat_to_disk(device_type, service, response)
 
         try:
             # Only the Mgmt. Connector has Provisioning Info
-            if service.get_name() == ManagementConnectorProperties.SERVICE_NAME:
+            if service.get_name() in ManagementConnectorProperties.SERVICE_LIST:
                 self._configure_heartbeat(response['provisioning']['heartbeatInterval'])
         except KeyError, error:
             DEV_LOGGER.debug('Detail="register_connector: No heartbeat interval information, missing key: %s"', error)
@@ -227,10 +242,18 @@ class Atlas(object):
     # -------------------------------------------------------------------------
 
     @staticmethod
-    def _write_heatbeat_to_disk(service, heartbeat):
+    def _write_heatbeat_to_disk(device_type, service, heartbeat):
         """ Write connector heartbeat response out to disk """
-        jsonhandler.write_json_file(ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % service.get_name(),
-                                    heartbeat)
+        service_name = service.get_name()
+
+        if service.get_name() in ManagementConnectorProperties.SERVICE_LIST:
+            jsonhandler.write_json_file(
+                ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % (device_type, device_type),
+                heartbeat)
+        else:
+            jsonhandler.write_json_file(
+                ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % (device_type, service_name),
+                heartbeat)
 
     # -------------------------------------------------------------------------
 
