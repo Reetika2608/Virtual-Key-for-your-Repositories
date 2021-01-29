@@ -83,7 +83,7 @@ timestamps {
                     }
 
                     print("Step 4. Create provisioning JSON file")
-                    createProvisioning(RELEASE_CHANNEL)
+                    createProvisioning(RELEASE_CHANNEL, CONNECTOR_TYPE)
 
                     archiveArtifacts(artifacts: "${TLP_FILE}, library.yml, *targeted.txt, *provisioning.txt, manifest.yaml")
                 }
@@ -108,10 +108,10 @@ def getManifestUrl() {
     return published_url
 }
 
-def createProvisioning(String release) {
+def createProvisioning(String release, String connector_type) {
     def published_url = getManifestUrl()
     def connector_version = getTlpVersionFromTLP(TLP_FILE)
-    createProvisioningJson(release, published_url, connector_version)
+    createProvisioningJson(release, published_url, connector_type, connector_version)
 }
 
 def getTlpVersionFromTLP(String tlp) {
@@ -121,15 +121,16 @@ def getTlpVersionFromTLP(String tlp) {
     return version
 }
 
-def createProvisioningJson(String release, String tlp_url, String version) {
+def createProvisioningJson(String release, String tlp_url, String type, String version) {
 
-    if (${CONNECTOR_TYPE} == 'c_ccucmgmt') {
-        def dis_name = 'CCUC Management Connector'
+    def dis_name = ''
+    if (type == 'c_ccucmgmt') {
+        dis_name = 'CCUC Management Connector'
     } else {
-        def dis_name = 'Management Connector'
+        dis_name = 'Management Connector'
     }
     def filename = "${release}_provisioning.txt"
-    def con_type = ${CONNECTOR_TYPE}
+    def con_type = "${type}"
     def ser_id = 'squared-fusion-mgmt'
     def con_desc = ''
     def rel_notes = 'This Management Connector update includes ongoing improvements and minor bug fixes.'
@@ -148,22 +149,23 @@ def createProvisioningJson(String release, String tlp_url, String version) {
 
     if (release == 'latest') {
         // Create a second file with urgent changed to true, and write it to latest_provisioning_targeted.txt
-        createTargetedProvisioningJson(tlp_url, version)
+        createTargetedProvisioningJson(tlp_url, con_type, version)
     }
 }
 
-def createTargetedProvisioningJson(String tlp_url, String version) {
+def createTargetedProvisioningJson(String tlp_url, String type, String version) {
 
-    if (${CONNECTOR_TYPE} == 'c_ccucmgmt') {
-        def dis_name = 'CCUC Management Connector'
+    def dis_name = ''
+    if (type == 'c_ccucmgmt') {
+        dis_name = 'CCUC Management Connector'
     } else {
-        def dis_name = 'Management Connector'
+        dis_name = 'Management Connector'
     }
     def targeted_file = 'latest_provisioning_targeted.txt'
     def cluster_id = '362ac799-8488-43ab-a215-5e58ae0aed0a'
     def org_id = '8e52edcc-bb11-4721-babe-722ec8fba823'
     def auto_upgrade = 'true'
-    def con_type = ${CONNECTOR_TYPE}
+    def con_type = "${type}"
     def ser_id = 'squared-fusion-mgmt'
     def con_desc = ''
     def rel_notes = 'None'
