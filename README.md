@@ -148,6 +148,10 @@ docker run -it --mount type=bind,source="$(pwd)/",target="/management-connector"
 or
 
 docker run -it --mount type=bind,source="$(pwd)/",target="/management-connector" fmc-build  ./build_and_upgrade.sh -c upgrade -t <TARGET> -w
+
+or to override default values set in script use the defined parameters
+
+docker run -it --mount type=bind,source="$(pwd)/",target="/management-connector" fmc-build  ./build_and_upgrade.sh -c upgrade -t <TARGET> -P <TARGET-PORT> -p <TARGET-PASSWORD> -w
 ```
 
 #### Example Commands run in the fmc-build Docker container
