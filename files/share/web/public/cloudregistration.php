@@ -34,7 +34,7 @@ class CloudRegistrationPage extends ApplicationPage
     const SESSION_ID_PREFIX = "temp_idp_session_id";
     const SECRET_INDEX = "temp_idp_secret";
     const IV_INDEX = "temp_iv_secret";
-    const WAIT_TIME_FOR_CERTS_TO_BE_ADDED = 2;
+    const WAIT_TIME_FOR_CERTS_TO_BE_ADDED = 3;
 
     // This would be better taken from the manifest
     private $help_doc_map = array("c_cal" => "hybrid-services-calendar", "c_ucmc" => "hybrid-services-call");

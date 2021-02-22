@@ -444,7 +444,15 @@ class FusionLib
     }
 
     static public function get_latest_package_info($decoded_json_conf) {
-        $ch = curl_init($decoded_json_conf->oauth->atlasUrlPrefix . "/hercules/api/v2/channels/stable/packages/c_mgmt");
+        $target_type = $decoded_json_conf->system->targetType;
+        if($target_type == 'c_ccucmgmt')
+        {
+            $ch = curl_init($decoded_json_conf->oauth->atlasUrlPrefix . "/hercules/api/v2/channels/latest/packages/c_ccucmgmt");
+        }
+        else
+        {
+            $ch = curl_init($decoded_json_conf->oauth->atlasUrlPrefix . "/hercules/api/v2/channels/stable/packages/c_mgmt");
+        }
         $ch = self::set_curl_options($ch, $decoded_json_conf);
         curl_setopt($ch, CURLOPT_POST, 0);
         $result = curl_exec($ch);
