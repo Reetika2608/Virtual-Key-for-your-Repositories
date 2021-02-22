@@ -350,7 +350,8 @@ timestamps {
                                 'https://sqbu-jenkins.wbx2.com/support/',
                                 'cafefusion.gen.job.executor',
                                 'platform/tlp-deploy/tlp-deploy-management-connector-integration-latest',
-                                "management_connector#${BUILD_NUMBER}")
+                                "management_connector#${BUILD_NUMBER}",
+                                'useCrumbCache: true')
                     }
 
                     // TODO - Remove call to sqbu, and replace with local INT pipeline
@@ -360,7 +361,8 @@ timestamps {
                                 'https://sqbu-jenkins.wbx2.com/support/',
                                 'cafefusion.gen.job.executor',
                                 'platform/tlp-deploy/tlp-deploy-management-connector-production-latest',
-                                "management_connector#${BUILD_NUMBER}")
+                                "management_connector#${BUILD_NUMBER}",
+                                'useCrumbCache: true')
                     }
                     cleanWs()
                 }
@@ -534,7 +536,8 @@ def deploy(String release, List<String> environments) {
                             'https://sqbu-jenkins.wbx2.com/support/',
                             'cafefusion.gen.job.executor',
                             deploy_job,
-                            "management_connector#${BUILD_NUMBER}")
+                            "management_connector#${BUILD_NUMBER}",
+                            'useCrumbCache: true')
                 }
             }
         } catch (Exception e) {
