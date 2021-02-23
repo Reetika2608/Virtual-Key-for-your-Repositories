@@ -58,18 +58,26 @@ timestamps {
                 print("Step 1. Publish c_mgmt.tlp to maven")
                 sh("cp ${TLP_FILE} c_mgmt.tlp")
                 def utils = load('jenkins/methods/utils.groovy')
+                def credentialsId = 'cafefusion.gen.job.executor'
+                def remoteJenkinsUrl = "https://sqbu-jenkins.wbx2.com/support/"
                 utils.uploadArtifactsToMaven('c_mgmt.tlp', "${RELEASE_CHANNEL}/")
 
                 print("Step 2. Trigger Binaries Deploy Job")
-                def binary_job_url = "platform/binaries/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
+
                 def binary_build
-                withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
-                    binary_build = sparkPipeline.triggerRemoteJob([],
-                            'https://sqbu-jenkins.wbx2.com/support/',
-                            'cafefusion.gen.job.executor',
-                            binary_job_url,
-                            "provisioning_json_${RELEASE_CHANNEL}#${BUILD_NUMBER}")
-                }
+                def binary_job_url = "platform/binaries/binaries-deploy-management-connector-prod-${RELEASE_CHANNEL}"
+
+                binary_build = 'org.jenkinsci.plugins.ParameterizedRemoteTrigger.pipeline.RemoteBuildPipelineStep' (
+                        abortTriggeredJob: true,
+                        auth: CredentialsAuth(credentials: credentialsId),
+                        remoteJenkinsUrl: "${remoteJenkinsUrl}",
+                        job: "${binary_job_url}",
+                        useCrumbCache: false,
+                        useJobInfoCache: true,
+                        maxConn: 2,
+                        pollInterval: 15,
+                        blockBuildUntilComplete: true
+                )
 
                 def build_number = binary_build.getBuildNumber()
                 if (build_number == 0) {

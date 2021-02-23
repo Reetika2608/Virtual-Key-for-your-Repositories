@@ -345,24 +345,19 @@ timestamps {
                     utils.uploadArtifactsToMaven('latest_provisioning_targeted.txt', maven_json_dir)
                     utils.uploadArtifactsToMaven('latest_provisioning.txt', maven_json_dir)
 
-                    withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
-                        sparkPipeline.triggerRemoteJob([],
-                                'https://sqbu-jenkins.wbx2.com/support/',
-                                'cafefusion.gen.job.executor',
-                                'platform/tlp-deploy/tlp-deploy-management-connector-integration-latest',
-                                "management_connector#${BUILD_NUMBER}",
-                                'useCrumbCache: true')
-                    }
-
-                    // TODO - Remove call to sqbu, and replace with local INT pipeline
-                    // Kicking Old INT pipeline
-                     withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
-                        sparkPipeline.triggerRemoteJob([],
-                                'https://sqbu-jenkins.wbx2.com/support/',
-                                'cafefusion.gen.job.executor',
-                                'platform/tlp-deploy/tlp-deploy-management-connector-production-latest',
-                                "management_connector#${BUILD_NUMBER}",
-                                'useCrumbCache: true')
+                    try {
+                        // trigger TLP publish to FMS
+                    parallel(
+                        "integration deploy to Latest": {
+                            triggerRemoteBuildJobs('platform/tlp-deploy/tlp-deploy-management-connector-integration-latest')
+                        },
+                        "production deploy to Latest": {
+                            triggerRemoteBuildJobs('platform/tlp-deploy/tlp-deploy-management-connector-production-latest')
+                        },
+                    )
+                    } catch (err) {
+                        print("TLP failed to publish in Latest")
+                        throw err
                     }
                     cleanWs()
                 }
@@ -531,14 +526,7 @@ def deploy(String release, List<String> environments) {
                 if ((release == "stable") && (environment == "cfe")) {
                     deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}"
                 }
-                withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor', usernameVariable: 'username', passwordVariable: 'token')]) {
-                    sparkPipeline.triggerRemoteJob([],
-                            'https://sqbu-jenkins.wbx2.com/support/',
-                            'cafefusion.gen.job.executor',
-                            deploy_job,
-                            "management_connector#${BUILD_NUMBER}",
-                            'useCrumbCache: true')
-                }
+                triggerRemoteBuildJobs(deploy_job)
             }
         } catch (Exception e) {
             if (environment == "cfe"){
@@ -552,6 +540,24 @@ def deploy(String release, List<String> environments) {
             }
         }
     }
+}
+
+def triggerRemoteBuildJobs(String build_job) {
+
+    def credentialsId = 'cafefusion.gen.job.executor'
+    def remoteJenkinsUrl = "https://sqbu-jenkins.wbx2.com/support/"
+
+    'org.jenkinsci.plugins.ParameterizedRemoteTrigger.pipeline.RemoteBuildPipelineStep' (
+        abortTriggeredJob: true,
+        auth: CredentialsAuth(credentials: credentialsId),
+        remoteJenkinsUrl: "${remoteJenkinsUrl}",
+        job: "${build_job}",
+        useCrumbCache: false,
+        useJobInfoCache: true,
+        maxConn: 2,
+        pollInterval: 15,
+        blockBuildUntilComplete: true
+    )
 }
 
 def getResources(String resourceFile) {
