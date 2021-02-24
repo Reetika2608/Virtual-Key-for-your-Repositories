@@ -136,7 +136,6 @@ class ServiceUtils(object):
     @staticmethod
     def blob_mode_on(name, enabled_services_states):
         """ Checks if service mode is on in blob table """
-        DEV_LOGGER.debug('Detail="Blob Mode Check name: %s state: %s"' % (name, enabled_services_states.items()))
         blob_on = False
         if enabled_services_states:
             for service_name, enabled in enabled_services_states.items():
