@@ -466,15 +466,6 @@ JS;
         }
     }
 
-
-    private function get_array_form_of_version($version)
-    {
-        if(strpos($version, "-") !== false) {
-            $version = substr($version, strpos($version, "-")+1);
-        }
-        return explode(".", $version);
-    }
-
     private function remove_blocked_versions($service)
     {
         $root = $this->rest_data_adapter->get_local("configuration/cafe/cafeblobconfiguration/name/c_mgmt_installed_blacklist");

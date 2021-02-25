@@ -6,10 +6,6 @@ class ManagementLib
     {
         return base64_encode(openssl_random_pseudo_bytes($key_length));
     }
-    static public function base64_url_encode($input)
-    {
-        return strtr(base64_encode($input), '+/', '-_');
-    }
     static public function read_json_config_file()
     {
         $json_conf_location = "/opt/c_mgmt/etc/config/c_mgmt.json";
@@ -36,8 +32,8 @@ class ManagementLib
     // returns true if $version1 is different than $version2
     static public function is_app_version_different($version1, $version2)
     {
-        $version1_array = $get_array_form_of_version($version1);
-        $version2_array = $get_array_form_of_version($version2);
+        $version1_array = self::get_array_form_of_version($version1);
+        $version2_array = self::get_array_form_of_version($version2);
 
         foreach ($version1_array as $key => $value)
         {
@@ -47,7 +43,7 @@ class ManagementLib
         }
         return false; // the same version.
     }
-    public function get_array_form_of_version($version)
+    static public function get_array_form_of_version($version)
     {
         if(strpos($version, "-") !== false) {
             $version = substr($version, strpos($version, "-")+1);
