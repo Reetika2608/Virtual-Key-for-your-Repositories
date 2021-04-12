@@ -55,7 +55,20 @@ class PrecheckPage extends AjaxPage
                 }
             }
             $on_latest = FusionLib::on_latest_c_mgmt($this->rest_data_adapter);
-            if ( $prevent_upgrade || $on_latest ) {
+            $force_bootstrap = false;
+            $target_type = FusionLib::get_target_type($this->rest_data_adapter);
+            if($target_type == 'c_ccucmgmt') {
+                $force_bootstrap = true;
+                $add_fusion_certs_t_ca = $this->rest_data_adapter->get_local("configuration/cafe/cafestaticconfiguration/name/c_mgmt_certs_addFusionCertsToCA");
+                if (isset($add_fusion_certs_t_ca) && (int)$add_fusion_certs_t_ca->num_recs > 0)
+                {
+                    if ((string)$add_fusion_certs_t_ca->record[0]->value == "\"true\"")
+                    {
+                        $force_bootstrap = false;
+                    }
+                }
+            }
+            if ( !$force_bootstrap && ( $prevent_upgrade || $on_latest ) ) {
                 $registration_form = FusionLib::create_register_form($this->rest_data_adapter, $this->IProduct->isExpresswayEnabled());
             }
             else

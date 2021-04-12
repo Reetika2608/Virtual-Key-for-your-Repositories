@@ -298,7 +298,7 @@ class FusionLib
         // form doesn't need labels. This makes messages more readable
         $fieldset->hide_labels();
 
-        $registration_ready = new Label(tt_gettext("lbl.FUSION_BOOTSTRAP_READY"));
+        $registration_ready = new Label(sprintf(tt_gettext("lbl.FUSION_BOOTSTRAP_READY"), self::get_target_service($rest_data_adapter, $isExpresswayEnabled)));
         $fieldset->addRow("", $registration_ready);
 
         $bootstrap_text = new Label(tt_gettext("lbl.FUSION_BOOTSTRAP_TITLE"));

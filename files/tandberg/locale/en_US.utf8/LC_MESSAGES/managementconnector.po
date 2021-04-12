@@ -937,17 +937,11 @@ msgstr "You must first register your Expressway as a resource through Cisco Webe
 msgid "err.BOOTSTRAP_INSTALL_TIMEOUT"
 msgstr "Update failed to complete within time limit."
 
-msgid "lbl.FUSION_BOOTSTRAP_READY"
-msgstr "The Webex cloud handed out a token to the Expressway. Next you must meet the following requirements to continue the registration of this Expressway for Hybrid Services."
-
 msgid "lbl.FUSION_REGISTRATION_READY"
 msgstr "The latest software was successfully installed and all the prerequisites are met for this Expressway to be registered for %s."
 
-msgid "lbl.FUSION_BOOTSTRAP_READY_%s"
+msgid "lbl.FUSION_BOOTSTRAP_READY"
 msgstr "The Webex cloud handed out a token to the Expressway. Next you must meet the following requirements to continue the registration of this Expressway for %s."
-
-msgid "lbl.FUSION_REGISTRATION_READY_%s"
-msgstr "The latest software was successfully installed and all the prerequisites are met for this Expressway to be registered for %s."
 
 msgid "ttl.CLOUD_SERVICES"
 msgstr "Cloud Services"
