@@ -170,7 +170,7 @@ class RegisteredTest(unittest.TestCase):
 
             return updated
 
-        self.assertTrue(wait_until_true(logging_metadata_available, 120, 5, atlas_logging_url),
+        self.assertTrue(wait_until_true(logging_metadata_available, 240, 10, atlas_logging_url),
                         "Did not get logging metadata in time")
 
         response = get_log_data_from_atlas(atlas_logging_url, search_uuid, self.access_token)
