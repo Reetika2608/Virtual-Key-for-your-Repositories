@@ -122,7 +122,7 @@ generate_symlinks(){
     # with a real dir, so, point the bin symlink to a new loation
     OPT_C_MGMT_DIR=debian/data/opt/c_mgmt/
     pushd ${OPT_C_MGMT_DIR} > /dev/null
-    ln -s usr/bin/ bin
+    ln -sv usr/bin/ bin
     popd
 
     [[ ! -L ${OPT_C_MGMT_DIR}bin ]] && echo "Link Failure: ${OPT_C_MGMT_DIR}bin symlink not created" && exit 1

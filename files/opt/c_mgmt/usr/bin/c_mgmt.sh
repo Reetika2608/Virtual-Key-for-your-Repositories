@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# change default LD_LIBRARY_PATH to /opt/c_mgmt/ssl/lib64
+# This is done inorder for management container to use it's own SSL
+# SSl Version: CiscoSSL 1.0.2y.6.2.403-fips
+export LD_LIBRARY_PATH='/opt/c_mgmt/ssl/lib64/':$LD_LIBRARY_PATH
+
 # bug 220953
 # Changed c_mgmt.sh to execute the managementconnectormain from the home
 # directory so that the local "platform" module does not cause a namespace
