@@ -8,6 +8,7 @@ pipelineProperties(name: 'management-connector',
 
 DEB_VERSION = ''
 TLP_FILE = ''
+CONNECTOR_TYPES = ['c_mgmt', 'c_ccucmgmt']  // List parameter for Connector Types
 def pythonBuilder = 'containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave:latest'
 def builderName = 'local-spark-pythonbuilder-fmc'
 
@@ -318,48 +319,56 @@ timestamps {
                 checkpoint("Deploy to latest")
                 node('SPARK_BUILDER') {
                     checkout scm
-                    // Setup provisioning data
-                    def provisioning_json_job_url = 'team/management-connector/deploy_files/provisioning_json_latest'
-                    def provisioning_build = build(provisioning_json_job_url)
-                    copyArtifacts(filter: 'latest_provisioning_targeted.txt',
-                            fingerprintArtifacts: true,
-                            flatten: true,
-                            projectName: provisioning_json_job_url,
-                            selector: specific("${provisioning_build.number}"))
+                    // Iterate through connector types and deploy both management connectors
+                    CONNECTOR_TYPES.each {
+                        // Setup provisioning data
+                        def provisioning_json_job_url = 'team/management-connector/deploy_files/provisioning_json_latest'
+                        // pass connector_type as choice parameter to provisioning_json job
+                        connector_type = it
+                        def provisioning_build = build(job: provisioning_json_job_url,
+                                                    parameters: [[$class: 'StringParameterValue',
+                                                    name: 'CONNECTOR_TYPE',
+                                                    value: connector_type]] )
+                        copyArtifacts(filter: 'latest_provisioning_targeted.txt',
+                                fingerprintArtifacts: true,
+                                flatten: true,
+                                projectName: provisioning_json_job_url,
+                                selector: specific("${provisioning_build.number}"))
 
-                    copyArtifacts(filter: 'latest_provisioning.txt',
-                            fingerprintArtifacts: true,
-                            flatten: true,
-                            projectName: provisioning_json_job_url,
-                            selector: specific("${provisioning_build.number}"))
+                        copyArtifacts(filter: 'latest_provisioning.txt',
+                                fingerprintArtifacts: true,
+                                flatten: true,
+                                projectName: provisioning_json_job_url,
+                                selector: specific("${provisioning_build.number}"))
 
-                    copyArtifacts(filter: 'library.yml',
-                            fingerprintArtifacts: true,
-                            flatten: true,
-                            projectName: provisioning_json_job_url,
-                            selector: specific("${provisioning_build.number}"))
+                        copyArtifacts(filter: 'library.yml',
+                                fingerprintArtifacts: true,
+                                flatten: true,
+                                projectName: provisioning_json_job_url,
+                                selector: specific("${provisioning_build.number}"))
 
-                    // Publish latest_provisioning_targeted.txt to maven
-                    utils = load('jenkins/methods/utils.groovy')
-                    maven_json_dir = 'provisioning/'
-                    utils.uploadArtifactsToMaven('latest_provisioning_targeted.txt', maven_json_dir)
-                    utils.uploadArtifactsToMaven('latest_provisioning.txt', maven_json_dir)
+                        // Publish latest_provisioning_targeted.txt to maven
+                        utils = load('jenkins/methods/utils.groovy')
+                        maven_json_dir = 'provisioning/'
+                        utils.uploadArtifactsToMaven('latest_provisioning_targeted.txt', maven_json_dir)
+                        utils.uploadArtifactsToMaven('latest_provisioning.txt', maven_json_dir)
 
-                    try {
-                        // trigger TLP publish to FMS
-                    parallel(
-                        "integration deploy to Latest": {
-                            triggerRemoteBuildJobs('platform/tlp-deploy/tlp-deploy-management-connector-integration-latest')
-                        },
-                        "production deploy to Latest": {
-                            triggerRemoteBuildJobs('platform/tlp-deploy/tlp-deploy-management-connector-production-latest')
-                        },
-                    )
-                    } catch (err) {
-                        print("TLP failed to publish in Latest")
-                        throw err
+                        try {
+                            // trigger TLP publish to FMS
+                            parallel(
+                                "integration deploy to Latest": {
+                                    triggerRemoteBuildJobs('platform/tlp-deploy/tlp-deploy-management-connector-integration-latest')
+                                },
+                                "production deploy to Latest": {
+                                    triggerRemoteBuildJobs('platform/tlp-deploy/tlp-deploy-management-connector-production-latest')
+                                },
+                            )
+                        } catch (err) {
+                            print("TLP failed to publish in Latest")
+                            throw err
+                        }
+                        cleanWs()
                     }
-                    cleanWs()
                 }
             }
             stage('Tests against latest') {
@@ -511,32 +520,39 @@ def deploy(String release, List<String> environments) {
         input "Deploy ${DEB_VERSION} to ${release} release channel?"
     }
     node('SPARK_BUILDER') {
-        // Setup provisioning data
-        build("team/management-connector/deploy_files/provisioning_json_${release}")
+        // Iterate through connector types and deploy both management connectors
+        CONNECTOR_TYPES.each {
+            connector_type = it
+            // Setup provisioning data
+            // pass connector_type as choice parameter to provisioning_json job
+            build(job: "team/management-connector/deploy_files/provisioning_json_${release}",
+                parameters: [[$class: 'StringParameterValue',
+                name: 'CONNECTOR_TYPE',
+                value: connector_type]] )
+            // Deploy provisioning Data
+            def environment = ""
+            try {
+                // Loop through for each environment
+                environments.each {
+                    // 'it' is the implicit param for each element in the list
+                    environment = it
+                    def deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}-${release}"
 
-        // Deploy provisioning Data
-        def environment = ""
-        try {
-            // Loop through for each environment
-            environments.each {
-                // 'it' is the implicit param for each element in the list
-                environment = it
-                def deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}-${release}"
-
-                if ((release == "stable") && (environment == "cfe")) {
-                    deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}"
+                    if ((release == "stable") && (environment == "cfe")) {
+                        deploy_job = "platform/tlp-deploy/tlp-deploy-management-connector-${environment}"
+                    }
+                    triggerRemoteBuildJobs(deploy_job)
                 }
-                triggerRemoteBuildJobs(deploy_job)
-            }
-        } catch (Exception e) {
-            if (environment == "cfe"){
-                // Allow a failure in CFE deploy to be skipped
-                timeout(time: 5, unit: 'MINUTES') {
-                    input("Deploy to ${release}: CFE failed do you want to skip and continue?")
+            } catch (Exception e) {
+                if (environment == "cfe"){
+                    // Allow a failure in CFE deploy to be skipped
+                    timeout(time: 5, unit: 'MINUTES') {
+                        input("Deploy to ${release}: CFE failed do you want to skip and continue?")
+                    }
+                } else {
+                    // Propagate failure for NON-CFE environments
+                    throw e
                 }
-            } else {
-                // Propagate failure for NON-CFE environments
-                throw e
             }
         }
     }
