@@ -274,7 +274,7 @@ class FusionLib
         return $cloud_form;
     }
 
-    static public function create_bootstrap_form($rest_data_adapter)
+    static public function create_bootstrap_form($rest_data_adapter, $isExpresswayEnabled)
     {
         // init bootstrap form
         $target_type = self::get_target_type($rest_data_adapter);

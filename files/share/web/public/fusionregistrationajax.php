@@ -73,7 +73,7 @@ class PrecheckPage extends AjaxPage
             }
             else
             {
-                $registration_form = FusionLib::create_bootstrap_form($this->rest_data_adapter);
+                $registration_form = FusionLib::create_bootstrap_form($this->rest_data_adapter, $this->IProduct->isExpresswayEnabled());
             }
         }
         $registration_form->render(); 
