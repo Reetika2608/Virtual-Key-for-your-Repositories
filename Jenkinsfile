@@ -367,8 +367,8 @@ timestamps {
                             print("TLP failed to publish in Latest")
                             throw err
                         }
-                        cleanWs()
                     }
+                    cleanWs()
                 }
             }
             stage('Tests against latest') {

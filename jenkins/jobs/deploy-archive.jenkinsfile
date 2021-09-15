@@ -50,6 +50,11 @@ timestamps {
 
         stage('Prepare Provisioning') {
             node('SPARK_BUILDER') {
+                // Disabling security scan for c_ccucmgmt as the .tlp is same for both connector types
+                if (CONNECTOR_TYPE == "c_ccucmgmt"):
+                    pipelineProperties(
+                                       integration: [
+                                       runSecurityScans: false])
                 checkout scm
                 unstash('tlp')
                 unstash('library')
