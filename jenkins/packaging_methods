@@ -140,7 +140,7 @@ install_external_dependencies(){
     pip install pyratemp==0.3.2 --target=debian/data/opt/c_mgmt/lib/pyratemp/ --no-dependencies
     pip install functools32==3.2.3.post2 --target=debian/data/opt/c_mgmt/lib/functools32/ --no-dependencies
     pip install jsonschema==2.5.1 --target=debian/data/opt/c_mgmt/lib/jsonschema/ --no-dependencies
-    pip install cryptography==2.9 --target=debian/data/opt/c_mgmt/lib/cryptography/
+    pip install cryptography==3.3.2 --target=debian/data/opt/c_mgmt/lib/cryptography/
     pip install defusedxml==0.5.0 --target=debian/data/opt/c_mgmt/lib/defusedxml/ --no-dependencies
 }
 
