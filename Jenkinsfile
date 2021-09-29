@@ -8,7 +8,7 @@ pipelineProperties(name: 'management-connector',
 
 DEB_VERSION = ''
 TLP_FILE = ''
-CONNECTOR_TYPES = ['c_mgmt', 'c_ccucmgmt']  // List parameter for Connector Types
+CONNECTOR_TYPES = ['c_ccucmgmt', 'c_mgmt']  // List parameter for Connector Types
 def pythonBuilder = 'containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave:latest'
 def builderName = 'local-spark-pythonbuilder-fmc'
 
