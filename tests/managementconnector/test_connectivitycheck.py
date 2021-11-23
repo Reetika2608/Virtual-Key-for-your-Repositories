@@ -6,10 +6,10 @@ import unittest
 import subprocess
 import io
 import logging
-import urllib2
+from urllib import error as urllib_error
 import mock
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -65,14 +65,14 @@ class ConnectivityCheckTest(unittest.TestCase):
         self.assertEqual(res, 'passed', '%s does not equal "passed"' % res)
 
         mock_http.reset_mock()
-        stream = io.TextIOWrapper(io.BytesIO("not_found"))
-        mock_http.side_effect = urllib2.HTTPError('https://www.123.abc', "401", "unauthorized", "hdrs", stream)
+        stream = io.TextIOWrapper(io.BytesIO(b"not_found"))
+        mock_http.side_effect = urllib_error.HTTPError('https://www.123.abc', "401", "unauthorized", "hdrs", stream)
         res = ConnectivityCheck.get_test(url)
         mock_http.assert_called_with(url, {'Content-Type': 'application/json'})
         self.assertEqual(res, 'http_error', '%s does not equal "http_error"' % res)
 
         mock_http.reset_mock()
-        mock_http.side_effect = urllib2.URLError('not found')
+        mock_http.side_effect = urllib_error.URLError('not found')
         res = ConnectivityCheck.get_test(url)
         mock_http.assert_called_with(url, {'Content-Type': 'application/json'})
         self.assertEqual(res, 'not_found', '%s does not equal "not_found"' % res)

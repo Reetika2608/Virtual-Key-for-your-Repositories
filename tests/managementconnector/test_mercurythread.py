@@ -8,8 +8,8 @@ import mock
 import sys
 import unittest
 
-from urllib2 import HTTPError
-from constants import SYS_LOG_HANDLER
+from urllib.error import HTTPError
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()

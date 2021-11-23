@@ -4,10 +4,10 @@ import sys
 import mock
 
 from pyfakefs import fake_filesystem_unittest
-from productxml import PRODUCT_XML_CONTENTS
+from .productxml import PRODUCT_XML_CONTENTS
 import unittest
 import logging
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -91,7 +91,7 @@ class XStatusTest(fake_filesystem_unittest.TestCase):
 
             node = xstatus.find("c_mgmt")
             alarms = node.find("alarms")
-            self.assertEquals(alarms.text, "0")
+            self.assertEqual(alarms.text, "0")
 
             DEV_LOGGER.info('***TEST*** XStatusTest, finished first test')
 
@@ -101,7 +101,7 @@ class XStatusTest(fake_filesystem_unittest.TestCase):
 
             node = xstatus.find("c_mgmt")
             alarms = node.find("alarms")
-            self.assertEquals(alarms.text, "2")
+            self.assertEqual(alarms.text, "2")
 
             DEV_LOGGER.info('***TEST*** XStatusTest end')
 

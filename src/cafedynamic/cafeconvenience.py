@@ -76,12 +76,12 @@ class CAFEConvenience(object):
         """
             Prints a map of keywords to convenience methods
         """
-        print "\nAvailable Component Template Convenience Methods: \n"
-        for keyword, _ in CAFEConvenience.convenience_method_map.iteritems():
-            print "Template Keyword: '%s'\t|\tCAFE Manager Method: '%s()'\t|\tMethod DocString: '%s'" \
+        print("\nAvailable Component Template Convenience Methods: \n")
+        for keyword, _ in CAFEConvenience.convenience_method_map.items():
+            print("Template Keyword: '%s'\t|\tCAFE Manager Method: '%s()'\t|\tMethod DocString: '%s'" \
                   % (keyword,
                      CAFEConvenience.get_convenience_method(keyword).__name__,
-                     re.sub(r"\s\s+", " ", CAFEConvenience.get_convenience_method(keyword).__doc__.translate(None, '\n')))
+                     re.sub(r"\s\s+", " ", CAFEConvenience.get_convenience_method(keyword).__doc__.translate(None, '\n'))))
 
     # -------------------------------------------------------------------------
 

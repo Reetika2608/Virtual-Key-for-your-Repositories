@@ -2,7 +2,7 @@ import unittest
 import mock
 import logging
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 
 
@@ -29,7 +29,7 @@ class LogArchiverTest(unittest.TestCase):
         mock_read_json_file.return_value = None
         expected_log_entry = (True, {"logsearchId": log_request_id, "status": "starting"})
         log_entry = LogArchiver.validate_request(mock_config, log_request_id)
-        self.assertEquals(log_entry, expected_log_entry)
+        self.assertEqual(log_entry, expected_log_entry)
 
     @mock.patch("managementconnector.config.jsonhandler.read_json_file")
     @mock.patch("managementconnector.config.config.Config")
@@ -39,7 +39,7 @@ class LogArchiverTest(unittest.TestCase):
         mock_read_json_file.return_value = {"logsearchId": log_request_id}
         expected_log_entry = (False, {"logsearchId": log_request_id, "status": "log_uuid_unchanged"})
         log_entry = LogArchiver.validate_request(mock_config, log_request_id)
-        self.assertEquals(log_entry, expected_log_entry)
+        self.assertEqual(log_entry, expected_log_entry)
 
     @mock.patch("managementconnector.config.jsonhandler.read_json_file")
     @mock.patch("managementconnector.config.config.Config")
@@ -50,7 +50,7 @@ class LogArchiverTest(unittest.TestCase):
         mock_config.read.return_value = None
         expected_log_entry = (False, {"logsearchId": log_request_id, "status": "no_log_uuid"})
         log_entry = LogArchiver.validate_request(mock_config, log_request_id)
-        self.assertEquals(log_entry, expected_log_entry)
+        self.assertEqual(log_entry, expected_log_entry)
 
     @mock.patch("managementconnector.platform.logarchiver.LogArchiver.validate_request")
     @mock.patch("managementconnector.cloud.atlaslogger.AtlasLogger")
@@ -61,7 +61,7 @@ class LogArchiverTest(unittest.TestCase):
         log_entry = {"logsearchId": log_request_id, "status" : "no_log_uuid"}
         mock_validate_request.return_value = False, log_entry
         push_log_response = LogArchiver.push_logs(mock_config, mock_atlas_logger, log_request_id)
-        self.assertEquals(log_entry, push_log_response)
+        self.assertEqual(log_entry, push_log_response)
 
     @mock.patch("managementconnector.platform.logarchiver.time.time")
     @mock.patch("managementconnector.platform.logarchiver.EventSender.post")
@@ -107,7 +107,7 @@ class LogArchiverTest(unittest.TestCase):
                                             "tags": {"state": "success"},
                                             "measurementName": "logPushEvent"})
 
-        self.assertEquals(log_entry, push_log_response)
+        self.assertEqual(log_entry, push_log_response)
 
     @mock.patch("os.path.getsize")
     @mock.patch("managementconnector.platform.logarchiver.time.time")
@@ -196,9 +196,9 @@ class LogArchiverTest(unittest.TestCase):
         new_pii_string = '{"proxy": [{"username": "admin", "password": "####PII-EXPOSURE####", "enabled": "true", "port": "3128", "address": "gwyedgeproxy2.cisco.com"}], "email": "####PII-EXPOSURE####"}'
 
         stripped_pii_string = LogArchiver.strip_pii_from_string(pii_string)
-        self.assertEquals(stripped_pii_string, new_pii_string)
+        self.assertEqual(stripped_pii_string, new_pii_string)
 
-    @mock.patch('__builtin__.open')
+    @mock.patch('builtins.open')
     def test_strip_pii_from_file(self, mock_file):
         """ User Story: US25210: Add Connector JSON (config) Files to the Send Log Output """
         pii_file = "/tmp/pii.json"

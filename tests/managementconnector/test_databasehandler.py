@@ -4,7 +4,7 @@ import unittest
 import mock
 import sys
 import logging
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -53,7 +53,7 @@ class DatabaseHandlerTest(unittest.TestCase):
         cal_records = database_handler.get_service_database_records("c_cal")
 
         mock_get_records.assert_called()
-        self.assertEquals(cal_records, expected_cal, "Actual: %s did not match Expected: %s"
+        self.assertEqual(cal_records, expected_cal, "Actual: %s did not match Expected: %s"
                           % (cal_records, expected_cal))
 
         # Assert for c_ucmc
@@ -63,7 +63,7 @@ class DatabaseHandlerTest(unittest.TestCase):
         c_ucmc_records = database_handler.get_service_database_records("c_ucmc")
 
         mock_get_records.assert_called()
-        self.assertEquals(c_ucmc_records, expected_c_ucm, "Actual: %s did not match Expected: %s"
+        self.assertEqual(c_ucmc_records, expected_c_ucm, "Actual: %s did not match Expected: %s"
                           % (c_ucmc_records, expected_c_ucm))
 
 
@@ -92,7 +92,7 @@ class DatabaseHandlerTest(unittest.TestCase):
         cal_records = database_handler.get_service_database_records("c_cal")
 
         mock_get_records.assert_called()
-        self.assertEquals(cal_records, expected_cal, "Actual: %s did not match Expected: %s"
+        self.assertEqual(cal_records, expected_cal, "Actual: %s did not match Expected: %s"
                           % (cal_records, expected_cal))
 
 

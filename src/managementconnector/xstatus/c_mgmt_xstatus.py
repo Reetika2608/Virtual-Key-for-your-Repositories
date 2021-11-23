@@ -155,7 +155,8 @@ def _process_return_output(status_element):
 
     # Construct a connector element string to be passed back to the cafe framework
     # This is then passed back up the call-stack via stdout; aka print
-    print ElementTree.tostring(status_element)
+    output = ElementTree.tostring(status_element).decode()
+    print(output)
 
 
 def main():

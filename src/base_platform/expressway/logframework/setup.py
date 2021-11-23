@@ -32,6 +32,7 @@ import __main__
 # Ignore "Unused import" warnings.              pylint: disable=W0611
 pre_logging_class = logging.getLoggerClass()
 import pyinotify
+
 logging.setLoggerClass(pre_logging_class)
 
 # Local application/library specific imports
@@ -40,7 +41,6 @@ from base_platform.expressway.logframework import log4configuration
 from base_platform.expressway.cdb import restclient
 from base_platform.expressway.cdb import webrestclient
 from base_platform.expressway.filesystem.umask import umask
-
 
 DEVELOPER_LOGGING_FRAMEWORK = None
 ADMIN_LOGGING_FRAMEWORK = None
@@ -67,7 +67,8 @@ class NoACRExceptionFilter(logging.Filter):
         Method used by the logging framework whether to check if ACR generation
         is needed or not. This filter is used by CrachReportHandler.
         """
-        return __main__.__file__ != self.bin_trial and record.exc_info and record.exc_info[0] not in self.ExceptionsNotCausingAcr
+        return __main__.__file__ != self.bin_trial and record.exc_info and record.exc_info[
+            0] not in self.ExceptionsNotCausingAcr
 
     def add_exception(self, exc_type):
         """
@@ -101,7 +102,7 @@ def map_loggers(function):
     # Ignore "Access to a protected member" warnings. pylint: disable=W0212
     try:
         logging._acquireLock()
-        for logger_name, logger in logging.Logger.manager.loggerDict.iteritems():
+        for logger_name, logger in logging.Logger.manager.loggerDict.items():
             function(logger_name, logger)
     finally:
         logging._releaseLock()
@@ -126,7 +127,7 @@ def register_logger(logger_name, _logger):
             # Make sure the file is created world writable, this works around
             # a problem where two processes with different privileges race to
             # create the file.
-            with umask(0111):
+            with umask(0o111):
                 with open(logger_registration_file, "w") as registration_file:
                     registration_file.write("")
 
@@ -135,17 +136,17 @@ def get_safe_string(value):
     """
     returns a string suitable for logging
     """
-    if isinstance(value, types.StringType):
-        return value
+    if isinstance(value, bytes):
+        return value.decode()
     else:
-        return value.encode('utf-8')
+        return value
 
 
 def get_unicode_string(value):
     """
     returns a unicode string even if input is a byte array
     """
-    if isinstance(value, types.StringType):
+    if isinstance(value, bytes):
         value = value.decode('utf-8')
     return value.replace("\x00", '^@')
 
@@ -158,8 +159,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
 
     def __init__(self, facility):
         logging.handlers.SysLogHandler.__init__(self,
-            address='/dev/log', facility=facility)
-
+                                                address='/dev/log', facility=facility)
 
     def format(self, record):
         """Formats "record" as a utf-8 string"""
@@ -183,11 +183,11 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         if issubclass(exc_type, socket.error) and exc_value.errno == errno.EMSGSIZE:
             msg = record.msg
             split_messages = [msg[i:i + self.MAX_MESSAGE_LENGTH]
-                              for i in xrange(0, len(msg), self.MAX_MESSAGE_LENGTH)]
+                              for i in range(0, len(msg), self.MAX_MESSAGE_LENGTH)]
 
             for index, item in enumerate(split_messages):
                 record.msg = ('Message-Split="True" Section="%d/%d" %s' %
-                                (index + 1, len(split_messages), item))
+                              (index + 1, len(split_messages), item))
                 self.emit(record)
         else:
             super(SysLogHandler, self).handleError(record)
@@ -207,8 +207,8 @@ class DummySysLogHandler(logging.FileHandler):
 
         # Map the facility number to a name
         self.facility = [key for key, value
-            in logging.handlers.SysLogHandler.facility_names.items()
-            if value == facility][0]
+                         in logging.handlers.SysLogHandler.facility_names.items()
+                         if value == facility][0]
 
     def format(self, record):
         """
@@ -286,7 +286,7 @@ class CrashReportHandler(logging.Handler):
             self.log_directory = self.target_log_directory
         else:
             self.log_directory = self.host_log_directory
-        CafeXUtils.make_path(self.log_directory, 0777)
+        CafeXUtils.make_path(self.log_directory, 0o777)
 
     def _get_log_file_path(self):
         """Returns the full path for the next crash report log file."""
@@ -314,7 +314,7 @@ class CrashReportHandler(logging.Handler):
                 log_file.write(msg)
         except (KeyboardInterrupt, SystemExit):
             raise
-        except Exception: # pylint: disable=W0703
+        except Exception:  # pylint: disable=W0703
             self.handleError(record)
 
     @staticmethod
@@ -358,7 +358,7 @@ class CrashReportHandler(logging.Handler):
         results = {}
         results["function"] = seperator.join(functions)
         results["file"] = seperator.join(files)
-        results["line"] = seperator.join([ str(line) for line in lines ])
+        results["line"] = seperator.join([str(line) for line in lines])
         results["local_variables"] = ""
         results["member_variables"] = ""
         if isinstance(frame.f_locals, dict):
@@ -367,12 +367,11 @@ class CrashReportHandler(logging.Handler):
                 results["member_variables"] = cls._format_dictionary(frame.f_locals['self'].__dict__)
         return results
 
-
     # List of files that if found in a traceback are ignored. They still get mentioned in the ACR
     # but we will also mention whatever is above them
     FILENAMES_IGNORE = (
-         webrestclient.__file__,
-         restclient.__file__)
+        webrestclient.__file__,
+        restclient.__file__)
 
     def format(self, record):
         """Format a log record as a crash report."""
@@ -416,7 +415,8 @@ class CrashReportHandler(logging.Handler):
         """Returns a string description of the dictionary contents."""
         # Although traceback._some_str is protected, it's better to access it
         # than create our own.  pylint: disable=W0212
-        items = ["%s: %s" % (get_unicode_string(key), get_unicode_string(traceback._some_str(value))) for key, value in dictionary.iteritems() if not key.startswith("__")]
+        items = ["%s: %s" % (get_unicode_string(key), get_unicode_string(traceback._some_str(value))) for key, value in
+                 dictionary.items() if not key.startswith("__")]
         return "\n".join(items)
 
 
@@ -454,7 +454,7 @@ class LoggingFramework(object):
             try:
                 self.syslog_handler = SysLogHandler(facility=self.facility)
             except socket.error:
-                self.syslog_handler = DummySysLogHandler(facility=self.facility) # pylint: disable=R0204
+                self.syslog_handler = DummySysLogHandler(facility=self.facility)  # pylint: disable=R0204
 
             self.syslog_handler.setFormatter(self.syslog_formatter)
             self.logger.addHandler(self.syslog_handler)
@@ -554,14 +554,14 @@ class DeveloperLogger(LoggingFramework):
         if application_name is None:
             application_name, _extension = os.path.splitext(os.path.basename(sys.argv[0]))
         self.syslog_formatter = logging.Formatter(
-            application_name.lower() + ': UTCTime="%(asctime)s,%(msecs)03d" Module="%(name)s" Level="%(levelname)s" CodeLocation="%(module)s(%(lineno)d)" %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
+            application_name.lower() + ': UTCTime="%(asctime)s,%(msecs)03d" Module="%(name)s" Level="%(levelname)s" CodeLocation="%(module)s(%(lineno)d)" %(message)s',
+            datefmt="%Y-%m-%d %H:%M:%S")
         self.syslog_formatter.converter = time.gmtime
         self.console_formatter = logging.Formatter("%(levelname)-3.3s: %(asctime)s - %(message)s", datefmt="%H:%M:%S")
 
         self.initialise()
         if enable_crash_report_handler:
             self.enable_crash_report_handler()
-
 
 
 def enable_developer_debug(debug=True, console=True):
@@ -599,7 +599,7 @@ def update_log_levels(new_log_levels):
     map_loggers(reset_log_level)
 
     # Apply the new log levels
-    for logger_name, log_level in new_log_levels.iteritems():
+    for logger_name, log_level in new_log_levels.items():
         logging.getLogger(logger_name).setLevel(log_level)
 
 
@@ -626,7 +626,7 @@ def initialise_logging(application_name=None, with_log4configuration_monitor=Tru
     global NETWORK_LOGGING_FRAMEWORK
 
     # Make sure the logging directories are available
-    CafeXUtils.make_path(LOGGER_REGISTRATION_PATH, 0777)
+    CafeXUtils.make_path(LOGGER_REGISTRATION_PATH, 0o777)
 
     # Register any loggers that have already been created
     register_existing_loggers()
@@ -685,7 +685,7 @@ def _initialise_log4configuration(monitoring=True, with_twisted=False, twisted_r
                 LOG_LEVEL_MONITOR = (
                     log4configuration.Log4ConfigurationMonitor())
             else:
-                LOG_LEVEL_MONITOR = log4configuration.Log4ConfigurationMonitor() # pylint: disable=R0204
+                LOG_LEVEL_MONITOR = log4configuration.Log4ConfigurationMonitor()  # pylint: disable=R0204
     else:
         log4configuration.Log4ConfigurationLoader().update_log_levels()
 
@@ -709,7 +709,7 @@ def start_monitoring_log_configuration_file():
 def check_log_monitoring_is_inactive():
     """Check that applications disable log monitoring before shutdown"""
     if LOG_LEVEL_MONITOR is not None:
-        print "**** Unclean logging shutdown in %s" % (sys.argv[0],)
+        print("**** Unclean logging shutdown in %s" % (sys.argv[0],))
     # Assert will be enabled once more confidence has been obtained that all
     # the applications have been updated.
 

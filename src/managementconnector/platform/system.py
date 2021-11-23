@@ -59,7 +59,7 @@ class System(object):
                 cpu_data = line.split()
 
         for i in cpu_data[1:]:
-            cpu_time += long(i)
+            cpu_time += int(i)
 
         return cpu_time
 
@@ -73,12 +73,12 @@ class System(object):
                     }
         '''
 
-        fileiter = iter(open("/proc/meminfo","r"))
+        fileiter = iter(open("/proc/meminfo", "r"))
 
-        mem_item = split(' *', fileiter.next().strip())
+        mem_item = split('\s+', fileiter.__next__().strip())
         total_mem = float(mem_item[1])
-        fileiter.next()
-        mem_item = split(' *', fileiter.next().strip())
+        next(fileiter)
+        mem_item = split('\s+', fileiter.__next__().strip())
         available_mem = float(mem_item[1])
 
         memory_percent = (total_mem - available_mem) / total_mem * 100
@@ -140,7 +140,7 @@ class System(object):
                     }
         '''
 
-        res = subprocess.check_output(["df", "--total"])  # nosec - static input
+        res = subprocess.check_output(["df", "--total"]).decode()  # nosec - static input
         sys_disk = res.split('\n')[-2].split()
 
         total_disk = float(sys_disk[1]) / 1024
@@ -160,7 +160,7 @@ class System(object):
         ''' Gets the number of cpus
             Returns string with number of cpus
         '''
-        res = subprocess.check_output(["nproc", "--all"])  # nosec - static input
+        res = subprocess.check_output(["nproc", "--all"]).decode()  # nosec - static input
         return res.strip()
     # -------------------------------------------------------------------------
 

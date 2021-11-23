@@ -13,7 +13,7 @@ import sys
 import unittest
 import json
 import mock
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
@@ -68,7 +68,7 @@ class FeaturesTest(unittest.TestCase):
         clean_features = Features.audit_features(features)
 
         # Verify
-        self.assertEquals(expected_features, clean_features,
+        self.assertEqual(expected_features, clean_features,
                           msg="Expected Features: {} - didn't match Cleaned features: {}".
                           format(expected_features, clean_features))
 
@@ -95,7 +95,7 @@ class FeaturesTest(unittest.TestCase):
         clean_features = Features.audit_features(features)
 
         # Verify
-        self.assertEquals(expected_features, clean_features,
+        self.assertEqual(expected_features, clean_features,
                           msg="Expected Features: {} - didn't match Cleaned features: {}".
                           format(expected_features, clean_features))
 
@@ -164,8 +164,8 @@ class FeaturesTest(unittest.TestCase):
 
         cached_list = {}
         full_list, delta = Features.compare_features(mock_config, cached_list)
-        self.assertEquals(delta, expected)
-        self.assertEquals(full_list, cloud_list)
+        self.assertEqual(delta, expected)
+        self.assertEqual(full_list, cloud_list)
 
     @mock.patch('managementconnector.config.config.Config')
     def test_compare_features_feature_disabled(self, mock_config):
@@ -181,8 +181,8 @@ class FeaturesTest(unittest.TestCase):
 
         cached_list = {"fmc-test-feature": "true"}
         full_list, delta = Features.compare_features(mock_config, cached_list)
-        self.assertEquals(delta, expected)
-        self.assertEquals(full_list, cloud_list)
+        self.assertEqual(delta, expected)
+        self.assertEqual(full_list, cloud_list)
 
     @mock.patch('managementconnector.config.config.Config')
     def test_compare_features_buddy_added_to_live(self, mock_config):
@@ -198,8 +198,8 @@ class FeaturesTest(unittest.TestCase):
 
         cached_list = {"fmc-test-feature": "true"}
         full_list, delta = Features.compare_features(mock_config, cached_list)
-        self.assertEquals(delta, expected_delta)
-        self.assertEquals(full_list, cloud_list)
+        self.assertEqual(delta, expected_delta)
+        self.assertEqual(full_list, cloud_list)
 
     @mock.patch('managementconnector.config.config.Config')
     def test_compare_features_removed_from_live(self, mock_config):
@@ -217,8 +217,8 @@ class FeaturesTest(unittest.TestCase):
 
         cached_list = {"fmc-test-feature": "true"}
         full_list, delta = Features.compare_features(mock_config, cached_list)
-        self.assertEquals(delta, expected_delta)
-        self.assertEquals(full_list, cloud_list)
+        self.assertEqual(delta, expected_delta)
+        self.assertEqual(full_list, cloud_list)
 
     @mock.patch('managementconnector.config.config.Config')
     def test_compare_features_no_change(self, mock_config):
@@ -233,8 +233,8 @@ class FeaturesTest(unittest.TestCase):
 
         cached_list = {"fmc-test-feature": "true"}
         full_list, delta = Features.compare_features(mock_config, cached_list)
-        self.assertEquals(delta, expected_delta)
-        self.assertEquals(full_list, cloud_list)
+        self.assertEqual(delta, expected_delta)
+        self.assertEqual(full_list, cloud_list)
 
 
     @mock.patch('threading.Event')
@@ -274,7 +274,7 @@ class FeaturesTest(unittest.TestCase):
 
         features = Features(mock_config, mock_oauth)
         uid = features.get_user_id()
-        self.assertEquals(uid, "0352d38c-1111-4274-a918-881e2f09603a")
+        self.assertEqual(uid, "0352d38c-1111-4274-a918-881e2f09603a")
 
 
 if __name__ == "__main__":

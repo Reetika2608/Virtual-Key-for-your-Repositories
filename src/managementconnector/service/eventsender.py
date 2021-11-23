@@ -27,7 +27,6 @@ class EventSender(object):
     @staticmethod
     def post(oauth, config, event_type, service=ManagementConnectorProperties.SERVICE_NAME, timestamp=int(time.time()),
              detailed_info="", dampener=event_dampener):
-
         """ Sends Details of a Hybrid Event to FMS """
 
         org_id = config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']

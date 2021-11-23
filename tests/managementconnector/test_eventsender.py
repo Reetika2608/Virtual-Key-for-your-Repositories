@@ -10,7 +10,7 @@ import unittest
 import logging
 import mock
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -77,7 +77,8 @@ class EventSenderTest(unittest.TestCase):
     @mock.patch("managementconnector.config.jsonhandler.write_json_file")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("managementconnector.service.eventsender.Http.post")
-    def test_upgrade_event_sent(self, mock_post, mock_get_package_version, mock_write, mock_read, mock_get_release_channel):
+    def test_upgrade_event_sent(self, mock_post, mock_get_package_version, mock_write, mock_read,
+                                mock_get_release_channel):
         """
             SPARK-1983: Make fms-connector-upgrades dashboard useable
             Upgrade success event sent when not previously sent
@@ -123,7 +124,8 @@ class EventSenderTest(unittest.TestCase):
     @mock.patch("managementconnector.config.jsonhandler.write_json_file")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
     @mock.patch("managementconnector.service.eventsender.Http.post")
-    def test_upgrade_event_not_sent_when_invoked_multiple_times(self, mock_post, mock_get_package_version, mock_write, mock_read, mock_get_release_channel):
+    def test_upgrade_event_not_sent_when_invoked_multiple_times(self, mock_post, mock_get_package_version, mock_write,
+                                                                mock_read, mock_get_release_channel):
         """
             SPARK-1983: Make fms-connector-upgrades dashboard useable
             failure not allowed to be sent if sent before, calling three times
@@ -181,15 +183,17 @@ class EventSenderTest(unittest.TestCase):
             "type": EventSender.UPGRADE,
             "details": {
                 "releaseChannel": "",
-                "detailed_info": json.dumps({"fields": {"url": event_url,
-                                                        "platformVersion": platform_version,
-                                                        "connectorVersion": service_version,
-                                                        "value": -999,  # All upgrade values are now -999
-                                                        "exception": "download_exception"},
-                                             "measurementName": "connectorUpgradeEvent",
-                                             "tags": {"state": event_failure,
+                "detailed_info": json.dumps({"tags": {"state": event_failure,
                                                       "connectorType": service,
-                                                      "reason": "Download timed out"}})
+                                                      "reason": "Download timed out"},
+                                             "fields": {"url": event_url,
+                                                        "connectorVersion": service_version,
+                                                        "platformVersion": platform_version,
+                                                        "exception": "download_exception",
+                                                        "value": -999  # All upgrade values are now -999
+                                                        },
+                                             "measurementName": "connectorUpgradeEvent",
+                                             })
             }
         }
 
@@ -279,15 +283,17 @@ class EventSenderTest(unittest.TestCase):
             "type": EventSender.UPGRADE,
             "details": {
                 "releaseChannel": "",
-                "detailed_info": json.dumps({"fields": {"url": event_url,
-                                                        "platformVersion": platform_version,
-                                                        "connectorVersion": service_version,
-                                                        "value": -999,  # All upgrade values are now -999
-                                                        "exception": "download_exception"},
-                                             "measurementName": "connectorUpgradeEvent",
-                                             "tags": {"state": event_failure,
+                "detailed_info": json.dumps({"tags": {"state": event_failure,
                                                       "connectorType": service,
-                                                      "reason": "Download timed out"}})
+                                                      "reason": "Download timed out"},
+                                             "fields": {"url": event_url,
+                                                        "connectorVersion": service_version,
+                                                        "platformVersion": platform_version,
+                                                        "exception": "download_exception",
+                                                        "value": -999  # All upgrade values are now -999
+                                                        },
+                                             "measurementName": "connectorUpgradeEvent",
+                                             })
             }
         }
 

@@ -12,6 +12,7 @@ from base_platform.expressway.filesystem.filewriter import FileWriter
 
 ADMIN_LOGGER = logging.getLogger('administrator.management.linuxmanager')
 
+
 def escape_strip_newlines(string, _format):
     """
     Pyratemp escape function that removes new lines and null bytes from data.
@@ -19,10 +20,10 @@ def escape_strip_newlines(string, _format):
     variable to this function.
     """
 
-    string = string.replace(u'\n', u'')
-    string = string.replace(u'\r', u'')
-    string = string.replace(u'\0', u'')
-    return unicode(string)
+    string = string.replace('\n', '')
+    string = string.replace('\r', '')
+    string = string.replace('\0', '')
+    return str(string)
 
 
 class PyratempFileWriter(FileWriter):
@@ -92,15 +93,14 @@ class PyratempFileWriter(FileWriter):
     header_version = """\
 # daemon version %(daemon_version)s"""
 
-
     def _isvalid_conf_file(self, originalconfig):
         """ Check the content of the current conf file with that generated from originalconfig
             (Ignore comment and blank lines- that way we don't check the datestamp)
         """
-        config_lines   = []
+        config_lines = []
         config_version = []
-        test_version   = []
-        test_lines     = []
+        test_version = []
+        test_lines = []
         try:
             with open(self.get_file_path()) as conf_file:
                 for line in conf_file:
@@ -109,7 +109,7 @@ class PyratempFileWriter(FileWriter):
                         continue
                     elif line.startswith('# daemon version'):
                         config_version.append(line.rstrip())
-                    if  not line.startswith('#'):
+                    if not line.startswith('#'):
                         config_lines.append(line.rstrip())
             self._write_dictionary = True
             testconfig = PyratempFileWriter.write_file(self, originalconfig)
@@ -122,13 +122,12 @@ class PyratempFileWriter(FileWriter):
                     continue
                 elif line.startswith('# daemon version'):
                     test_version.append(line.rstrip())
-                if  not line.startswith('#'):
+                if not line.startswith('#'):
                     test_lines.append(line.rstrip())
         except IOError:
             return (False, False)
         else:
             return (config_version == test_version, config_lines == test_lines)
-
 
     def init_file(self, config):
         """
@@ -142,7 +141,6 @@ class PyratempFileWriter(FileWriter):
         else:
             return False
 
-
     def write_file(self, config):
         """
         Renders the template and writes the file.  The "config" dictionary is
@@ -153,18 +151,18 @@ class PyratempFileWriter(FileWriter):
         * ``header_lines`` - A comment that contains the above two fields
         """
 
-        assert(self.template is not None)
+        assert (self.template is not None)
 
         # Add our own data
         data = dict(config)
-        #data['daemon_version'] = self.daemon_version
+        # data['daemon_version'] = self.daemon_version
         data["generated_time"] = \
             time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
         data["generator_name"] = \
             "%s.%s" % (self.__class__.__module__, self.__class__.__name__)
-        data["header_lines"]   = self.header % data
+        data["header_lines"] = self.header % data
         if self.daemon_version is not None:
-            data["header_lines"] += (self.header_version % {'daemon_version':self.daemon_version})
+            data["header_lines"] += (self.header_version % {'daemon_version': self.daemon_version})
 
         # Use the escape function if one was provided
         kwargs = {"data": data}
@@ -188,11 +186,9 @@ class PyratempFileWriter(FileWriter):
         else:
             FileWriter.write_file(self, content)
 
-
     def generate_config(self, *_args):
         """ divert to client provided generator function """
         assert (False), "No generate_config method provided by %s" % self.__class__
-
 
     def init_config_file(self, *args):
         """
@@ -201,19 +197,18 @@ class PyratempFileWriter(FileWriter):
         config_file_rewrite = self.init_file(self.generate_config(*args))
         if config_file_rewrite:
             ADMIN_LOGGER.info('Detail="Initialising %s config file" Filename="%s"' %
-                (self.service, self.get_file_path()))
+                              (self.service, self.get_file_path()))
         return config_file_rewrite
-
 
     def write_config_file(self, *args):
         """ Write the configuration file from the supplied configuration """
         config_file_rewrite = self.init_file(self.generate_config(*args))
         if config_file_rewrite:
             ADMIN_LOGGER.info('Detail="Updating %s configuration file" Filename="%s"' %
-                (self.service, self.get_file_path()))
+                              (self.service, self.get_file_path()))
         return config_file_rewrite
 
     # Method aliases
-    init_config  = init_config_file
+    init_config = init_config_file
     write_config = write_config_file
-    write        = write_file
+    write = write_file

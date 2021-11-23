@@ -1,6 +1,7 @@
 """ Atlas Logger """
 import json
 import os.path
+import os
 import time
 from uuid import uuid4 as uuid
 
@@ -18,7 +19,7 @@ class AtlasLogger(object):
     """Class for Pushing Logs to Atlas"""
 
     def __init__(self, oauth, config):
-        ''' Constructor '''
+        """ Constructor """
         self._oauth = oauth
         self._config = config
 
@@ -35,7 +36,7 @@ class AtlasLogger(object):
         user_agent = self._config.read(ManagementConnectorProperties.METRICS_UA) + "/" + version
 
         log_headers = {
-            'Authorization': 'Bearer '+ self._oauth.get_access_token(),
+            'Authorization': 'Bearer ' + self._oauth.get_access_token(),
             'Content-Type': 'application/json',
             'User-Agent': user_agent,
         }
@@ -47,7 +48,7 @@ class AtlasLogger(object):
 
         meta_file = os.path.basename(log_path)
 
-        DEV_LOGGER.info('Detail="post_log: meta_file %s"' % (meta_file))
+        DEV_LOGGER.info('Detail="post_log: meta_file %s"' % meta_file)
 
         temp_url, log_file_name = self._get_temp_url(meta_file)
 
@@ -67,7 +68,7 @@ class AtlasLogger(object):
         logging_url = self._config.read(ManagementConnectorProperties.LOGGING_HOST) + \
                       self._config.read(ManagementConnectorProperties.LOGGING_ASK_URL)
 
-        data = {"file" : logfile_name, 'uploadProtocol':'content-length'}
+        data = {"file": logfile_name, 'uploadProtocol': 'content-length'}
 
         response = Http.post(logging_url, self.get_headers(), json.dumps(data), schema=schema.ASK_URL_RESPONSE)
 
@@ -75,17 +76,23 @@ class AtlasLogger(object):
 
         return response['tempURL'], response["logFilename"]
 
-    @staticmethod
-    def _send_log(temp_url, log_path):
+    # @staticmethod  # removed staticmethod as unittest cases failed to import _send_log
+    def _send_log(self, temp_url, log_path):
         """ send the logs to Cloud """
 
-        headers = {'Content-type': 'application/octet-stream',
+        # The User-Agent Field seems significant - Need to match get_temp_url
+        version = self._get_version()
+
+        user_agent = self._config.read(ManagementConnectorProperties.METRICS_UA) + "/" + version
+
+        headers = {'Content-Type': 'application/octet-stream',
+                   'User-Agent': user_agent,
                    'X-Trans-Id': str(uuid())}  # TODO: Check if we still need this now that we've moved to AWS
 
-        with open(log_path, mode='rb') as file_handle: # b is important -> binary
+        with open(log_path, mode='rb') as file_handle:  # b is important -> binary
             file_content = file_handle.read()
 
-        response = Http.put(temp_url.encode('utf-8'), headers, file_content, silent=True)
+        response = Http.put(temp_url, headers, file_content, silent=True)
 
         DEV_LOGGER.info('Detail="_send_log: completed with status code {}'.format(response.getcode()))
 
@@ -97,7 +104,7 @@ class AtlasLogger(object):
         user_agent = self._config.read(ManagementConnectorProperties.METRICS_UA) + "/" + version
 
         log_headers = {
-            'Authorization': 'Bearer '+ self._oauth.get_access_token(),
+            'Authorization': 'Bearer ' + self._oauth.get_access_token(),
             'Content-Type': 'application/json',
             'User-Agent': user_agent,
         }
@@ -105,8 +112,8 @@ class AtlasLogger(object):
         logging_url = self._config.read(ManagementConnectorProperties.LOGGING_HOST) + \
                       self._config.read(ManagementConnectorProperties.LOGGING_META_URL)
 
-        data = {'filename' : file_name, 'data' : [ { 'key':"Fusion", 'value': tracking_info['tracking_id']},
-                                                    {'key':"locusid", 'value':tracking_info['serial_number'] }]}
+        data = {'filename': file_name, 'data': [{'key': "Fusion", 'value': tracking_info['tracking_id']},
+                                                {'key': "locusid", 'value': tracking_info['serial_number']}]}
 
         Http.post(logging_url, log_headers, json.dumps(data))
 

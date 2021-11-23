@@ -8,7 +8,7 @@ import logging
 import mock
 import datetime
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -51,7 +51,7 @@ def get_test_time(subtract=0):
 def config_new_crash_read(path):
     """ config class mock """
     # Simulate Alarm within last hearbeat
-    alarm_list = [{u'severity': u'error', u'parameters': [u'/opt/c_ucmc/bin/c_ucmc.sh /var/run/c_ucmc/c_ucmc.pid', 1], u'last_reported': get_test_time(0), u'solution_links': u'restartoptions?restart', u'first_reported': u'1493220035', u'id': u'15019', u'uuid': u'1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
+    alarm_list = [{'severity': 'error', 'parameters': ['/opt/c_ucmc/bin/c_ucmc.sh /var/run/c_ucmc/c_ucmc.pid', 1], 'last_reported': get_test_time(0), 'solution_links': 'restartoptions?restart', 'first_reported': '1493220035', 'id': '15019', 'uuid': '1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
 
     return config_read(path, alarm_list)
 
@@ -59,7 +59,7 @@ def config_new_crash_read(path):
 def config_old_crash_read(path):
     """ config class mock """
     # Simulate Alarm outside last hearbeat
-    alarm_list = [{u'severity': u'error', u'parameters': [u'/opt/c_ucmc/bin/c_ucmc.sh /var/run/c_ucmc/c_ucmc.pid', 1], u'last_reported': get_test_time(120), u'solution_links': u'restartoptions?restart', u'first_reported': u'1493220035', u'id': u'15019', u'uuid': u'1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
+    alarm_list = [{'severity': 'error', 'parameters': ['/opt/c_ucmc/bin/c_ucmc.sh /var/run/c_ucmc/c_ucmc.pid', 1], 'last_reported': get_test_time(120), 'solution_links': 'restartoptions?restart', 'first_reported': '1493220035', 'id': '15019', 'uuid': '1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
 
     return config_read(path, alarm_list)
 
@@ -68,7 +68,7 @@ def config_no_platform_crash_read(path):
     """ config class mock """
     # Simulate Alarm inside hearbeat, but associated with Non-Fusion Process
 
-    alarm_list = [{u'severity': u'error', u'parameters': [u'XXXX'], u'last_reported': u'1493289652', u'solution_links': u'restartoptions?restart', u'first_reported': u'1493220035', u'id': u'15019', u'uuid': u'1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
+    alarm_list = [{'severity': 'error', 'parameters': ['XXXX'], 'last_reported': '1493289652', 'solution_links': 'restartoptions?restart', 'first_reported': '1493220035', 'id': '15019', 'uuid': '1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
 
     return config_read(path, alarm_list)
 
@@ -76,7 +76,7 @@ def config_no_platform_crash_read(path):
 def config_java_crash_read(path):
     """ config mock """
     # Simulate Calendar connector alarm
-    alarm_list = [{u'severity': u'error', u'parameters': [u'java', 1], u'last_reported': get_test_time(0), u'solution_links': u'restartoptions?restart', u'first_reported': u'1493220035', u'id': u'15019', u'uuid': u'1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
+    alarm_list = [{'severity': 'error', 'parameters': ['java', 1], 'last_reported': get_test_time(0), 'solution_links': 'restartoptions?restart', 'first_reported': '1493220035', 'id': '15019', 'uuid': '1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
 
     return config_read(path, alarm_list)
 
@@ -84,7 +84,7 @@ def config_java_crash_read(path):
 def config_default_crash_read(path):
     """ config mock """
     # Simulate Calendar connector alarm
-    alarm_list = [{u'severity': u'error', u'parameters': [u'c_mgmt', 1], u'last_reported': get_test_time(0), u'solution_links': u'restartoptions?restart', u'first_reported': u'1493220035', u'id': u'15019', u'uuid': u'1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
+    alarm_list = [{'severity': 'error', 'parameters': ['c_mgmt', 1], 'last_reported': get_test_time(0), 'solution_links': 'restartoptions?restart', 'first_reported': '1493220035', 'id': '15019', 'uuid': '1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
 
     return config_read(path, alarm_list)
 

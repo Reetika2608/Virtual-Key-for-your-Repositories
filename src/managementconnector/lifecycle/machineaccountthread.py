@@ -7,7 +7,7 @@ import threading
 import traceback
 import uuid
 import time
-from urllib2 import HTTPError, URLError
+from urllib.error import HTTPError, URLError
 
 import taacrypto
 
@@ -118,7 +118,7 @@ class MachineAccountThread(threading.Thread):
     # -------------------------------------------------------------------------
 
     def _get_machine_details_from_json(self):
-        '''Retrieve OAuth Detail from the DB'''
+        """Retrieve OAuth Detail from the DB"""
 
         # MACHINE_ACCOUNT_CDB_taaPOSTFIX = 'oauth_machine_account_details'
         rtn_value = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)

@@ -241,7 +241,7 @@ class FusionLib
         {
             $actionlink = "cloudregistration";
         }
-      
+
         $cloud_form = new DataForm( $actionlink, "", "dataform", "" );
 
         // renderable submit button created below
@@ -253,7 +253,7 @@ class FusionLib
         else
         {
             $fieldset = $cloud_form->createFieldset("fieldset.CLOUD_SERVICES");
-        } 
+        }
         // form doesn't need labels. This makes messages more readable
         $fieldset->hide_labels();
 
@@ -289,7 +289,7 @@ class FusionLib
         $bootstrap_form->removeDefaultSubmitButton();
         if($target_type != 'c_mgmt')
         {
-            $fieldset = $bootstrap_form->createFieldset("fieldset.CLOUD_SERVICES");         
+            $fieldset = $bootstrap_form->createFieldset("fieldset.CLOUD_SERVICES");
         }
         else
         {
@@ -341,16 +341,16 @@ class FusionLib
         $target_type = self::get_target_type($rest_data_adapter);
         $actionlink = "fusionregistration";
         if($target_type != 'c_mgmt')
-        {   
+        {
             $actionlink = "cloudregistration";
-        } 
+        }
         $registration_form = new DataForm( $actionlink, "", "dataform", "" );
 
         // renderable submit button created below
         $registration_form->removeDefaultSubmitButton();
         if($target_type != 'c_mgmt')
         {
-            $fieldset = $registration_form->createFieldset("fieldset.CLOUD_SERVICES");         
+            $fieldset = $registration_form->createFieldset("fieldset.CLOUD_SERVICES");
         }
         else
         {

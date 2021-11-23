@@ -116,7 +116,7 @@ class RemoteDispatcher(object):
                 b64decode(ManagementConnectorProperties.COMMANDS_TEST_PUB_KEY),
                 default_backend())
         else:
-            with open('/opt/c_mgmt/etc/hercules.pem') as pem:
+            with open('/opt/c_mgmt/etc/hercules.pem', 'rb') as pem:
                 public_key = load_pem_public_key(
                     pem.read(),
                     default_backend())
@@ -127,7 +127,7 @@ class RemoteDispatcher(object):
 
         try:
             public_key.verify(b64decode(message['data']['signature']),
-                              str(message['data']['command']['action']),
+                              message['data']['command']['action'].encode(),
                               padding.PKCS1v15(),
                               hashes.SHA256())
             return True
@@ -204,7 +204,7 @@ class RemoteDispatcher(object):
         if log_request_id:
             atlas_logger = AtlasLogger(RemoteDispatcher.oauth, RemoteDispatcher.config)
             command_output[ManagementConnectorProperties.SERVICE_NAME] = LogArchiver.push_logs(RemoteDispatcher.config, atlas_logger, log_request_id)
-            if command_output[ManagementConnectorProperties.SERVICE_NAME]['status'] is 'complete':
+            if command_output[ManagementConnectorProperties.SERVICE_NAME]['status'] == 'complete':
                 status = 'complete'
         else:
             command_output[ManagementConnectorProperties.SERVICE_NAME]['logsearchId'] = 'Not provided'
@@ -219,7 +219,7 @@ class RemoteDispatcher(object):
             atlas_logger = AtlasLogger(RemoteDispatcher.oauth, RemoteDispatcher.config)
             command_output[ManagementConnectorProperties.SERVICE_NAME] = CoreArchiver.retrieve_and_archive_cores(
                 RemoteDispatcher.config, atlas_logger, search_id)
-            if command_output[ManagementConnectorProperties.SERVICE_NAME]['status'] is 'complete':
+            if command_output[ManagementConnectorProperties.SERVICE_NAME]['status'] == 'complete':
                 status = 'complete'
         else:
             command_output[ManagementConnectorProperties.SERVICE_NAME]['searchId'] = 'Not provided'

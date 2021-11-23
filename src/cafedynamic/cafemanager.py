@@ -165,7 +165,7 @@ class CAFEManager(object):
 
         # CDB tables can use the same inotify path between them
         # thus using a defaultdict(list) to map inotify paths back to cdb paths
-        for path, notify_path in self.cdb_path_to_inotify_path.iteritems():
+        for path, notify_path in self.cdb_path_to_inotify_path.items():
             self.inotify_path_to_cdb_path[notify_path].append(path)
 
     # -------------------------------------------------------------------------

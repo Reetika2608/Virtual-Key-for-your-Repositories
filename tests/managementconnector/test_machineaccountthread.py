@@ -7,10 +7,10 @@ import mock
 import sys
 import threading
 import unittest
-import urllib2
+from urllib import error as urllib_error
 
 from time import sleep
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -111,7 +111,7 @@ class MachineAccountThreadTest(unittest.TestCase):
                         "mock_alarm raise_alarm not called with %s, called: %s"
                         % (test_uuid, mock_alarm.raise_alarm.called_with))
         self.assertTrue(ma_thread.update_failure)
-        self.assertEquals(ma_thread.poll_time, ManagementConnectorProperties.MACHINE_POLL_TIME_FAIL)
+        self.assertEqual(ma_thread.poll_time, ManagementConnectorProperties.MACHINE_POLL_TIME_FAIL)
 
 
 
@@ -251,7 +251,7 @@ class MachineAccountThreadTest(unittest.TestCase):
         DEV_LOGGER.info("***TEST*** test_failure_to_retrieve_machine_account_details_does_not_raise_alarm")
         mock_config.read.side_effect = config_read_side_effect
 
-        mock_oauth.get_account_expiration.side_effect = urllib2.URLError("broken URL")
+        mock_oauth.get_account_expiration.side_effect = urllib_error.URLError("broken URL")
 
         stop_event = threading.Event()
 

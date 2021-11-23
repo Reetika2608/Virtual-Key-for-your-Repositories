@@ -4,7 +4,7 @@ import os
 import glob
 import time
 import subprocess  # nosec - usage validated
-import urllib2
+from urllib import error as urllib_error
 import ssl
 import traceback
 import threading
@@ -55,7 +55,7 @@ class CoreArchiver(object):
                         CertificateExceptionNameMatch,
                         CertificateExceptionInvalidCert,
                         jsonschema.ValidationError,
-                        urllib2.URLError,
+                        urllib_error.URLError,
                         ssl.SSLError,
                         ValueError) as error:
                     exc = traceback.format_exc()

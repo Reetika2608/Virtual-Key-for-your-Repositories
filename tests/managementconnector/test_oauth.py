@@ -4,8 +4,8 @@ import sys
 import logging
 import mock
 import io
-import urllib2
-from constants import SYS_LOG_HANDLER
+import urllib.request, urllib.error, urllib.parse
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -311,16 +311,16 @@ class OAuthTest(unittest.TestCase):
         test_oauth = OAuth(mock_config)
 
         headers = {'Content-Type': 'application/json', 'TrackingID': ''}
-        stream = io.TextIOWrapper(io.BytesIO(''))
+        stream = io.TextIOWrapper(io.BytesIO(b''))
         url = "https://idbroker.webex.com/idb/oauth2/v1/access_token"
 
         test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
-        mock_http.post.side_effect = urllib2.HTTPError(url, 400, "invalid", headers, stream)
+        mock_http.post.side_effect = urllib.error.HTTPError(url, 400, "invalid", headers, stream)
 
         # REREGISTER, 'true'
         try:
             test_oauth._refresh_oauth_resp_with_idp()
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             DEV_LOGGER.info("***OK exception***")
 
         test_oauth._config.write_blob.assert_called_with(ManagementConnectorProperties.REREGISTER, 'true')
@@ -348,16 +348,16 @@ class OAuthTest(unittest.TestCase):
                                          'organization_id': 'organization_id'}
 
         headers = {'Content-Type': 'application/json', 'TrackingID': ''}
-        stream = io.TextIOWrapper(io.BytesIO(''))
+        stream = io.TextIOWrapper(io.BytesIO(b''))
         url = "https://idbroker.webex.com/idb/token/org_id/v1/actions/GetBearerToken/invoke"
 
         # test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
-        mock_http.post.side_effect = urllib2.HTTPError(url, 401, "invalid", headers, stream)
+        mock_http.post.side_effect = urllib.error.HTTPError(url, 401, "invalid", headers, stream)
 
         # REREGISTER, 'true'
         try:
             test_oauth._get_token_for_machine_account()
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             DEV_LOGGER.info("***OK exception***")
 
         test_oauth._config.write_blob.assert_called_with(ManagementConnectorProperties.REREGISTER, 'true')

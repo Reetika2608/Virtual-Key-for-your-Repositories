@@ -29,7 +29,6 @@ class MercuryRunner(object):
     def start(self):
         """ Start Mercury Thread """
         with self.lock:
-
             if not self.running():
                 self._mercury_thread = MercuryThread(self._config, self._stop_event)
                 self._mercury_thread.start()
@@ -41,7 +40,7 @@ class MercuryRunner(object):
         running = False
 
         if self._mercury_thread:
-            running = self._mercury_thread.isAlive()
+            running = self._mercury_thread.is_alive()
 
         return running
 

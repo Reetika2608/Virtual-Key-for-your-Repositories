@@ -3,7 +3,7 @@
 import logging
 import mock
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -12,7 +12,7 @@ sys.modules['pyinotify'] = mock.MagicMock()
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 from pyfakefs import fake_filesystem_unittest
-from productxml import PRODUCT_XML_CONTENTS
+from .productxml import PRODUCT_XML_CONTENTS
 
 from managementconnector.service.service import Service
 from managementconnector.platform.serviceutils import ServiceUtils
@@ -161,8 +161,8 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         # Install 8.6-1.0.0 on top of itself. Expect 1 os.remove call
         # to remove the bogus tlp
         ServiceUtils.save_tlps_for_rollback(mock_config, "c_mgmt")
-        self.assertEquals(mock_shutil.move.call_count, 0)
-        self.assertEquals(mock_os.remove.call_count, 1)
+        self.assertEqual(mock_shutil.move.call_count, 0)
+        self.assertEqual(mock_os.remove.call_count, 1)
 
         mock_shutil.move.reset_mock()
         mock_os.remove.reset_mock()
@@ -172,8 +172,8 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         # Install 8.6-1.0.1. Expect 1 call to delete previous and
         # two call to shutil.move to cycle the TLPs
         ServiceUtils.save_tlps_for_rollback(mock_config, "c_mgmt")
-        self.assertEquals(mock_shutil.move.call_count, 2)
-        self.assertEquals(mock_del_pre_tlp.call_count, 1)
+        self.assertEqual(mock_shutil.move.call_count, 2)
+        self.assertEqual(mock_del_pre_tlp.call_count, 1)
 
         mock_shutil.move.reset_mock()
         mock_del_pre_tlp.reset_mock()
@@ -189,8 +189,8 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         # Expect 1 call to delete previous and two call to shutil.move
         # to cycle the TLPs
         ServiceUtils.save_tlps_for_rollback(mock_config, "c_mgmt")
-        self.assertEquals(mock_shutil.move.call_count, 2)
-        self.assertEquals(mock_del_pre_tlp.call_count, 1)
+        self.assertEqual(mock_shutil.move.call_count, 2)
+        self.assertEqual(mock_del_pre_tlp.call_count, 1)
 
         mock_shutil.move.reset_mock()
         mock_del_pre_tlp.reset_mock()
@@ -204,8 +204,8 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         # 1 call to delete current tlp and 1 call to shutil.move
         # to put the new tlp into current.
         ServiceUtils.save_tlps_for_rollback(mock_config, "c_mgmt")
-        self.assertEquals(mock_shutil.move.call_count, 1)
-        self.assertEquals(mock_del_cur_tlp.call_count, 1)
+        self.assertEqual(mock_shutil.move.call_count, 1)
+        self.assertEqual(mock_del_cur_tlp.call_count, 1)
 
     # -------------------------------------------------------------------------
 
@@ -304,8 +304,8 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         current = ServiceUtils.get_current_versions(mock_config)
 
         # Step 3
-        self.assertEquals(previous, expected_previous)
-        self.assertEquals(current, expected_current)
+        self.assertEqual(previous, expected_previous)
+        self.assertEqual(current, expected_current)
 
     @mock.patch('managementconnector.platform.serviceutils.ServiceUtils._delete_previous_connector_tlp')
     @mock.patch('managementconnector.platform.serviceutils.ServiceUtils._delete_current_connector_tlp')
@@ -353,7 +353,7 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
 
         i = 1
         for x, y in zip(actual, expected):
-            self.assertEquals(x, y, "Actual: %s did not match Expected: %s... Scenario: %d" % (x, y, i))
+            self.assertEqual(x, y, "Actual: %s did not match Expected: %s... Scenario: %d" % (x, y, i))
             i = i + 1
 
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
@@ -379,13 +379,13 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
                   'uuid': 'cbbf0813-09cb-4e23-9182-f3996d24cc9e'}
 
         alarm1_formatted = {'first_reported': '2014-11-26T14:20:12',
-                            'description': u'HTTP error code 500 from Cisco Collaboration Cloud (address: https://hercules.hitest.huron-dev.com/v1/connectors)',
-                            'title': u'[Hybrid services] Communication error',
+                            'description': 'HTTP error code 500 from Cisco Collaboration Cloud (address: https://hercules.hitest.huron-dev.com/v1/connectors)',
+                            'title': '[Hybrid services] Communication error',
                             'last_reported': '2014-11-26T14:23:31',
-                            'solution': u'Check Hybrid Services status on the VCS-C. Check status.ciscospark.com '
-                                        u'for outages. If the error remains, go to admin.webex.com, click your'
-                                        u' admin username, and then click Feedback to open a case for '
-                                        u'further investigation.',
+                            'solution': 'Check Hybrid Services status on the VCS-C. Check status.ciscospark.com '
+                                        'for outages. If the error remains, go to admin.webex.com, click your'
+                                        ' admin username, and then click Feedback to open a case for '
+                                        'further investigation.',
                             'id': '60051',
                             'solution_replacement_values': [],
                             'severity': 'error'}
@@ -406,17 +406,17 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
 
         # test no suppressed alarms are raised
         expected = []
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True))
+        self.assertEqual(expected, ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True))
 
         # test one suppressed alarm is raised
         mock_alarms.return_value = [alarm1]
         expected = [alarm1_formatted]
-        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True)[0]['id'])
+        self.assertEqual(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True)[0]['id'])
 
         # test multiple alarms raised
         mock_alarms.return_value = [alarm1, alarm2]
         expected = [alarm1_formatted]
-        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True)[0]['id'])
+        self.assertEqual(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=False, include_suppressed=True)[0]['id'])
 
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
@@ -449,13 +449,13 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
                   'uuid': '635afce6-0ae8-4b84-90f5-837a2234002b'}
 
         alarm2_formatted = {'first_reported': '2014-11-26T14:20:12',
-                            'description': u"Cannot securely connect to the Cisco Collaboration Cloud because the root CA that signed the certificate from https://hercules.hitest.huron-dev.com/v1/connectors is not in the VCS's trusted CA list.",
-                            'title': u'[Hybrid services] Connection failed because the CA certificate was not found',
+                            'description': "Cannot securely connect to the Cisco Collaboration Cloud because the root CA that signed the certificate from https://hercules.hitest.huron-dev.com/v1/connectors is not in the VCS's trusted CA list.",
+                            'title': '[Hybrid services] Connection failed because the CA certificate was not found',
                             'last_reported': '2014-11-26T14:23:31',
                             'solution': '%s',
                             'id': '60058',
                             'solution_replacement_values': [
-                                {'text': u"Update the VCS's trusted CA list to include the CA that signed the received certificate.",
+                                {'text': "Update the VCS's trusted CA list to include the CA that signed the received certificate.",
                                  'link': 'httptrustedcacertificate'}
                             ],
                             'severity': 'error'}
@@ -467,17 +467,17 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
 
         # test no suppressed alarms are raised
         expected = []
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=False))
+        self.assertEqual(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=False))
 
         # test only suppressed alarm is raised
         mock_alarms.return_value = [alarm1]
         expected = []
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=False))
+        self.assertEqual(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=False))
 
         # test no suppressed alarms are raised
         mock_alarms.return_value = [alarm1, alarm2]
         expected = [alarm2_formatted]
-        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=False)[0]['id'])
+        self.assertEqual(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=False)[0]['id'])
 
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
@@ -502,13 +502,13 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
                   'uuid': 'cbbf0813-09cb-4e23-9182-f3996d24cc9e'}
 
         alarm1_formatted = {'first_reported': '2014-11-26T14:20:12',
-                            'description': u'HTTP error code 500 from Cisco Collaboration Cloud (address: https://hercules.hitest.huron-dev.com/v1/connectors)',
-                            'title': u'[Hybrid services] Communication error',
+                            'description': 'HTTP error code 500 from Cisco Collaboration Cloud (address: https://hercules.hitest.huron-dev.com/v1/connectors)',
+                            'title': '[Hybrid services] Communication error',
                             'last_reported': '2014-11-26T14:23:31',
-                            'solution': u'Check Hybrid Services status on the VCS-C. Check status.ciscospark.com '
-                                        u'for outages. If the error remains, go to admin.webex.com, click your '
-                                        u'admin username, and then click Feedback to open a case '
-                                        u'for further investigation.',
+                            'solution': 'Check Hybrid Services status on the VCS-C. Check status.ciscospark.com '
+                                        'for outages. If the error remains, go to admin.webex.com, click your '
+                                        'admin username, and then click Feedback to open a case '
+                                        'for further investigation.',
                             'id': '60051',
                             'solution_replacement_values': [],
                             'severity': 'error'}
@@ -522,9 +522,9 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
                   'uuid': '635afce6-0ae8-4b84-90f5-837a2234002b'}
 
         alarm2_formatted = {'first_reported': '2014-11-26T14:20:12',
-                            'description': u"Cannot securely connect to the Cisco Collaboration Cloud because the root CA that signed the certificate from https://hercules.hitest.huron-dev.com/v1/connectors is not in the VCS's trusted CA list.", 'title': u'[Hybrid services] Connection failed because the CA certificate was not found', 'last_reported': '2014-11-26T14:23:31', 'solution': '%s', 'id': '60058',
+                            'description': "Cannot securely connect to the Cisco Collaboration Cloud because the root CA that signed the certificate from https://hercules.hitest.huron-dev.com/v1/connectors is not in the VCS's trusted CA list.", 'title': '[Hybrid services] Connection failed because the CA certificate was not found', 'last_reported': '2014-11-26T14:23:31', 'solution': '%s', 'id': '60058',
                             'solution_replacement_values': [
-                                {'text': u"Update the VCS's trusted CA list to include the CA that signed the received certificate.",
+                                {'text': "Update the VCS's trusted CA list to include the CA that signed the received certificate.",
                                  'link': 'httptrustedcacertificate'}
                             ],
                             'severity': 'error'}
@@ -536,23 +536,23 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
 
         # test no alarms are raised
         expected = []
-        self.assertEquals(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True))
+        self.assertEqual(expected, ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True))
 
         # test only suppressed alarm is raised
         mock_alarms.return_value = [alarm1]
         expected = [alarm1_formatted]
-        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True)[0]['id'])
+        self.assertEqual(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True)[0]['id'])
 
         # test only unsuppressed alarm is raised
         mock_alarms.return_value = [alarm2]
         expected = [alarm2_formatted]
-        self.assertEquals(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True)[0]['id'])
+        self.assertEqual(expected[0]['id'], ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True)[0]['id'])
 
         # test both permitted and suppressed alarms are raised
         mock_alarms.return_value = [alarm1, alarm2]
         expected = (alarm1_formatted['id'], alarm2_formatted['id'])
         alarms = ServiceUtils.get_alarms(service, "http", permitted=True, include_suppressed=True)
-        self.assertEquals(expected, (alarms[0]['id'], alarms[1]['id']))
+        self.assertEqual(expected, (alarms[0]['id'], alarms[1]['id']))
 
     def test_is_supported_extension(self):
         """
@@ -583,7 +583,7 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         """
         mock_config = mock.Mock()
         mock_config.read.return_value = {"c_cal": "true", "c_something": "false"}
-        self.assertEquals(ServiceUtils.get_configured_via_cdb_entry(mock_config, "c_cal"), "true",
+        self.assertEqual(ServiceUtils.get_configured_via_cdb_entry(mock_config, "c_cal"), "true",
                           msg="CDB entry should have a string of true")
         mock_config.read.assert_called_once_with("system_configuredServicesState")
 
@@ -597,7 +597,7 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         """
         mock_config = mock.Mock()
         mock_config.read.return_value = {"c_cal": "false", "c_something": "false"}
-        self.assertEquals(ServiceUtils.get_configured_via_cdb_entry(mock_config, "c_cal"), "false")
+        self.assertEqual(ServiceUtils.get_configured_via_cdb_entry(mock_config, "c_cal"), "false")
         mock_config.read.assert_called_once_with("system_configuredServicesState")
 
     def test_cdb_configured_is_not_set(self):
@@ -610,7 +610,7 @@ class ServiceUtilsTest(fake_filesystem_unittest.TestCase):
         """
         mock_config = mock.Mock()
         mock_config.read.return_value = {}
-        self.assertEquals(ServiceUtils.get_configured_via_cdb_entry(mock_config, "c_cal"), None)
+        self.assertEqual(ServiceUtils.get_configured_via_cdb_entry(mock_config, "c_cal"), None)
         mock_config.read.assert_called_once_with("system_configuredServicesState")
 
     @mock.patch('managementconnector.platform.serviceutils.os')

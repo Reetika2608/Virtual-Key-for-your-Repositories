@@ -3,8 +3,8 @@ import sys
 import logging
 import mock
 from pyfakefs import fake_filesystem_unittest
-from productxml import PRODUCT_XML_CONTENTS
-from constants import SYS_LOG_HANDLER
+from .productxml import PRODUCT_XML_CONTENTS
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -165,7 +165,7 @@ class ServiceTest(fake_filesystem_unittest.TestCase):
                   'operational_status': True,
                   'configured': False}
 
-        self.assertEquals(Service._get_composed_state(status), "not_configured")
+        self.assertEqual(Service._get_composed_state(status), "not_configured")
 
     def test_get_composed_status_stopped_and_not_configured_displays_not_configured(self):
         """
@@ -181,7 +181,7 @@ class ServiceTest(fake_filesystem_unittest.TestCase):
                   'operational_status': True,
                   'configured': False}
 
-        self.assertEquals(Service._get_composed_state(status), "not_configured")
+        self.assertEqual(Service._get_composed_state(status), "not_configured")
 
     def test_get_composed_status_stopped_and_configured_displays_stopped(self):
         """
@@ -197,7 +197,7 @@ class ServiceTest(fake_filesystem_unittest.TestCase):
                   'operational_status': True,
                   'configured': True}
 
-        self.assertEquals(Service._get_composed_state(status), "stopped")
+        self.assertEqual(Service._get_composed_state(status), "stopped")
 
     def test_legacy_get_composed_status_stopped_and_not_configured_displays_stopped(self):
         """
@@ -213,7 +213,7 @@ class ServiceTest(fake_filesystem_unittest.TestCase):
                   'operational_status': True,
                   'configured': False}
 
-        self.assertEquals(Service._handle_legacy_composed_state(status), "stopped")
+        self.assertEqual(Service._handle_legacy_composed_state(status), "stopped")
 
     def test_legacy_get_composed_status_stopped_and_configured_displays_stopped(self):
         """
@@ -229,21 +229,21 @@ class ServiceTest(fake_filesystem_unittest.TestCase):
                   'operational_status': True,
                   'configured': True}
 
-        self.assertEquals(Service._handle_legacy_composed_state(status), "stopped")
+        self.assertEqual(Service._handle_legacy_composed_state(status), "stopped")
 
     @mock.patch('managementconnector.config.config.Config')
     def test_related_external_alarm(self, mock_config):
-        mock_config.read.return_value = [{'display_name': u'c_mgmt', 'name': u'c_mgmt'},
-                                         {'display_name': u'c_Cal', 'name': u'c_cal'},
-                                         {'display_name': u'c_ucmc', 'name': u'c_ucmc'}]
+        mock_config.read.return_value = [{'display_name': 'c_mgmt', 'name': 'c_mgmt'},
+                                         {'display_name': 'c_Cal', 'name': 'c_cal'},
+                                         {'display_name': 'c_ucmc', 'name': 'c_ucmc'}]
 
-        alarm = {"parameters": [u"/path/to/c_ucmc", 1234]}
+        alarm = {"parameters": ["/path/to/c_ucmc", 1234]}
         self.assertTrue(Service.is_related_external_alarm(alarm, mock_config), "This is a related external alarm.")
 
-        alarm = {"parameters": [u"something_happened_to_some_other_process", 1234]}
+        alarm = {"parameters": ["something_happened_to_some_other_process", 1234]}
         self.assertFalse(Service.is_related_external_alarm(alarm, mock_config), "This is a not related external alarm.")
 
-        alarm = {"parameters": [u"something happened to c_cal"]}
+        alarm = {"parameters": ["something happened to c_cal"]}
         self.assertTrue(Service.is_related_external_alarm(alarm, mock_config), "This is a related external alarm.")
 
         alarm = {"parameters": []}

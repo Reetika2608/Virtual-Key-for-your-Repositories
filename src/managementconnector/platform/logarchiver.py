@@ -10,8 +10,8 @@ import re
 import traceback
 import threading
 from ssl import SSLError
-from httplib import HTTPException
-from urllib2 import URLError
+from http.client import HTTPException
+from urllib.error import URLError
 
 import jsonschema
 
@@ -295,7 +295,7 @@ class LogArchiver(object):
         replacement_string = '"####PII-EXPOSURE####"'
         pii_regex_values = {"emails": r'"[\w\.-]+@[\w\.-]+(\.[\w]+)+"', "passwords": r'"({cipher}.*?)"'}
 
-        for pii_type,pii_regex in pii_regex_values.iteritems():
+        for pii_type, pii_regex in pii_regex_values.items():
             DEV_LOGGER.info('Detail="strip_pii_from_string: Replacing %s"' % pii_type)
             pii_string = re.sub(pii_regex, replacement_string, pii_string)
 
@@ -320,7 +320,8 @@ class LogArchiver(object):
                 pii_free_status_file = re.search(connector_name_regex, status_file).group(1) + '_status.json'
                 LogArchiver.strip_pii_from_file(status_file, CONFIGURATION_FILES_DIR + pii_free_status_file)
         except (OSError, IOError) as ex:
-            DEV_LOGGER.debug('Detail="gather_status_files: failed to collect status files. Exception: %s, Stacktrace: %s"' % (ex, traceback.print_exc()))
+            DEV_LOGGER.debug('Detail="gather_status_files: failed to collect status files. Exception: %s, Stacktrace: '
+                             '%s"' % (ex, traceback.print_exc()))
 
     @staticmethod
     def gather_config_files():
@@ -336,4 +337,5 @@ class LogArchiver(object):
             for config_file in glob.glob(CONNECTORS_CONFIG):
                 LogArchiver.strip_pii_from_file(config_file, CONFIGURATION_FILES_DIR + os.path.basename(config_file))
         except (OSError, IOError) as ex:
-            DEV_LOGGER.debug('Detail="gather_config_files: failed to collect connector configuration files. Exception: %s, Stacktrace: %s"' % (ex, traceback.print_exc()))
+            DEV_LOGGER.debug('Detail="gather_config_files: failed to collect connector configuration files. '
+                             'Exception: %s, Stacktrace: %s"' % (ex, traceback.print_exc()))

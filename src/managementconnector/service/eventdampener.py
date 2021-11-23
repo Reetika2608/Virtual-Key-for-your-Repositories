@@ -21,10 +21,8 @@ class EventDampener:
         """
         config = Config(False)
         target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
-        if(target_type is None):
-           target_type = ManagementConnectorProperties.SERVICE_NAME
-        else:
-           target_type = target_type
+        if target_type is None:
+            target_type = ManagementConnectorProperties.SERVICE_NAME
         if connector_type in self._upgrade_event_attempts:
             if connector_version == self._upgrade_event_attempts[connector_type]:
                 DEV_LOGGER.debug('Detail="EventDampener: Not sending event, upgrade event previously sent for '

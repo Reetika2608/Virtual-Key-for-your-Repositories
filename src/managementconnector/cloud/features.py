@@ -27,7 +27,8 @@ class Features(object):
         try:
             features_url = self.build_features_url()
             if features_url:
-                features_resp = Http.get(features_url, self._oauth.get_header(), schema=schema.FEATURES_TOGGLE_RESPONSE)
+                features_resp = Http.get(features_url, self._oauth.get_header(),
+                                         schema=schema.FEATURES_TOGGLE_RESPONSE)
             else:
                 DEV_LOGGER.error('Detail="FMC_Features features_url creation failed"')
 
@@ -106,7 +107,7 @@ class Features(object):
         latest_features = config.read(ManagementConnectorProperties.FEATURES_ENTRIES)
         delta = dict()
         if latest_features:
-            for key, value in latest_features.iteritems():
+            for key, value in latest_features.items():
                 if key not in cached_list or (key in cached_list and value != cached_list[key]):
                     DEV_LOGGER.debug('Detail="FMC_Features feature: %s:%s has changed"', key, value)
                     delta[key] = value

@@ -6,7 +6,7 @@ import unittest
 import mock
 from mock import mock_open, patch
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 sys.modules['pyinotify'] = mock.MagicMock()
@@ -18,7 +18,7 @@ from managementconnector.config import jsonhandler
 
 from sys import version_info
 if version_info.major == 2:
-    import __builtin__ as builtins
+    import builtins as builtins
 else:
     import builtins
 
@@ -97,7 +97,7 @@ class JsonHandlerTest(unittest.TestCase):
     def test_get_register_url(self):
         """ Test get register url """
         DEV_LOGGER.info('test_get_register_url')
-        expected_url = u"www.somewhere.com"
+        expected_url = "www.somewhere.com"
 
         register_url = self.json_handler.get_register_url()
         self.assertTrue(register_url == expected_url, msg="Register URL didn't match. Expected: %s - value: %s" %

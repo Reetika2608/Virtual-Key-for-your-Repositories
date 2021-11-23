@@ -11,7 +11,7 @@ import sys
 import mock
 import time
 import datetime
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -154,7 +154,7 @@ class WatchdogTest(unittest.TestCase):
                                                             ManagementConnectorProperties.HEARTBEAT_EXTENSION)
 
         self.assertTrue(actual_state['working'], msg="working state was False, expected True")
-        self.assertEquals(actual_state['timestamp'], expected_time)
+        self.assertEqual(actual_state['timestamp'], expected_time)
 
         DEV_LOGGER.info('##### test_get_connection_state: timeout exceeded')
         current_time = 0
@@ -164,14 +164,14 @@ class WatchdogTest(unittest.TestCase):
                                                             ManagementConnectorProperties.HEARTBEAT_EXTENSION)
 
         self.assertFalse(actual_state['working'], msg="working state was True, expected False")
-        self.assertEquals(actual_state['timestamp'], expected_time)
+        self.assertEqual(actual_state['timestamp'], expected_time)
 
         DEV_LOGGER.info('##### test_get_connection_state: empty status files')
         mock_status = {}
         actual_state = watchdog_thread.get_connection_state(mock_status,
                                                             ManagementConnectorProperties.MERCURY_EXTENSION)
 
-        self.assertEquals(actual_state, {}, msg="expected empty dict returned when no file exists")
+        self.assertEqual(actual_state, {}, msg="expected empty dict returned when no file exists")
 
 
 if __name__ == "__main__":

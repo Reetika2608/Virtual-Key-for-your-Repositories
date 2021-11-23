@@ -4,8 +4,9 @@ import logging
 import mock
 import json
 import jsonschema
-from StringIO import StringIO
-from constants import SYS_LOG_HANDLER
+from urllib import request as urllib_request
+from io import StringIO
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -119,13 +120,16 @@ class HTTPTest(unittest.TestCase):
 
         mock_get_proxy.return_value = config
 
-        http.Http.install_urllib_opener()
+        handlers = http.Http.install_urllib_opener()
+        opener = urllib_request.build_opener(*handlers)
+
+        urllib_request.install_opener(opener)
         # There must be a proxy handler
-        self.assertTrue(any(isinstance(handler, http.urllib2.ProxyHandler) for handler in http.urllib2._opener.handlers))
+        self.assertTrue(any(isinstance(handler, urllib_request.ProxyHandler) for handler in handlers))
 
         # Proxy handler must have the correct config as defined above
-        for handler in http.urllib2._opener.handlers:
-            if isinstance(handler, http.urllib2.ProxyHandler):
+        for handler in handlers:
+            if isinstance(handler, urllib_request.ProxyHandler):
                 self.assertEqual(handler.proxies, {'https': 'cafe:cafe@1.2.3.4:3128'})
 
     @mock.patch('managementconnector.platform.http.Http.get_proxy')
@@ -133,22 +137,28 @@ class HTTPTest(unittest.TestCase):
         """ Test proxy is enabled and disabled """
         http.DEV_LOGGER.debug('***TEST*** test_enable_disable_proxy')
         config = {
-            'address': u'1.2.3.4',
-            'port': u'3128',
-            'username': u'cafe',
+            'address': '1.2.3.4',
+            'port': '3128',
+            'username': 'cafe',
             'password': 'cafe',
-            'enabled' : u'true'
+            'enabled' : 'true'
         }
 
         mock_get_proxy.return_value = config
-        http.Http.install_urllib_opener()
-        # There must be a proxy handler
-        self.assertTrue(any(isinstance(handler, http.urllib2.ProxyHandler) for handler in http.urllib2._opener.handlers))
+        handlers = http.Http.install_urllib_opener()
+        opener = urllib_request.build_opener(*handlers)
 
-        config['enabled'] = u'false'
-        http.Http.install_urllib_opener()
+        urllib_request.install_opener(opener)
+        # There must be a proxy handler
+        self.assertTrue(any(isinstance(handler, urllib_request.ProxyHandler) for handler in urllib_request._opener.handlers))
+
+        config['enabled'] = 'false'
+        mock_get_proxy.return_value = config
+        handlers = http.Http.install_urllib_opener()
+        opener = urllib_request.build_opener(*handlers)
+        urllib_request.install_opener(opener)
         # There must be no proxy handler
-        self.assertFalse(any(isinstance(handler, http.urllib2.ProxyHandler) for handler in http.urllib2._opener.handlers))
+        self.assertFalse(any(isinstance(handler, urllib_request.ProxyHandler) for handler in urllib_request._opener.handlers))
 
     def test_validate_json_response(self):
         """ Test validating json response """
@@ -158,72 +168,72 @@ class HTTPTest(unittest.TestCase):
         headers = {'Content-Type': 'application/json'}
 
         good_bearer_token_response = {
-            u'BearerToken': u'YjcyMDliN2UtNGUyOC00YzM5LThmMDUtNmQ4YjdlY2YxNmQ1YzJjYTBhNTQtMTU3'
+            'BearerToken': 'YjcyMDliN2UtNGUyOC00YzM5LThmMDUtNmQ4YjdlY2YxNmQ1YzJjYTBhNTQtMTU3'
         }
 
         bad_bearer_token_response = {
-            u'BearerToken': 456
+            'BearerToken': 456
         }
 
         good_access_token_response = {
-            u'token_type': u'Bearer', 
-            u'refresh_token_expires_in': 5183999, 
-            u'access_token': u'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', 
-            u'expires_in': 43199, 
-            u'refresh_token': u'N2NiM2I1ZjAtZDlmYi00NzRlLWFmOGMtN2YwNmJiZGNjMTkyOTlmMmMyYjUtNjk1'
+            'token_type': 'Bearer', 
+            'refresh_token_expires_in': 5183999, 
+            'access_token': 'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', 
+            'expires_in': 43199, 
+            'refresh_token': 'N2NiM2I1ZjAtZDlmYi00NzRlLWFmOGMtN2YwNmJiZGNjMTkyOTlmMmMyYjUtNjk1'
         }
 
         bad_access_token_response = {
-            u'token_type': u'Bearer', 
-            u'refresh_token_expires_in': 5183999, 
-            u'access_token': 5183999, 
-            u'expires_in': 43199, 
-            u'refresh_token': u'N2NiM2I1ZjAtZDlmYi00NzRlLWFmOGMtN2YwNmJiZGNjMTkyOTlmMmMyYjUtNjk1'
+            'token_type': 'Bearer', 
+            'refresh_token_expires_in': 5183999, 
+            'access_token': 5183999, 
+            'expires_in': 43199, 
+            'refresh_token': 'N2NiM2I1ZjAtZDlmYi00NzRlLWFmOGMtN2YwNmJiZGNjMTkyOTlmMmMyYjUtNjk1'
         }
 
         good_refresh_access_token_response = {
-            u'expires_in': 43199, 
-            u'token_type': u'Bearer', 
-            u'access_token': u'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', 
-            u'refresh_token_expires_in': 5183999
+            'expires_in': 43199, 
+            'token_type': 'Bearer', 
+            'access_token': 'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', 
+            'refresh_token_expires_in': 5183999
         }
 
         bad_refresh_access_token_response = {
-            # u'expires_in': 43199, 
-            u'token_type': u'Bearer', 
-            u'access_token': u'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', 
-            u'refresh_token_expires_in': 5183999
+            # 'expires_in': 43199,
+            'token_type': 'Bearer', 
+            'access_token': 'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', 
+            'refresh_token_expires_in': 5183999
         }
 
         good_register_response = {
-        u'display_name': u'Fusion Management', 
-        u'connector_type': u'c_mgmt', 
-        u'version': u'X8.6PreAlpha0 (Test SW)', 
-        u'provisioning': {u'connectors': [{u'connector_type': u'c_cal', 
-                                           u'display_name': u'Calendar Service', 
-                                           u'packages': [{u'tlp_url': u'https://7f3b835a2983943a12b7-f3ec652549fc8fa11516a139bfb29b79.ssl.cf5.rackcdn.com/OpenJDK/20150430231431/d_openj.tlp'}] 
+        'display_name': 'Fusion Management', 
+        'connector_type': 'c_mgmt', 
+        'version': 'X8.6PreAlpha0 (Test SW)', 
+        'provisioning': {'connectors': [{'connector_type': 'c_cal', 
+                                           'display_name': 'Calendar Service', 
+                                           'packages': [{'tlp_url': 'https://7f3b835a2983943a12b7-f3ec652549fc8fa11516a139bfb29b79.ssl.cf5.rackcdn.com/OpenJDK/20150430231431/d_openj.tlp'}] 
                                           }],
-                         u'dependencies': [{u'tlpUrl': u'https://7f3b835a2983943a12b7-f3ec652549fc8fa11516a139bfb29b79.ssl.cf5.rackcdn.com/OpenJDK/20150430231431/d_openj.tlp', 
-                                           u'dependencyType': u'd_dependency', 
-                                           u'version': u'testVersion'
+                         'dependencies': [{'tlpUrl': 'https://7f3b835a2983943a12b7-f3ec652549fc8fa11516a139bfb29b79.ssl.cf5.rackcdn.com/OpenJDK/20150430231431/d_openj.tlp', 
+                                           'dependencyType': 'd_dependency', 
+                                           'version': 'testVersion'
                                           }],
-                         u'heartbeatInterval': 20
+                         'heartbeatInterval': 20
                          }
         }
 
         bad_register_response = {
-        u'display_name': 5183999, 
-        u'connector_type': u'c_mgmt', 
-        u'version': u'X8.6PreAlpha0 (Test SW)', 
-        u'provisioning': {u'connectors': [{u'connector_type': u'c_cal', 
-                                           u'display_name': u'Calendar Service', 
-                                           u'packages': [{u'tlp_url': u'https://7f3b835a2983943a12b7-f3ec652549fc8fa11516a139bfb29b79.ssl.cf5.rackcdn.com/OpenJDK/20150430231431/d_openj.tlp'}] 
+        'display_name': 5183999, 
+        'connector_type': 'c_mgmt', 
+        'version': 'X8.6PreAlpha0 (Test SW)', 
+        'provisioning': {'connectors': [{'connector_type': 'c_cal', 
+                                           'display_name': 'Calendar Service', 
+                                           'packages': [{'tlp_url': 'https://7f3b835a2983943a12b7-f3ec652549fc8fa11516a139bfb29b79.ssl.cf5.rackcdn.com/OpenJDK/20150430231431/d_openj.tlp'}] 
                                           }],
-                         u'dependencies': [{u'tlpUrl': u'https://7f3b835a2983943a12b7-f3ec652549fc8fa11516a139bfb29b79.ssl.cf5.rackcdn.com/OpenJDK/20150430231431/d_openj.tlp', 
-                                           u'dependencyType': u'd_dependency', 
-                                           u'version': u'testVersion'
+                         'dependencies': [{'tlpUrl': 'https://7f3b835a2983943a12b7-f3ec652549fc8fa11516a139bfb29b79.ssl.cf5.rackcdn.com/OpenJDK/20150430231431/d_openj.tlp', 
+                                           'dependencyType': 'd_dependency', 
+                                           'version': 'testVersion'
                                           }],
-                         u'heartbeatInterval': 20
+                         'heartbeatInterval': 20
                          }
         }
 
@@ -255,7 +265,6 @@ class HTTPTest(unittest.TestCase):
             http.Http.post(url, headers, good_refresh_access_token_response_raw, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
         except jsonschema.ValidationError:
             self.fail('good_refresh_access_token_response test failed')
-
 
         with self.assertRaises(jsonschema.ValidationError):
             http.Http.post(url, headers, bad_bearer_token_response_raw, silent=True, schema=schema.BEARER_TOKEN_RESPONSE)

@@ -150,7 +150,6 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
 
     HEARTBEAT_EXTENSION = ".heartbeat"
     C_MGMT_VAR_RUN = '/var/run/' + SERVICE_NAME
-    #C_MGMT_VAR_RUN = '/var/run/' + SERVICE_NAME
     UPGRADE_HEARTBEAT_FILE = '/var/run/%s' + '/%s' + HEARTBEAT_EXTENSION
 
     EVENT_DAMPENER_INTERVAL = 10

@@ -1,10 +1,10 @@
 """ Management Connector Deploy Class """
 import time
 import traceback
-import urllib2
+from urllib import error as urllib_error
 import threading
 import ssl
-import httplib
+import http.client
 import os
 import jsonschema
 
@@ -91,9 +91,9 @@ class Deploy(object):
         mc_type = ManagementConnectorProperties.SERVICE_NAME
 
         DEV_LOGGER.info('Detail="FMC_Lifecycle ManagementConnector Target_Type before %s"' % (
-        self._config.read(ManagementConnectorProperties.TARGET_TYPE)))
+            self._config.read(ManagementConnectorProperties.TARGET_TYPE)))
 
-        if (self._config.read(ManagementConnectorProperties.TARGET_TYPE) == ''):
+        if self._config.read(ManagementConnectorProperties.TARGET_TYPE) == '':
             self._config.write_blob(ManagementConnectorProperties.TARGET_TYPE, 'c_mgmt')
 
         DEV_LOGGER.info('Detail="FMC_Lifecycle ManagementConnector Target_Type after the default %s"' % (
@@ -196,7 +196,7 @@ class Deploy(object):
             if thread.getName() == 'InstallThread':
                 DEV_LOGGER.debug('Detail="FMC_Lifecycle Joining install thread"')
                 thread.join(ManagementConnectorProperties.SHUT_DOWN_WAIT)
-                DEV_LOGGER.info('Detail="FMC_Lifecycle Install Thread isAlive returns %s."' % (thread.isAlive()))
+                DEV_LOGGER.info('Detail="FMC_Lifecycle Install Thread isAlive returns %s."' % (thread.is_alive()))
                 break
 
         DEV_LOGGER.info('Detail="FMC_Lifecycle Management Connector un-deploying completed."')
@@ -240,7 +240,7 @@ class Deploy(object):
 
                             self._service_manager.purge(service_name)
 
-                        except ServiceException, error:
+                        except ServiceException as error:
                             DEV_LOGGER.error('Detail="FMC_Lifecycle Defuse Uninstall Error error=%s, stacktrace=%s"' %
                                              (error, traceback.format_exc()))
 
@@ -275,8 +275,8 @@ class Deploy(object):
             DEV_LOGGER.info('Detail="Resource usage expressway. '
                             'Current CPU usage [%s%%], current RAM usage[%s%%, %s GB]"' %
                             (self._system.get_system_cpu(),
-                                system_mem['percent'],
-                                system_mem['total_gb']))
+                             system_mem['percent'],
+                             system_mem['total_gb']))
 
             if not self.is_undeploy_in_progress():
                 if not self._oauth_init:
@@ -335,7 +335,7 @@ class Deploy(object):
             if self._is_upgrade_allowed():
                 self._service_manager.is_upgrade_thread_running = True
                 threading.Thread(target=self._service_manager.upgrade_worker, name='InstallThread',
-                                 args=(connectors_config, )).start()
+                                 args=(connectors_config,)).start()
 
             # if we get to here we can clear HTTPError and URLError errors
 
@@ -381,11 +381,11 @@ class Deploy(object):
                              % (key_error, traceback.format_exc()))
             self._alarms.raise_alarm('dc463c51-d111-4cc5-9eba-9e09292183b0')
 
-        except urllib2.HTTPError as http_error:
+        except urllib_error.HTTPError as http_error:
             DEV_LOGGER.debug('Detail="FMC_Lifecycle HTTP ERROR Triggered%s"', http_error)
             self._handle_http_exception(http_error, service)
 
-        except urllib2.URLError as url_error:
+        except urllib_error.URLError as url_error:
             DEV_LOGGER.error('Detail="URLError error:%s, %s"' % (url_error, url_error.reason))
             self._alarms.raise_alarm("ba883968-4b5a-4f83-9e71-50c7d7621b44", [Http.error_url])
 
@@ -411,7 +411,7 @@ class Deploy(object):
             service = self._service_manager.get(mc_type)
             self._metrics.send_error_metrics(self._oauth.get_header(), service, error=exc)
 
-        except httplib.HTTPException as http_exception:
+        except http.client.HTTPException as http_exception:
             # Need to send metric here with low level exception, e.g. BadStatusLine
             DEV_LOGGER.error('Detail="HTTPException occurred, exception=%s, stacktrace=%s"'
                              % (http_exception.__class__.__name__, traceback.format_exc()))
@@ -538,15 +538,32 @@ class Deploy(object):
     def entitled_services_changed(cached_services, new_services):
         """ Compare cached services versus new config """
 
-        if cached_services is None:
+        if not cached_services:  # cached_services can be empty dict so checking against None is invalid
             cached_services = []
 
         DEV_LOGGER.debug('Detail="Comparing entitled services: cached list = %s, new_services = %s"'
                          % (cached_services, new_services))
 
-        return cmp(sorted(cached_services), sorted(new_services)) != 0
+        return Deploy.cmp(cached_services, new_services) != 0
 
     # -------------------------------------------------------------------------
+    @staticmethod
+    def cmp(x, y):
+        x.sort(key=lambda d: sorted(list(d.items())))
+        y.sort(key=lambda d: sorted(list(d.items())))
+        """
+        Replacement for built-in function cmp that was removed in Python 3
+
+        Compare the two objects x and y and return an integer according to
+        the outcome. The return value is zero if x == y
+        and strictly positive if x > y or negative x < y.
+        In our case we are returning positive for both (x > y and x < y)
+        """
+
+        if x == y:
+            return 0
+        else:
+            return 1
 
     def _is_upgrade_allowed(self):
         """
@@ -556,7 +573,7 @@ class Deploy(object):
 
         restore_occurring = CafeXUtils.is_backup_restore_occurring(DEV_LOGGER)
         upgrade_allowed = not self._service_manager.is_upgrade_thread_running and not restore_occurring \
-            and not self.is_undeploy_in_progress()
+                          and not self.is_undeploy_in_progress()
 
         DEV_LOGGER.debug('Detail="_is_upgrade_allowed: %s thread running: %s Backup restore occurring: %s '
                          'UnDeploying: %s "' % (upgrade_allowed, self._service_manager.is_upgrade_thread_running,
@@ -571,7 +588,7 @@ class Deploy(object):
         Purge all backup TLPs from the filesystem except for the current c_mgmt.tlp
         """
         self._system.delete_tlps(ManagementConnectorProperties.INSTALL_CURRENT_DIR,
-                                 exclude_list=ManagementConnectorProperties.SERVICE_NAME)
+                                 exclude_list=[ManagementConnectorProperties.SERVICE_NAME])
         self._system.delete_tlps(ManagementConnectorProperties.INSTALL_PREVIOUS_DIR)
 
     # -------------------------------------------------------------------------
@@ -586,7 +603,7 @@ class Deploy(object):
 
     def _handle_http_exception(self, http_error, service):
         """ Handle Http Exception """
-        
+
         handled = False
         # May be some interesting data in the Error Response
         try:
@@ -640,13 +657,15 @@ class Deploy(object):
             config.write_blob(ManagementConnectorProperties.FUSED, 'false')
             DEV_LOGGER.info('Detail="Defuse before its false now"')
             if targetType == config.read(ManagementConnectorProperties.SERVICE_NAME):
-                config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {config.read(ManagementConnectorProperties.SERVICE_NAME): 'false'})
+                config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE,
+                                  {config.read(ManagementConnectorProperties.SERVICE_NAME): 'false'})
             else:
-               config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {config.read(ManagementConnectorProperties.TARGET_TYPE): 'false'})
+                config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE,
+                                  {config.read(ManagementConnectorProperties.TARGET_TYPE): 'false'})
             # delete create configured file (TBD - This block could be removed as the file is no longer created)
             if os.path.isfile(ManagementConnectorProperties.CONFIG_FILE_STATUS_MGMT):
                 os.remove(ManagementConnectorProperties.CONFIG_FILE_STATUS_MGMT)
         else:
             DEV_LOGGER.info('Detail="Ignoring deregister - not in fused state"')
-    
+
     # -------------------------------------------------------------------------

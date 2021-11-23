@@ -4,7 +4,8 @@ import unittest
 import mock
 import logging
 import json
-from constants import SYS_LOG_HANDLER
+
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -34,10 +35,10 @@ class CMgmtXCommandTest(unittest.TestCase):
         """Test running with invalid options"""
         mock_callback = mock.MagicMock()
         c_mgmt.run("invalid_run_option", 'qwe qwe', mock_callback, None)
-        expected_callback = 'Incorrect Command supplied: invalid_run_option - Current options: control, precheck, init, rollback, repair_certs, verify_signature, deregistered_check, prefuse_install, defuse'
+        expected_callback = 'Incorrect Command supplied: invalid_run_option - Current options: init, precheck, defuse, rollback, control, deregistered_check, repair_certs, verify_signature, prefuse_install'
         mock_callback.assert_called_with(expected_callback)
 
-    @mock.patch('__builtin__.open')
+    @mock.patch('builtins.open')
     def test_mc_init(self, mock_open):
         """Test running init"""
         def mc_init():

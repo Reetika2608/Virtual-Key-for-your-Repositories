@@ -177,7 +177,8 @@ class ManagementConnector(object):
             for name in enabled_services_states.keys():
                 if name == target_type:
                     # Check if Enabled and not already deployed
-                    DEV_LOGGER.debug('Detail="ManagementConnector checking blob mode to manage deploy state for Connector:%s"', target_type)
+                    DEV_LOGGER.debug('Detail="ManagementConnector checking blob mode to manage deploy state for '
+                                     'Connector:%s"', target_type)
                     if ServiceUtils.blob_mode_on(target_type, enabled_services_states):
                         if not self.deployed:
                             DEV_LOGGER.debug('Detail="FMC_Lifecycle ManagementConnector initial deploy"')
@@ -217,7 +218,7 @@ class ManagementConnector(object):
                 if delta:
                     DEV_LOGGER.info('Detail="FMC_Features toggle_features: previous cache: %s new list: %s"',
                                     temp_cache, self._cached_features)
-                for feature, mode in delta.iteritems():
+                for feature, mode in delta.items():
                     DEV_LOGGER.info('Detail="FMC_Features feature: %s mode: %s"', feature, mode)
         except Exception as feature_error:  # pylint: disable=W0703
             # Don't allow additional Features to potentially take down the main Thread.
@@ -242,7 +243,7 @@ class ManagementConnector(object):
                         DEV_LOGGER.debug('Detail="FMC_Lifecycle Joining %s thread"' % thread.getName())
                         thread.join(ManagementConnectorProperties.SHUT_DOWN_WAIT)
                         DEV_LOGGER.info('Detail="FMC_Lifecycle %s Thread isAlive returns %s."'
-                                        % (thread.getName(), thread.isAlive()))
+                                        % (thread.getName(), thread.is_alive()))
                 self.deployed = False
             finally:
                 # Backup for each thread event
@@ -283,7 +284,6 @@ class ManagementConnector(object):
         except OSError: 
             fusion_certs_size = 0
 
-
         if add_certs:
             if use_fusion_ca:
                 DEV_LOGGER.debug('all_certs_size_pre_repair = %s"' % (all_certs_size_pre_repair))
@@ -292,7 +292,7 @@ class ManagementConnector(object):
                 if all_certs_size_pre_repair != exp_certs_size + fusion_certs_size:
                     DEV_LOGGER.info('Detail="ManagementConnector adding fusion Certs"')
                     jsonhandler.write_json_file(ManagementConnectorProperties.FUSION_CERTS_DIR_ADD_REQUEST, "")
-                    self.all_certs_size_pre_repair =  merge_certs([existing_expressway_certs,new_fusion_certs],all_certs)
+                    self.all_certs_size_pre_repair = merge_certs([existing_expressway_certs,new_fusion_certs],all_certs)
 
             else:
                 if all_certs_size_pre_repair != exp_certs_size:

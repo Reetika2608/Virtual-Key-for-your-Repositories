@@ -14,7 +14,6 @@ from managementconnector.config.config import Config
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.platform.system import System
 
-
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 
@@ -24,12 +23,14 @@ class ServiceUtils(object):
     Utilities methods for Services
     """
     TARGET_TYPE = Config(inotify=False).read(ManagementConnectorProperties.TARGET_TYPE)
+
     # -------------------------------------------------------------------------
 
     @staticmethod
     def remove_installing_state(name):
         """ Remove installing state file """
-        DEV_LOGGER.info('Detail="remove_installing_state: Removing installing state file for %s, target_type: %s"' % (name, ServiceUtils.TARGET_TYPE))
+        DEV_LOGGER.info('Detail="remove_installing_state: Removing installing state file for %s, target_type: %s"' % (
+        name, ServiceUtils.TARGET_TYPE))
         jsonhandler.delete_file((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE))
 
     # -------------------------------------------------------------------------
@@ -63,14 +64,15 @@ class ServiceUtils(object):
             if not os.path.isfile((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE)):
                 return installing_state
 
-            state = jsonhandler.read_json_file((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE))
+            state = jsonhandler.read_json_file(
+                (ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE))
 
             if state:
                 if name in state:
                     DEV_LOGGER.debug('Detail="is_installing: Setting installing state for: %s to: %s"'
                                      % (name, state[name]))
                     installing_state = state[name]
-        except IOError, ioe:
+        except IOError as ioe:
             DEV_LOGGER.error('Detail="is_installing: error reading installing state: %s "' % (ioe))
 
         return installing_state
@@ -83,7 +85,8 @@ class ServiceUtils(object):
 
         version = CafeXUtils.get_package_version(name)
         if not version:
-            installing_details = jsonhandler.read_json_file((ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE))
+            installing_details = jsonhandler.read_json_file(
+                (ManagementConnectorProperties.INSTALLING_STATUS_FILE % ServiceUtils.TARGET_TYPE))
             if installing_details:
                 if 'version' in installing_details and name in installing_details:
                     version = installing_details['version']
@@ -105,7 +108,7 @@ class ServiceUtils(object):
         # Service states we want to apply
         enabled_services_states = config.read(ManagementConnectorProperties.ENABLED_SERVICES_STATE)
 
-        #TargetType to state where to store the installing status
+        # TargetType to state where to store the installing status
         target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
 
         if enabled_service is not None and enabled_services_states:
@@ -113,9 +116,10 @@ class ServiceUtils(object):
                 if name not in ManagementConnectorProperties.SERVICE_LIST:
                     # If the service is in an installing state do not apply service mode state, otherwise
                     #  mimic blob enable flag to service flag, if Name is a new entry or it's value has changed
-                    if (name not in enabled_service and enabled == "true") or (name in enabled_service and enabled == "false"):
+                    if (name not in enabled_service and enabled == "true") or (
+                            name in enabled_service and enabled == "false"):
                         if not CafeXUtils.is_package_installing(name, target_type, DEV_LOGGER):
-                        #if not CafeXUtils.is_package_installing(name, DEV_LOGGER):
+                            # if not CafeXUtils.is_package_installing(name, DEV_LOGGER):
                             if ServiceUtils.blob_mode_on(name, enabled_services_states):
                                 DEV_LOGGER.info('Detail="Service: setting connector:%s, mode: on"' % name)
                                 config.write("/configuration/service/name/%s" % name, {"mode": "on"})
@@ -155,7 +159,7 @@ class ServiceUtils(object):
 
         for i in range(15):
             if ServiceUtils.is_service_descrepency(config):
-                DEV_LOGGER.debug('Detail="request_service_change: retry state read attempt: %s"' % (i))
+                DEV_LOGGER.debug('Detail="request_service_change: retry state read attempt: %s"' % i)
                 time.sleep(1)
             else:
                 return
@@ -172,9 +176,11 @@ class ServiceUtils(object):
             for name, enabled in enabled_services_states.items():
                 if name != config.read(ManagementConnectorProperties.TARGET_TYPE):
                     if (enabled == "true") != CafeXUtils.is_connector_running(name, DEV_LOGGER):
-                        DEV_LOGGER.debug('Detail="is_service_descrepency: found descrepency: name:%s, enabled=%s "' % (name, enabled))
+                        DEV_LOGGER.debug('Detail="is_service_descrepency: found descrepency: name:%s, enabled=%s "' % (
+                        name, enabled))
                         ret_val = True
-        DEV_LOGGER.debug('Detail="is_service_descrepency: enabled_services_states: %s, ret_val=%s "' % (enabled_services_states, ret_val))
+        DEV_LOGGER.debug('Detail="is_service_descrepency: enabled_services_states: %s, ret_val=%s "' % (
+        enabled_services_states, ret_val))
         return ret_val
 
     # -------------------------------------------------------------------------
@@ -191,14 +197,17 @@ class ServiceUtils(object):
         previous_versions = ServiceUtils.get_previous_versions(config)
         installed_version = CafeXUtils.get_package_version(name)
         black_listed_versions = config.read(ManagementConnectorProperties.INSTALL_BLACK_LIST, {})
-        DEV_LOGGER.info('Detail="save_tlps_for_rollback: start: rollback related code: current name=%s, installed_version=%s, current versions=%s, previous versions=%s, blacklisted version=%s, target_type=%s"' %
-                        (name, installed_version, current_versions, previous_versions, black_listed_versions, ServiceUtils.TARGET_TYPE))
+        DEV_LOGGER.info(
+            'Detail="save_tlps_for_rollback: start: rollback related code: current name=%s, installed_version=%s, current versions=%s, previous versions=%s, blacklisted version=%s, target_type=%s"' %
+            (name, installed_version, current_versions, previous_versions, black_listed_versions,
+             ServiceUtils.TARGET_TYPE))
 
         current = current_versions[name] if name in current_versions else None
         previous = previous_versions[name] if name in previous_versions else None
 
         if os.path.isfile(downloaded_tlp):
-            if name in black_listed_versions and current_versions[name]['version'] == black_listed_versions[name]['version']:
+            if name in black_listed_versions and current_versions[name]['version'] == black_listed_versions[name][
+                'version']:
                 # Rollback scenario. Delete whatever is at current and the new TLP becomes the stashed current.
                 # If we have the same TLP at previous as we just moved to current (Possible but not guaranteed) then
                 # then _audit_backup_tlps will tidy it up
@@ -241,8 +250,9 @@ class ServiceUtils(object):
                                                        name,
                                                        installed,
                                                        ManagementConnectorProperties.PACKAGE_EXTENSION)
-            DEV_LOGGER.info('Detail="_process_tlps: save TLP for rollback: copy %s tmp TLP (%s) to new current tlp location (%s)"' %
-                            (name, downloaded_tlp, current_tlp))
+            DEV_LOGGER.info(
+                'Detail="_process_tlps: save TLP for rollback: copy %s tmp TLP (%s) to new current tlp location (%s)"' %
+                (name, downloaded_tlp, current_tlp))
         else:
             if current['version'] != installed:
                 # The current version we have stashed is different to what we just installed - cycle the existing
@@ -265,8 +275,9 @@ class ServiceUtils(object):
                                                            name,
                                                            installed,
                                                            ManagementConnectorProperties.PACKAGE_EXTENSION)
-                DEV_LOGGER.info('Detail="_process_tlps: save TLPs for rollback: copy %s tmp TLP (%s) to new current tlp location (%s)"' %
-                                (name, downloaded_tlp, current_tlp))
+                DEV_LOGGER.info(
+                    'Detail="_process_tlps: save TLPs for rollback: copy %s tmp TLP (%s) to new current tlp location (%s)"' %
+                    (name, downloaded_tlp, current_tlp))
             else:
                 # The current verson we have stashed is the same as what we just installed. Do nothing to
                 # the stash of tlps and tidy up the downloaded connector.
@@ -290,8 +301,9 @@ class ServiceUtils(object):
             return
 
         if current['version'] == previous['version']:
-            DEV_LOGGER.warning('Detail="_audit_backup_tlps: Current tlp(%s) and previous tlp(%s) are the same version. Deleting duplicate previous tlp"' %
-                               (current['url'], previous['url']))
+            DEV_LOGGER.warning(
+                'Detail="_audit_backup_tlps: Current tlp(%s) and previous tlp(%s) are the same version. Deleting duplicate previous tlp"' %
+                (current['url'], previous['url']))
             ServiceUtils._delete_previous_connector_tlp(name)
 
     @staticmethod
@@ -335,7 +347,8 @@ class ServiceUtils(object):
         ''' _removePreviousVersion '''
         tlp_file = System.get_previous_tlp_filepath(name)
         if tlp_file is not None and os.path.isfile(tlp_file):
-            DEV_LOGGER.info('Detail="_delete_previous_connector_tlp: rollback related code: _remove_previous_version remove file:%s"' % tlp_file)
+            DEV_LOGGER.info(
+                'Detail="_delete_previous_connector_tlp: rollback related code: _remove_previous_version remove file:%s"' % tlp_file)
             os.remove(tlp_file)
 
     @staticmethod
@@ -343,7 +356,8 @@ class ServiceUtils(object):
         ''' _removeCurrentVersion '''
         tlp_file = System.get_current_tlp_filepath(name)
         if tlp_file is not None and os.path.isfile(tlp_file):
-            DEV_LOGGER.info('Detail="_delete_current_connector_tlp: rollback related code: _remove_current_version remove file:%s"' % tlp_file)
+            DEV_LOGGER.info(
+                'Detail="_delete_current_connector_tlp: rollback related code: _remove_current_version remove file:%s"' % tlp_file)
             os.remove(tlp_file)
 
     @staticmethod
@@ -367,7 +381,7 @@ class ServiceUtils(object):
 
         if state is True:
 
-            jsonhandler.write_json_file((ManagementConnectorProperties.STATUS_FILE),
+            jsonhandler.write_json_file(ManagementConnectorProperties.STATUS_FILE,
                                         ManagementConnectorProperties.WHITEBOX_STATUS)
         else:
             jsonhandler.delete_file(ManagementConnectorProperties.STATUS_FILE)
@@ -398,7 +412,7 @@ class ServiceUtils(object):
                 try:
                     formatted_description = description % tuple(param_list)
 
-                except TypeError, ex:
+                except TypeError as ex:
                     # If an exception thrown, unformatted description will be sent to Atlas, this check here in case
                     # Connectors are not generating (formatting) alarms correctly.
                     DEV_LOGGER.error('Detail="_get_alarms:  formatting error with alarm %s with exception %s"' %
@@ -435,13 +449,13 @@ class ServiceUtils(object):
                 # iterate over array where
                 # i = Text (needs to be translated)
                 # i+1 = Link (needs to be prefixed)
-                for i in range(len(solution_links)/2):
-                    index = i*2
+                for i in range(int(len(solution_links) / 2)):
+                    index = i * 2
                     text = translate(solution_links[index])
-                    if 'http' in solution_links[index+1] and '/' in solution_links[index+1]:
-                        link = solution_links[index+1]
+                    if 'http' in solution_links[index + 1] and '/' in solution_links[index + 1]:
+                        link = solution_links[index + 1]
                     else:
-                        link = prefix_link + solution_links[index+1]
+                        link = prefix_link + solution_links[index + 1]
                     solution_replacement_values.append({'text': text, 'link': link})
             else:
                 # case b - entire solution is a link
@@ -458,8 +472,10 @@ class ServiceUtils(object):
             DEV_LOGGER.debug('Detail="_get_alarms:  solution_links:%s"' % (solution_links))
 
             alarm_dict = {'id': alarm['id'], 'title': title, 'description': formatted_description,
-                          'first_reported': datetime.datetime.utcfromtimestamp(float(alarm['first_reported'])).isoformat(),
-                          'last_reported': datetime.datetime.utcfromtimestamp(float(alarm['last_reported'])).isoformat(),
+                          'first_reported': datetime.datetime.utcfromtimestamp(
+                              float(alarm['first_reported'])).isoformat(),
+                          'last_reported': datetime.datetime.utcfromtimestamp(
+                              float(alarm['last_reported'])).isoformat(),
                           'severity': alarm['severity'],
                           'solution': solution, 'solution_replacement_values': solution_replacement_values
                           }
@@ -467,7 +483,8 @@ class ServiceUtils(object):
             rtn_list.append(alarm_dict)
 
         if rtn_list:
-            DEV_LOGGER.debug('Detail="_get_alarms:  alarm_list is %s, for service %s "' % (rtn_list, service.get_name()))
+            DEV_LOGGER.debug(
+                'Detail="_get_alarms:  alarm_list is %s, for service %s "' % (rtn_list, service.get_name()))
 
         return rtn_list
 
@@ -569,7 +586,7 @@ class ServiceUtils(object):
         DEV_LOGGER.debug('Detail="ServiceUtils::remove_exclude_paths: removing %s"' % exclude_paths)
 
         if data and exclude_paths:
-            for table, path_value_pairs in data.iteritems():
+            for table, path_value_pairs in data.items():
                 if table in exclude_paths:
                     for path in exclude_paths[table]:
                         if path in path_value_pairs:
@@ -594,7 +611,8 @@ class ServiceUtils(object):
 
         release_channel = ""
 
-        heartbeat_contents = jsonhandler.read_json_file(ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % (ServiceUtils.TARGET_TYPE, ServiceUtils.TARGET_TYPE))
+        heartbeat_contents = jsonhandler.read_json_file(
+            ManagementConnectorProperties.UPGRADE_HEARTBEAT_FILE % (ServiceUtils.TARGET_TYPE, ServiceUtils.TARGET_TYPE))
 
         if heartbeat_contents:
             try:
@@ -640,7 +658,7 @@ class ServiceUtils(object):
 
     @staticmethod
     def is_supported_extension(url):
-        ''' determines if file type is supported'''
+        """ determines if file type is supported"""
 
         if url:
             return url.split('.')[-1] in ManagementConnectorProperties.SUPPORTED_EXTENSIONS

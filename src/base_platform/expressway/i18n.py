@@ -27,6 +27,7 @@ system_tokens = {}
 mcwebhelp_regex = re.compile(r'\[\[MCWEBHELP[:,]\s?\w+,\w+,\s?(.+?)\]\]')
 html_regex = re.compile(r'<[^<]+?>')
 
+
 def init(domain=DEFAULT_DOMAIN, localedir=DEFAULT_LOCALEDIR,
          language=DEFAULT_LANGUAGE):
     """
@@ -48,7 +49,7 @@ def init(domain=DEFAULT_DOMAIN, localedir=DEFAULT_LOCALEDIR,
 
     # Load the translations
     global translations
-    translations = gettext.translation(domain, localedir, [language],fallback=True)
+    translations = gettext.translation(domain, localedir, [language], fallback=True)
 
     global existing_mos
     existing_mos = [domain]
@@ -56,14 +57,14 @@ def init(domain=DEFAULT_DOMAIN, localedir=DEFAULT_LOCALEDIR,
     locale.normalize = original_normalize
 
     global system_tokens
-    system_tokens = {"[[PRODUCT]]" : translations.ugettext("SYSTEM_TOKEN")}
-
     # oak only needs to be moved out
-    system_tokens["[[CONTROL]]"] = translations.ugettext("C_SYSTEM_TOKEN")
-    system_tokens["[[EXPRESSWAY]]"] = translations.ugettext("E_SYSTEM_TOKEN")
+    system_tokens = {"[[PRODUCT]]": translations.gettext("SYSTEM_TOKEN"),
+                     "[[CONTROL]]": translations.gettext("C_SYSTEM_TOKEN"),
+                     "[[EXPRESSWAY]]": translations.gettext("E_SYSTEM_TOKEN")}
+
 
 def check_for_new_mos(domain=DEFAULT_DOMAIN, localedir=DEFAULT_LOCALEDIR,
-         language=DEFAULT_LANGUAGE):
+                      language=DEFAULT_LANGUAGE):
     # We need to monkey patch locale.normalize so it doesn't mess with the case
     # of our language in gettext.find
     def passthrough_normalize(localename):
@@ -72,10 +73,9 @@ def check_for_new_mos(domain=DEFAULT_DOMAIN, localedir=DEFAULT_LOCALEDIR,
         """
         return localename
 
-
     # Get the list of mo files which will form the domains used for creating
     # translations.
-    path = "%s/%s" % (localedir,language)
+    path = "%s/%s" % (localedir, language)
     stdout_list = [filename.split(".")[0] for dirpath, dirnames, filenames in os.walk(path)
                    for filename in filenames if os.path.splitext(filename)[1] == ".mo"]
 
@@ -105,6 +105,7 @@ def check_for_new_mos(domain=DEFAULT_DOMAIN, localedir=DEFAULT_LOCALEDIR,
     # Put locale.normalize back
     locale.normalize = original_normalize
 
+
 def translate(message, n=None):
     """
     Returns the translation of ``message``, or just returns ``message``
@@ -122,22 +123,23 @@ def translate(message, n=None):
         return ""
 
     if n is None:
-        ret = translations.ugettext(message)
+        ret = translations.gettext(message)
     else:
         singular = message
         plural = singular + ".plural"
-        ret = translations.ungettext(singular, plural, n) % n
+        ret = translations.ngettext(singular, plural, n) % n
 
     for token in system_tokens:
         ret = ret.replace(token, system_tokens[token])
 
     m = re.search(mcwebhelp_regex, ret)
     if m:
-        replacement = translations.ugettext(m.group(1))
+        replacement = translations.gettext(m.group(1))
         ret = mcwebhelp_regex.sub(replacement, ret)
     ret = re.sub(r'(?:\<br\/\>)+', '\n', ret)
     ret = html_regex.sub(' ', ret)
     ret = re.sub(r' +', ' ', ret)
     return ret
+
 
 _ = translate

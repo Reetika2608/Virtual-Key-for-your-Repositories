@@ -7,10 +7,10 @@ import threading
 import mock
 import json
 import time
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 from pyfakefs import fake_filesystem_unittest
-from productxml import PRODUCT_XML_CONTENTS
+from .productxml import PRODUCT_XML_CONTENTS
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -41,32 +41,32 @@ h_type.append("POST")
 h_url.append("https://idbroker.webex.com/idb/token/4214d345-7caf-4e32-b015-34de878d1158/v1/actions/GetBearerToken/invoke")
 h_headers.append("{'Content-Type': 'application/json'}")
 h_data.append('{"password": "aaBB12$9aa826c9-3d80-4b73-9c4b-d3d9a857df09", "name": "fusion-mgmnt-253508ed-e23b-4e08-a9ec-ce9f1263b3e6", "adminUser": false}')
-h_response.append({u'BearerToken': u'BRTOKEN++'})
+h_response.append({'BearerToken': 'BRTOKEN++'})
 
 # 2) Get bearer response from IDP: _get_bearer_oauth_response_from_idp
 h_type.append("POST" )
 h_url.append("https://hercules.hitest.huron-dev.com/v1/machine_accounts" )
 h_headers.append("{'Content-Type': 'application/json', 'Authorization': 'Bearer NDA1YTFiZTgtZWY5Ny00M2EyLTk1MDEtY2ZhNTViNDI4OTA0ODM4MTY0MTctM2U1'}")
 h_data.append('{"session_id" : "57v6W32fVCm5cvNwOerTgJvcGYYWy9sp5d8aOpoT" }')
-h_response.append({u'username': u'fusion-mgmnt-253508ed-e23b-4e08-a9ec-ce9f1263b3e6', u'organization_id': u'4214d345-7caf-4e32-b015-34de878d1158', u'password': u'aaBB12$9aa826c9-3d80-4b73-9c4b-d3d9a857df09', u'location': u'https://identity.webex.com/organization/4214d345-7caf-4e32-b015-34de878d1158/v1/Machines/ed643b38-076f-4447-8583-5a1ef82b13e0'})
+h_response.append({'username': 'fusion-mgmnt-253508ed-e23b-4e08-a9ec-ce9f1263b3e6', 'organization_id': '4214d345-7caf-4e32-b015-34de878d1158', 'password': 'aaBB12$9aa826c9-3d80-4b73-9c4b-d3d9a857df09', 'location': 'https://identity.webex.com/organization/4214d345-7caf-4e32-b015-34de878d1158/v1/Machines/ed643b38-076f-4447-8583-5a1ef82b13e0'})
 # 3) Get access token
 h_type.append("POST" )
 h_url.append("https://idbroker.webex.com/idb/oauth2/v1/access_token")
 h_headers.append("{'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic QzBjZDI4M2RjNWI3ZDhiZDU5MjlhODI1MzI0Yzc0YjRkMjc1NWQxNGNmNTJlYjRiMjU2ZjlhNjNiZWMxNWZjZTg6OTE0ZjkxNjFiNTBiZjNlYjNlYzAyOTIwNjcyMzg3YjVkMmQxMTgwMzRmNDgyOGIzODExZGM5ZTUzZmVhZWE2MA=='}")
 h_data.append('grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type:saml2-bearer&assertion=BRTOKEN++&scope=Identity%3ASCIM%20Identity%3AOrganization%20squared-fusion-mgmt%3Amanagement%20spark%3Alogs_write')
-h_response.append({u'token_type': u'Bearer', u'refresh_token_expires_in': 51839, u'access_token': u'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', u'expires_in': 4319999, u'refresh_token': u'N2NiM2I1ZjAtZDlmYi00NzRlLWFmOGMtN2YwNmJiZGNjMTkyOTlmMmMyYjUtNjk1'})
+h_response.append({'token_type': 'Bearer', 'refresh_token_expires_in': 51839, 'access_token': 'OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk', 'expires_in': 4319999, 'refresh_token': 'N2NiM2I1ZjAtZDlmYi00NzRlLWFmOGMtN2YwNmJiZGNjMTkyOTlmMmMyYjUtNjk1'})
 # 4) Management Connector: Register
 h_type.append("POST")
 h_url.append("https://hercules.hitest.huron-dev.com/v1/connectors")
 h_headers.append("{'Content-Type': 'application/json', 'Authorization': u'Bearer OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk'}")
 h_data.append('')
-h_response.append({u'status': None, u'display_name': u'Fusion Management', u'registered_by': u'14a2a40a-8f38-4866-8f1a-e6226baf42c3', u'created_at': u'2014-11-14T09:43:49.744Z', u'updated_at': u'2014-11-14T09:43:49.744Z', u'status_url': u'https://hercules.hitest.huron-dev.com/v1/connector_statuses/18', u'organization_id': u'4214d345-7caf-4e32-b015-34de878d1158', u'connector_type': u'c_mgmt', u'version': u'X8.6PreAlpha0 (Test SW)', u'cluster_id': u'', u'host_name': u'gwydlvm1186', u'provisioning_url': u'https://hercules.hitest.huron-dev.com/v1/management_connectors/3', u'serial': u'0974F8FD', u'id': 18, u'provisioning': {u'connectors': [{u'connector_type': u'c_cal', u'version': u'8.6-1.0.521', u'display_name': u'Calendar Service', u'packages': []}]}})
+h_response.append({'status': None, 'display_name': 'Fusion Management', 'registered_by': '14a2a40a-8f38-4866-8f1a-e6226baf42c3', 'created_at': '2014-11-14T09:43:49.744Z', 'updated_at': '2014-11-14T09:43:49.744Z', 'status_url': 'https://hercules.hitest.huron-dev.com/v1/connector_statuses/18', 'organization_id': '4214d345-7caf-4e32-b015-34de878d1158', 'connector_type': 'c_mgmt', 'version': 'X8.6PreAlpha0 (Test SW)', 'cluster_id': '', 'host_name': 'gwydlvm1186', 'provisioning_url': 'https://hercules.hitest.huron-dev.com/v1/management_connectors/3', 'serial': '0974F8FD', 'id': 18, 'provisioning': {'connectors': [{'connector_type': 'c_cal', 'version': '8.6-1.0.521', 'display_name': 'Calendar Service', 'packages': []}]}})
 # 5) Management Connector: Register (Bad Packages)
 h_type.append("POST")
 h_url.append("https://hercules.hitest.huron-dev.com/wrongpackages")
 h_headers.append("{'Content-Type': 'application/json', 'Authorization': u'Bearer OThmOTgyMzctZDBhMi00ZmY1LWE3ZmItMDQxNzk4NDNkOTVmOTdlYjJmY2MtZTlk'}")
 h_data.append('')
-h_response.append({u'status': None, u'display_name': u'Fusion Management', u'registered_by': u'14a2a40a-8f38-4866-8f1a-e6226baf42c3', u'created_at': u'2014-11-14T09:43:49.744Z', u'updated_at': u'2014-11-14T09:43:49.744Z', u'status_url': u'https://hercules.hitest.huron-dev.com/v1/connector_statuses/18', u'organization_id': u'4214d345-7caf-4e32-b015-34de878d1158', u'connector_type': u'c_mgmt', u'version': u'X8.6PreAlpha0 (Test SW)', u'cluster_id': u'', u'host_name': u'gwydlvm1186', u'provisioning_url': u'https://hercules.hitest.huron-dev.com/v1/management_connectors/3', u'serial': u'0974F8FD', u'id': 18, u'provisioning': {u'connectors': [{u'connector_type': u'c_cal', u'version': u'8.6-1.0.521', u'display_name': u'Calendar Service', u'packages': [{u'tlp_url': u'https://aaa.bbb.ccc'}]}]}})
+h_response.append({'status': None, 'display_name': 'Fusion Management', 'registered_by': '14a2a40a-8f38-4866-8f1a-e6226baf42c3', 'created_at': '2014-11-14T09:43:49.744Z', 'updated_at': '2014-11-14T09:43:49.744Z', 'status_url': 'https://hercules.hitest.huron-dev.com/v1/connector_statuses/18', 'organization_id': '4214d345-7caf-4e32-b015-34de878d1158', 'connector_type': 'c_mgmt', 'version': 'X8.6PreAlpha0 (Test SW)', 'cluster_id': '', 'host_name': 'gwydlvm1186', 'provisioning_url': 'https://hercules.hitest.huron-dev.com/v1/management_connectors/3', 'serial': '0974F8FD', 'id': 18, 'provisioning': {'connectors': [{'connector_type': 'c_cal', 'version': '8.6-1.0.521', 'display_name': 'Calendar Service', 'packages': [{'tlp_url': 'https://aaa.bbb.ccc'}]}]}})
 
 EXPECTED_NUMBER_OF_UPDATES = 5
 number_of_status_updates = 0
@@ -184,7 +184,7 @@ def mock_deploy_fusion(self):
     global deploy_global
     mc_type = 'c_mgmt'
 
-    for _ in xrange(EXPECTED_NUMBER_OF_UPDATES):
+    for _ in range(EXPECTED_NUMBER_OF_UPDATES):
         http.DEV_LOGGER.info('+++++ call _do_register_config_status')
         try:
             deploy_global._do_register_config_status(mc_type)
@@ -278,7 +278,7 @@ class DeployTest(fake_filesystem_unittest.TestCase):
         self.assertTrue(install_executing)
         # The test sets up two connectors (c_mgmt & c_xyz) and loops to EXPECTED_NUMBER_OF_UPDATES(5)
         # each time posting a status update for each connector.
-        self.assertEquals(number_of_status_updates, EXPECTED_NUMBER_OF_UPDATES * 2)
+        self.assertEqual(number_of_status_updates, EXPECTED_NUMBER_OF_UPDATES * 2)
 
         global stop_install
         stop_install = True

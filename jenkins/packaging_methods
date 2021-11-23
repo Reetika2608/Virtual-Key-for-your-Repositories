@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PYTHON=python2.7
+PYTHON=python3
 
 clean_working_directory(){
     echo "clean_working_directory: Cleaning un-wanted build files and directories"
@@ -15,7 +15,10 @@ audit_import_paths(){
 install_python_component(){
     echo "install_python_component: Compiling and installing python package"
     # Force install into debian directory, overwiritng any existing files
-    ${PYTHON} setup.py install --force --root=debian/data/ -O0 --compile
+    ${PYTHON} setup.py install --force --root=debian/data/ --no-compile
+    cd debian/data/opt/c_mgmt/src/
+    ${PYTHON} -m compileall -b .
+    cd ../../../../../
 
     # Ensure FMC real unit tests are excluded from the debian
     TEST_DIR=debian/data/opt/c_mgmt/src/tests/managementconnector/
@@ -122,7 +125,7 @@ generate_symlinks(){
     # with a real dir, so, point the bin symlink to a new loation
     OPT_C_MGMT_DIR=debian/data/opt/c_mgmt/
     pushd ${OPT_C_MGMT_DIR} > /dev/null
-    ln -sv usr/bin/ bin
+    ln -s usr/bin/ bin
     popd
 
     [[ ! -L ${OPT_C_MGMT_DIR}bin ]] && echo "Link Failure: ${OPT_C_MGMT_DIR}bin symlink not created" && exit 1
@@ -130,18 +133,18 @@ generate_symlinks(){
 
 install_external_dependencies(){
     WEBSOCKET_DIR=debian/data/opt/c_mgmt/lib/websocket_client/
-    pip install websocket-client==0.46.0 --target=${WEBSOCKET_DIR} --no-dependencies
+    pip install websocket-client==1.2.1 --target=${WEBSOCKET_DIR} --no-dependencies
     [[ ! -d ${WEBSOCKET_DIR}websocket/ ]] && echo "External Dependencies Failure: ${WEBSOCKET_DIR}websocket/ install failure" && exit 1
 
     # Extra python dependencies
     pip install pyinotify==0.9.6 --target=debian/data/opt/c_mgmt/lib/pyinotify/ --no-dependencies
-    pip install six==1.11.0 --target=debian/data/opt/c_mgmt/lib/six/ --no-dependencies
-    pip install httplib2==0.10.3 --target=debian/data/opt/c_mgmt/lib/httplib/ --no-dependencies
+    pip install six==1.13.0 --target=debian/data/opt/c_mgmt/lib/six/ --no-dependencies
+    pip install httplib2==0.18.0 --target=debian/data/opt/c_mgmt/lib/httplib/ --no-dependencies
     pip install pyratemp==0.3.2 --target=debian/data/opt/c_mgmt/lib/pyratemp/ --no-dependencies
-    pip install functools32==3.2.3.post2 --target=debian/data/opt/c_mgmt/lib/functools32/ --no-dependencies
-    pip install jsonschema==2.5.1 --target=debian/data/opt/c_mgmt/lib/jsonschema/ --no-dependencies
-    pip install cryptography==3.3.2 --target=debian/data/opt/c_mgmt/lib/cryptography/
-    pip install defusedxml==0.5.0 --target=debian/data/opt/c_mgmt/lib/defusedxml/ --no-dependencies
+    pip install jsonschema==3.1.0 --target=debian/data/opt/c_mgmt/lib/jsonschema/
+    pip install idna==3.3 --target=debian/data/opt/c_mgmt/lib/idna/ --no-dependencies
+    pip install cryptography==3.4.8 --target=debian/data/opt/c_mgmt/lib/cryptography/
+    pip install defusedxml==0.6.0 --target=debian/data/opt/c_mgmt/lib/defusedxml/ --no-dependencies
 }
 
 cleanup_external_dependencies(){

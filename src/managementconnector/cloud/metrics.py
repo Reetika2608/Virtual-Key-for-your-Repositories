@@ -2,13 +2,11 @@
 import json
 import os
 import traceback
-import urllib2
-
+from urllib import error as urllib_error
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.platform.http import Http
 from managementconnector.platform.serviceutils import ServiceUtils
-
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
@@ -47,7 +45,7 @@ class Metrics(object):
 
         DEV_LOGGER.debug('Detail="_send %s"' % (self._config.read(ManagementConnectorProperties.METRICS_UA)))
 
-        metrics_url =  Metrics.get_metrics_url(self._config)
+        metrics_url = Metrics.get_metrics_url(self._config)
 
         request['time'] = ManagementConnectorProperties.get_utc_time('%Y-%m-%dT%H:%M:%SZ')
 
@@ -77,16 +75,16 @@ class Metrics(object):
 
         try:
             return self._send_request(header, request)
-        except urllib2.URLError as url_error:
+        except urllib_error.URLError as url_error:
             DEV_LOGGER.error('Detail="Send Metrics URL Error=%s, stacktrace=%s"' %
                              (url_error, traceback.format_exc()))
-        except Exception, error:  # pylint: disable=W0703
+        except Exception as error:  # pylint: disable=W0703
             DEV_LOGGER.error('Detail="Send Metrics Error =%s, stacktrace=%s"' %
                              (error, traceback.format_exc()))
 
     # -------------------------------------------------------------------------
 
-    def _send_alarm_metrics(self, header,  service, context):
+    def _send_alarm_metrics(self, header, service, context):
         """_send_alarm_metrics"""
 
         DEV_LOGGER.debug('Detail="_send_alarm_metrics"')
@@ -117,7 +115,6 @@ class Metrics(object):
         memory = ''
 
         if service.get_composed_status() == 'running':
-
             cpu, memory = service.get_service_metrics()
 
             connector_status = ServiceUtils.get_connector_status(service)
@@ -139,9 +136,9 @@ class Metrics(object):
 
         if service.get_name() == ManagementConnectorProperties.SERVICE_NAME:
             # accountExpiration may not be set
-            if ("accountExpiration" in self._oauth.oauth_response):
+            if "accountExpiration" in self._oauth.oauth_response:
                 status["accountExpiration"] = self._oauth.oauth_response["accountExpiration"]
-                
+
             status["certManagement"] = self._config.read(ManagementConnectorProperties.ADD_FUSION_CERTS)
             status["allCertCreated"] = "true" if os.path.exists(ManagementConnectorProperties.COMBINED_CA_FILE) else \
                 "false"
@@ -164,7 +161,7 @@ class Metrics(object):
 
             self._send_alarm_metrics(header, service, context)
 
-     # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def send_error_metrics(self, header, service, error):
         """ send_error_metrics """
@@ -226,8 +223,8 @@ class Metrics(object):
         cluster_id = self._config.read(ManagementConnectorProperties.CLUSTER_ID)
         target_type = self._config.read(ManagementConnectorProperties.TARGET_TYPE)
 
-        #Check the targrttype and based on that provide connector type with service name or connector type
-        if(target_type != self._config.read(ManagementConnectorProperties.SERVICE_NAME)):
+        # Check the targrttype and based on that provide connector type with service name or connector type
+        if target_type != self._config.read(ManagementConnectorProperties.SERVICE_NAME):
             service_name = target_type
         else:
             service_name = ManagementConnectorProperties.SERVICE_NAME

@@ -1,4 +1,4 @@
-import cafemanager
+from . import cafemanager
 
 applications = [
     cafemanager.CAFEManager,

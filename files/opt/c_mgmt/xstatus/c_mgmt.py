@@ -1,6 +1,13 @@
 """
     ManagementConnector xstatus
 """
+import sys
+
+sys.path.insert(0, '/opt/c_mgmt/python/lib/python3.9/')
+sys.path.append('/opt/c_mgmt/python/lib/python3.9/lib-dynload/')
+# sys.path.append('/opt/c_mgmt/python/lib/python3.9/')
+sys.path.append('/opt/c_mgmt/lib/')
+sys.path.append('/opt/c_mgmt/bin/')
 
 import xml.etree.cElementTree as ElementTree
 import logging
@@ -18,7 +25,9 @@ def process_output(output):
     """ handles the validation and processing of the stdout output from status """
     return_value = []
     try:
+        DEV_LOGGER.info('process_output- %s, type- %s' % (output, type(output)))
         element_tree = ElementTree.fromstring(output)
+        DEV_LOGGER.info('element_tree- %s, type- %s' % (str(element_tree), type(element_tree)))
         return_value.append(element_tree)
     except ElementTree.ParseError as error:
         DEV_LOGGER.error('Detail="Error generating element tree from string: %r %s: %s"',

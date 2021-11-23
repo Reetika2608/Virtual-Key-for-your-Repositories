@@ -2,7 +2,7 @@ import logging
 import unittest
 import mock
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 sys.modules['pyinotify'] = mock.MagicMock()
 
@@ -21,6 +21,7 @@ def config_read(path):
 
     if path == ManagementConnectorProperties.TARGET_TYPE:
         return "c_mgmt"
+
 
 class EventDampenerTest(unittest.TestCase):
 
@@ -78,7 +79,6 @@ class EventDampenerTest(unittest.TestCase):
                          msg="There should not have been an event sent")
         self.assertEqual(dampener._upgrade_event_attempts, {"c_mgmt": "8.10-1.0.12347"})
         mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json", {"c_mgmt": "8.10-1.0.12347"})
-
 
     @mock.patch("managementconnector.config.jsonhandler.read_json_file")
     @mock.patch("managementconnector.config.jsonhandler.write_json_file")

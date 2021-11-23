@@ -2,7 +2,7 @@ import unittest
 import logging
 import mock
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 sys.modules['pyinotify'] = mock.MagicMock()
 
@@ -285,7 +285,7 @@ AA9WjQKZ7aKQRUzkuxCkPfAyAw7xzvjoyVGM5mKf5p/AfbdynMk2OmufTqj/ZA1k
 
         DEV_LOGGER.debug('***TEST Setup***')
 
-    @mock.patch('__builtin__.open')
+    @mock.patch('builtins.open')
     def test_repair_certs(self, mock_file):
         """ Repair Certs Test """
 
@@ -302,7 +302,7 @@ AA9WjQKZ7aKQRUzkuxCkPfAyAw7xzvjoyVGM5mKf5p/AfbdynMk2OmufTqj/ZA1k
 
     @mock.patch('managementconnector.config.certhandler.repair_certs')
     @mock.patch('shutil.copyfileobj')
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('builtins.open', create=True)
     def test_merge_certs(self, mock_file, mock_shutil, mock_repair):
         """ Merge Certs Test """
 

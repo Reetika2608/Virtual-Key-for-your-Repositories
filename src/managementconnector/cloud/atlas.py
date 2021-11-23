@@ -44,7 +44,6 @@ class Atlas(object):
 
         if 'dependencies' in register_response:
             for dependency in register_response['dependencies']:
-
                 version = dependency['version']
                 name = dependency['dependencyType']
                 url = dependency['tlpUrl']
@@ -57,6 +56,7 @@ class Atlas(object):
         DEV_LOGGER.debug('Detail="parse_dependency_config: dependency_config=%s"', dependency_config)
 
         return dependency_config
+
     # -------------------------------------------------------------------------
 
     @staticmethod
@@ -79,10 +79,10 @@ class Atlas(object):
                 latest = None
                 version = -1
 
-                if connector['version'] > version:
+                if connector['version'] > str(version):
                     version = connector['version']
                     latest = connector
-                if(connector['connector_type'] in ManagementConnectorProperties.SERVICE_LIST):
+                if connector['connector_type'] in ManagementConnectorProperties.SERVICE_LIST:
                     connector['connector_type'] = ManagementConnectorProperties.SERVICE_NAME
 
                 name = connector['connector_type']
@@ -100,7 +100,7 @@ class Atlas(object):
                 connectors_config.append({'connector_type': connector['connector_type'],
                                           'version': version, 'display_name': display_name,
                                           'name': name, 'url': url, 'enabled': 'false',
-                                          'allow_upgrade': packages_exist 
+                                          'allow_upgrade': packages_exist
                                           })
 
                 entitled_config.append({'name': name, 'display_name': display_name})
@@ -127,7 +127,6 @@ class Atlas(object):
         except StopIteration:
             DEV_LOGGER.info('Detail="%s did not exist in the connectors config."',
                             ManagementConnectorProperties.SERVICE_NAME)
-
 
     def _get_post_request_data(self, service):
         """ used by Register a connector, returns json which will be posted to FMS per connector """
@@ -185,13 +184,12 @@ class Atlas(object):
                   }
 
         host_hardware = {"cpus": cpus,
-                        "totalMemory": str(long(sys_mem['total_kb']) * 1024),
-                        "totalDisk": str(long(sys_disk['total_kb']) * 1024),
-                        "hostType": platform_type
+                         "totalMemory": str(int(sys_mem['total_kb']) * 1024),
+                         "totalDisk": str(int(sys_disk['total_kb']) * 1024),
+                         "hostType": platform_type
+                         }
 
-                       }
-
-        if (device_type != ManagementConnectorProperties.SERVICE_NAME and service_name == ManagementConnectorProperties.SERVICE_NAME):
+        if device_type != ManagementConnectorProperties.SERVICE_NAME and service_name == ManagementConnectorProperties.SERVICE_NAME:
             device_type = device_type
         else:
             device_type = service_name
@@ -207,7 +205,7 @@ class Atlas(object):
                      "ip4_ip_address": ip_v4,
                      "ip6_ip_address": ip_v6,
                      "serial": serial_number,
-                     "connector_type":  device_type,
+                     "connector_type": device_type,
                      "version": version,
                      "platform": "expressway",
                      "platform_version": self._full_version,
@@ -234,7 +232,7 @@ class Atlas(object):
             # Only the Mgmt. Connector has Provisioning Info
             if service.get_name() in ManagementConnectorProperties.SERVICE_LIST:
                 self._configure_heartbeat(response['provisioning']['heartbeatInterval'])
-        except KeyError, error:
+        except KeyError as error:
             DEV_LOGGER.debug('Detail="register_connector: No heartbeat interval information, missing key: %s"', error)
 
         return response

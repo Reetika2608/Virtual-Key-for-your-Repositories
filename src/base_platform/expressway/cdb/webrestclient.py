@@ -14,7 +14,7 @@ import json
 import socket
 import threading
 import time
-import urllib
+from urllib import parse as urllib_parse
 import logging
 import re
 import base64
@@ -27,15 +27,15 @@ import httplib2
 from base_platform.expressway import httplib2ssl
 import taacrypto
 
-
 DEV_LOGGER = logging.getLogger("developer.web.restclient")
+
 
 class HttpResponseError(Exception):
     """
     Exception class to represent a HTTP error response.
     """
-    def __init__(self, error_code, error_reason, content, method, url, body):
 
+    def __init__(self, error_code, error_reason, content, method, url, body):
         Exception.__init__(self)
         self.error_code = error_code
         self.error_reason = error_reason
@@ -45,19 +45,23 @@ class HttpResponseError(Exception):
         self.body = body
 
     def __str__(self):
-        return u"".join(["HTTP Response error from ", self.method, " on ", self.url, "\nBody:", self.body, "\nAnswer: (", str(self.error_code), ') ', self.error_reason, "\n"])
+        return "".join(["HTTP Response error from ", self.method, " on ", self.url, "\nBody:", self.body, "\nAnswer: (",
+                        str(self.error_code), ') ', self.error_reason, "\n"])
+
 
 class RestClientException(Exception):
-    '''
+    """
     Exception class to represent a rest client usage errors.
-    '''
+    """
     pass
 
+
 class CryptoBasicAuthentication(httplib2.Authentication):
-    '''
+    """
         Replacement for httplib2's BasicAuthentication class that
         handles decryption of the password prior to use.
-    '''
+    """
+
     def __init__(self,
                  credentials,
                  host,
@@ -76,34 +80,34 @@ class CryptoBasicAuthentication(httplib2.Authentication):
                                          content,
                                          http)
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def request(self, _method, _request_uri, headers, _content):
-        '''
+        """
             Modify the request headers to add the appropriate Authorization
             header
 
             Decrypt password as late as possible
-        '''
+        """
         (user, encrypted_password) = self.credentials
 
         try:
             b64 = base64.b64encode("%s:%s" % (user,
                                               taacrypto.decrypt_with_system_key(encrypted_password))
-                                  ).strip()
+                                   ).strip()
 
-            headers['authorization'] = 'Basic %s' % ( b64, )
+            headers['authorization'] = 'Basic %s' % (b64,)
 
         except taacrypto.CryptoError as ex:
-            DEV_LOGGER.warning( 'Detail="Problem decrypting password" ' \
-                                'Status="%r"' % ( ex, ) )
+            DEV_LOGGER.warning('Detail="Problem decrypting password" ' \
+                               'Status="%r"' % (ex,))
             raise
 
 
 class RestClient(object):
-    '''
+    """
     A HTTP client for accessing generic REST APIs.
-    '''
+    """
 
     _supported_receive_types = ['application/json',
                                 'text/plain',
@@ -117,70 +121,69 @@ class RestClient(object):
 
     FULL_URI = re.compile("https?://[a-zA-Z0-9_.]+")
 
-
     wait_interval = 5
     request_timeout = 180
 
-    def __init__( self,
-                  rest_server_address,
-                  rest_server_port,
-                  url_prefix          = '',
-                  auth_name           = None,
-                  auth_password       = None,
-                  use_tls             = False,
-                  cert_validation     = False,
-                  hostname_validation = False,
-                  ca_chain_file       = '/tandberg/persistent/certs/ca.pem' ):
+    def __init__(self,
+                 rest_server_address,
+                 rest_server_port,
+                 url_prefix='',
+                 auth_name=None,
+                 auth_password=None,
+                 use_tls=False,
+                 cert_validation=False,
+                 hostname_validation=False,
+                 ca_chain_file='/tandberg/persistent/certs/ca.pem'):
         self.use_tls = use_tls
         if self.use_tls:
-            DEV_LOGGER.debug( 'Detail="Using TLS for connection"' )
-            self.http = httplib2ssl.HttpsWithValidation( ca_chain_file,
-                                                         cert_validation,
-                                                         hostname_validation,
-                                                         timeout = self.request_timeout)
+            DEV_LOGGER.debug('Detail="Using TLS for connection"')
+            self.http = httplib2ssl.HttpsWithValidation(ca_chain_file,
+                                                        cert_validation,
+                                                        hostname_validation,
+                                                        timeout=self.request_timeout)
         else:
-            DEV_LOGGER.debug( 'Detail="NOT using TLS for connection"' )
-            self.http = httplib2.Http(timeout = self.request_timeout)
+            DEV_LOGGER.debug('Detail="NOT using TLS for connection"')
+            self.http = httplib2.Http(timeout=self.request_timeout)
 
         self.rest_server_address = rest_server_address
         self.rest_server_port = rest_server_port
         self.connection_lock = threading.Lock()
 
         if auth_name is not None and auth_password is not None:
-            DEV_LOGGER.debug( 'Detail="Adding credentials" Username="%s"' % \
-                              ( auth_name, ) )
+            DEV_LOGGER.debug('Detail="Adding credentials" Username="%s"' % \
+                             (auth_name,))
 
             # auth_password is encrypted and we don't want the plaintext held
             #   by the HTTP library so let's use our own authentication handler
             httplib2.AUTH_SCHEME_CLASSES['basic'] = CryptoBasicAuthentication
-            self.http.add_credentials( auth_name, auth_password )
+            self.http.add_credentials(auth_name, auth_password)
 
         self._url_prefix = url_prefix
 
-        self.default_headers = {'accept':', '.join(self._supported_receive_types)}
+        self.default_headers = {'accept': ', '.join(self._supported_receive_types)}
 
     @staticmethod
     def _lowercase_header_names(headers):
-        '''
+        """
         Set header names to lowercase as it seems that httplib2 requires it.
-        '''
+        """
         return dict((key.lower(), value) for key, value in headers.items())
 
     def set_default_headers(self, headers_dict):
-        '''
+        """
         Set the default HTTP headers for all subsequent requests, unless overriden.
 
         :param headers_dict: a dictionary of headers and values.
-        '''
+        """
         self.default_headers = {}
         self.add_default_headers(headers_dict)
 
     def add_default_headers(self, headers_dict):
-        '''
+        """
         Add a set of default headers to the current set of default HTTP headers, for all subsequent requests.
 
         :param headers_dict: a dictionary of headers and values.
-        '''
+        """
         self.default_headers.update(self._lowercase_header_names(headers_dict))
 
     @staticmethod
@@ -197,7 +200,7 @@ class RestClient(object):
             unmodified.
             """
 
-            if isinstance(thing, unicode):
+            if isinstance(thing, str):
                 return thing.encode("utf-8")
             return thing
 
@@ -209,7 +212,7 @@ class RestClient(object):
         return data
 
     def _prepare_request(self, url, method, data, headers):
-        '''
+        """
         Prepare the necessary data the http request.
 
         :param url: URL to be used. Should not include a rfc3986[3.4] query component.
@@ -218,19 +221,19 @@ class RestClient(object):
         and 'url' already contains a query component then behaviour is undefined.
 
         Return the necessary (url, method, body, headers) tuple to proceed with the request.
-        '''
+        """
 
         if not self.FULL_URI.match(url):
             url_pieces = {
-                'protocol' : 'https' if self.use_tls else 'http',
-                'address'  : self.rest_server_address,
-                'port'     : str(self.rest_server_port),
-                'prefix'   : self._url_prefix,
-                'url'      : url
-                }
+                'protocol': 'https' if self.use_tls else 'http',
+                'address': self.rest_server_address,
+                'port': str(self.rest_server_port),
+                'prefix': self._url_prefix,
+                'url': url
+            }
 
             url = "%(protocol)s://%(address)s:%(port)s%(prefix)s%(url)s" % \
-              url_pieces
+                  url_pieces
 
         if not headers:
             headers = self.default_headers
@@ -243,18 +246,18 @@ class RestClient(object):
 
         if data is not None:
             if 'content-type' not in headers:
-
                 headers['content-type'] = 'application/x-www-form-urlencoded'
 
             if headers['content-type'] not in self._supported_send_types:
-                raise RestClientException("Unsupported content-type when preparing HTTP request : " + headers['content-type'])
+                raise RestClientException(
+                    "Unsupported content-type when preparing HTTP request : " + headers['content-type'])
             else:
                 if headers['content-type'] == 'application/x-www-form-urlencoded':
-                    # urllib.urlencode doesn't cope with unicode strings so we
+                    # urllib_parse.urlencode doesn't cope with unicode strings so we
                     # have to encode everything as utf-8.
                     data = self._encode_unicode_post_data(data)
 
-                    urlencoded = urllib.urlencode(data)
+                    urlencoded = urllib_parse.urlencode(data)
 
                     if method == 'GET':
                         # https://bugs.rd.tandberg.com/show_bug.cgi?id=115257
@@ -273,25 +276,25 @@ class RestClient(object):
                     if data is not None:
                         body = str(data)
 
-
         return url, method, body, headers
 
-    def _process_response(self, response, response_data, object_hook = None):
-        '''
+    def _process_response(self, response, response_data, object_hook=None):
+        """
         Process the HTTP response:
          - format the returned data depending on the content-type.
          - raise an exception of the status
-        '''
+        """
 
         transformed_data = None
 
         if response_data:
             if 'content-type' in response:
                 if response['content-type'] not in self._supported_receive_types:
-                    raise RestClientException("Unsupported content-type when processing HTTP response : " + response['content-type'])
+                    raise RestClientException(
+                        "Unsupported content-type when processing HTTP response : " + response['content-type'])
                 else:
                     if response['content-type'] == 'application/json':
-                        transformed_data = json.loads(response_data, object_hook = object_hook)
+                        transformed_data = json.loads(response_data, object_hook=object_hook)
                     elif response['content-type'] in ('text/plain',
                                                       'text/html',
                                                       'text/csv'):
@@ -299,11 +302,9 @@ class RestClient(object):
             else:
                 transformed_data = response_data
 
-
         return response, transformed_data
 
-
-    def send_request(self, method, url, data = None, headers = None, object_hook = None, exception_on_failure = True):
+    def send_request(self, method, url, data=None, headers=None, object_hook=None, exception_on_failure=True):
         """
         Perform an http request to the REST API.
         :param url: URL to be used. Should not include a rfc3986[3.4] query component.
@@ -321,34 +322,37 @@ class RestClient(object):
         if exception_on_failure and (response.status < 200 or response.status > 299):
             raise HttpResponseError(response.status, response.reason, response_data, method, url, str(body))
 
-        return self._process_response(response, response_data, object_hook)
+        return self._process_response(response, response_data.decode(), object_hook)
 
     def http_request(self, url, method, body, headers):
         """Perform an http request to the REST API, retrying on 503."""
         start_time = time.time()
         while True:
-            response, response_data = self.http.request(url, method, body, headers)
-            if response.status == 503:
-                if self.request_timeout <= (time.time() - start_time):
-                    response.status = 408
+            try:
+                response, response_data = self.http.request(url, method, body, headers)
+                if response.status == 503:
+                    if self.request_timeout <= (time.time() - start_time):
+                        response.status = 408
+                        break
+                else:
                     break
-            else:
-                break
+            except BrokenPipeError:
+                DEV_LOGGER.debug(f"Retrying {url} on failure - BrokenPipeError")
             time.sleep(.5)
         return response, response_data
 
-    def send_post(self, url, parameters=None, headers=None, object_hook = None):
+    def send_post(self, url, parameters=None, headers=None, object_hook=None):
         """Perform an http POST request to the REST API."""
         return self.send_request('POST', url, parameters, headers, object_hook)[1]
 
-    def send_patch(self, url, parameters=None, headers=None, object_hook = None):
+    def send_patch(self, url, parameters=None, headers=None, object_hook=None):
         """
         Perform an http PATCH request to the REST API - differs from POST in that
         non-existent entries are *not* created. (see RFC 5789)
         """
         return self.send_request('PATCH', url, parameters, headers, object_hook)[1]
 
-    def send_get(self, url, parameters=None, headers=None, object_hook = None):
+    def send_get(self, url, parameters=None, headers=None, object_hook=None):
         """
         Perform an http GET request to the REST API.
 
@@ -361,18 +365,18 @@ class RestClient(object):
         """
         return self.send_request('GET', url, parameters, headers, object_hook)[1]
 
-    def send_delete(self, url, parameters=None, headers=None, object_hook = None):
+    def send_delete(self, url, parameters=None, headers=None, object_hook=None):
         """Perform an http DELETE request to the REST API."""
         return self.send_request('DELETE', url, parameters, headers, object_hook)[1]
 
-    def send_put(self, url, parameters=None, headers=None, object_hook = None):
+    def send_put(self, url, parameters=None, headers=None, object_hook=None):
         """Perform an http PUT request to the REST API."""
         return self.send_request('PUT', url, parameters, headers, object_hook)[1]
 
     def is_server_active(self, url='/'):
         """Returns True if the REST server is active."""
         try:
-            self.send_request('GET', url, exception_on_failure = False)
+            self.send_request('GET', url, exception_on_failure=False)
             return True
         except socket.error:
             return False

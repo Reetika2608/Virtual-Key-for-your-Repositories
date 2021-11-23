@@ -30,7 +30,7 @@ class Mercury(threading.Thread):
     """
 
     def __init__(self, config, oauth):
-        threading.Thread.__init__(self, name='Mercury')
+        super(Mercury, self).__init__(name='Mercury')  # using super() to initialize thread
         self._mercury_details = None
 
         self._oauth = oauth
@@ -121,7 +121,6 @@ class Mercury(threading.Thread):
                 # If there is a problem tear down registration, it will be recreated in next heartbeat
                 self.shutdown()
                 raise wdm_error
-
 
     # -------------------------------------------------------------------------
 
@@ -239,7 +238,7 @@ class Mercury(threading.Thread):
 
         # on_error events seem to be followed by on_close events, check out the run_forever internals
 
-    def on_close(self, handler):
+    def on_close(self, handler, *args):
         """ Close Handler """
         DEV_LOGGER.info('Detail="FMC_Websocket on_close callback"')
 
@@ -285,7 +284,7 @@ class Mercury(threading.Thread):
                 else:
                     jsonschema.validate(message, schema.MERCURY_MESSAGE)
                     self._validate_mercury_probe()
-            except ValueError, ex:
+            except ValueError as ex:
                 DEV_LOGGER.error(
                     'Detail="FMC_Websocket Error loading json: {}"'.format(ex))
                 return
@@ -353,7 +352,7 @@ class Mercury(threading.Thread):
         error_response = None
         if hasattr(merc_exception, 'read'):
             try:
-                error_response = merc_exception.read()
+                error_response = merc_exception.read().encode()
             except IOError:
                 pass
 

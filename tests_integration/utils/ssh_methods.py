@@ -56,9 +56,9 @@ def paramiko_ssh_command(hostname, username, password, command):
     session.exec_command(command)
     while True:
         if session.recv_ready():
-            stdout_data.append(session.recv(nbytes))
+            stdout_data.append(session.recv(nbytes).decode())
         if session.recv_stderr_ready():
-            stderr_data.append(session.recv_stderr(nbytes))
+            stderr_data.append(session.recv_stderr(nbytes).decode())
         if session.exit_status_ready():
             break
 
@@ -235,7 +235,7 @@ def get_process_count(hostname, root_user, root_pass, connector):
     connector_binary = process_dict[connector]
     cmd = "ps aux | grep %s | grep %s | grep -v grep" % (connector, connector_binary)
     result = run_ssh_command(hostname, root_user, root_pass, cmd)
-    processes = filter(lambda p: p.strip(), result.split("\n"))  # Remove blank lines
+    processes = [p for p in result.split("\n") if p.strip()]  # Remove blank lines
     process_count = len(processes)
     LOG.info("%s output from %s: %d (%s)", cmd, hostname, process_count, processes)
     return process_count

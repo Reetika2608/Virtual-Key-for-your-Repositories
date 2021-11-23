@@ -4,7 +4,7 @@ import sys
 import unittest
 import logging
 import mock
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -54,7 +54,6 @@ def get_file_size_side_effect(*args, **kwargs):
         if CERT_CHANGED == 0:
             DEV_LOGGER.info("TEST: RETURNING size = 10")
             return 10
-
         else:
             DEV_LOGGER.info("TEST: RETURNING size = 20")
             return 20

@@ -2,7 +2,7 @@
 
 import traceback
 import time
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from managementconnector.config import jsonhandler
 from managementconnector.config.databasehandler import DatabaseHandler
@@ -27,13 +27,14 @@ ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 
 class ServiceManager():
     ''' Management Connector Service Manager Class'''
+
     def __str__(self):
         return 'Management Connector Service Manager Class'
 
     __repr__ = __str__
 
     def __init__(self, config, oauth):
-        ''' ServiceManager__init__ '''
+        """ ServiceManager__init__ """
         self._config = config
         self._oauth = oauth
         self._services = []
@@ -50,8 +51,9 @@ class ServiceManager():
         # Get the service by name from Service Manager to see if it exists.
         service = self.get(config['name'])
         upgrade_disabled_from_fms = 'allow_upgrade' in config and config['allow_upgrade'] is False
-        
+
         service.configure(config['url'], config['version'], upgrade_disabled_from_fms)
+
     # -------------------------------------------------------------------------
 
     def upgrade_worker(self, connectors_config):
@@ -179,7 +181,7 @@ class ServiceManager():
     def _process_enable_alarm(self, failed_config, alarm_id, msg):
         """Responsible for clearing/raising alarms due to service enablement issues"""
 
-        if(len(failed_config) == 0):
+        if len(failed_config) == 0:
             self._alarms.clear_alarm(alarm_id)
         else:
 
@@ -199,7 +201,7 @@ class ServiceManager():
     def _process_upgrade_alarm(self, failed_config, alarm_id, msg):
         """Responsible for clearing/raising alarms"""
 
-        if(len(failed_config) == 0):
+        if len(failed_config) == 0:
             self._alarms.clear_alarm(alarm_id)
         else:
 
@@ -228,8 +230,8 @@ class ServiceManager():
             # These Alarms take display name and url as parameter
             for config in failed_config:
                 desc_line = translate(msg) % (str(config['display_name']),
-                                                            str(config['version']),
-                                                            str(config['url']))
+                                              str(config['version']),
+                                              str(config['url']))
 
                 description_text = description_text + desc_line + "\n"
 
@@ -242,7 +244,8 @@ class ServiceManager():
     def purge_deleted_connectors(self, connector_config, connector_type):
         """ Audit Method looking for unwanted connectors """
 
-        DEV_LOGGER.debug('Detail="purge_deleted_connectors, connector_config = %s, type = %s"' % (connector_config, connector_type))
+        DEV_LOGGER.debug(
+            'Detail="purge_deleted_connectors, connector_config = %s, type = %s"' % (connector_config, connector_type))
 
         installed_connectors = CafeXUtils.get_installed_connectors(connector_type)
 
@@ -264,9 +267,10 @@ class ServiceManager():
                             self.purge(connector, False)
                             time.sleep(5)
 
-                    except ServiceException, error:
+                    except ServiceException as error:
                         DEV_LOGGER.error('Detail="purge_deleted_connectors error=%s, stacktrace=%s"' %
                                          (error, traceback.format_exc()))
+
     # -------------------------------------------------------------------------
 
     def _process_version_alarm(self, failed_config, alarm_id, msg):
@@ -278,25 +282,23 @@ class ServiceManager():
             # All the Version Mismatch Alarms take display name, advertised version and installed version.
             for config in failed_config:
                 desc_line = translate(msg) % (str(config['display_name']), str(config['version']),
-                                                            str(config['installed_version']))
+                                              str(config['installed_version']))
                 description_text = description_text + desc_line + "\n"
 
             DEV_LOGGER.debug('Detail="_process_version_alarm: description_text=%s"' % description_text)
 
             self._alarms.raise_alarm(alarm_id, [description_text])
 
-
     # -------------------------------------------------------------------------
 
     def _process_unknownhost_alarm(self, failed_config, alarm_id, msg):
         """Responsible for clearing/raising alarms"""
-        if(len(failed_config) == 0):
+        if len(failed_config) == 0:
             self._alarms.clear_alarm(alarm_id)
         else:
             description_text = ''
             # All the upgrade Alarms take display name and url as parameter
             for config in failed_config:
-
                 # Stripping the hostname for an Alarm Parameter
                 url = urlparse(str(config['url'])).netloc
                 desc_line = translate(msg) % (url, str(config['display_name']))
@@ -309,8 +311,8 @@ class ServiceManager():
     # -------------------------------------------------------------------------
 
     def get(self, service_name, dependency=False):
-        ''' Search for a service object in the list based on the service name.
-            Returns service object if found, or None if not found. '''
+        """ Search for a service object in the list based on the service name.
+            Returns service object if found, or None if not found. """
         service = None
         for item in self._services:
             existing_name = item.get_name()
@@ -333,14 +335,14 @@ class ServiceManager():
     # -------------------------------------------------------------------------
 
     def add(self, service):
-        ''' add service to list'''
+        """ add service to list"""
         DEV_LOGGER.debug('Detail="FMC_Lifecycle ServiceManager: add: service=%s"' % (service))
         self._services.append(service)
 
     # -------------------------------------------------------------------------
 
     def remove(self, service_name):
-        ''' remove a service from the list '''
+        """ remove a service from the list """
         for service in self._services:
             existing_name = service.get_name()
             if existing_name == service_name:
@@ -351,19 +353,19 @@ class ServiceManager():
     # -------------------------------------------------------------------------
 
     def remove_all(self):
-        ''' empty the service list '''
+        """ empty the service list """
         self._services = []
 
     # -------------------------------------------------------------------------
 
     def get_all(self):
-        ''' get the service list '''
+        """ get the service list """
         return self._services
 
     # -------------------------------------------------------------------------
 
     def purge(self, service_name, defuse_occurring=True):
-        ''' Remove the Service '''
+        """ Remove the Service """
 
         DEV_LOGGER.info('Detail="FMC_Lifecycle ServiceManager: purge: service=%s"' % (service_name))
 
@@ -374,7 +376,6 @@ class ServiceManager():
             service.uninstall()
 
             if defuse_occurring is False:
-
                 # Delete any DB records for the service
                 self._database_handler.delete_service_blob(service_name)
 

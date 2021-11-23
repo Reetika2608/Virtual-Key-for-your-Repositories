@@ -2,10 +2,10 @@ import unittest
 import logging
 import mock
 import sys
-from cStringIO import StringIO
+from io import StringIO
 from pyfakefs import fake_filesystem_unittest
-from productxml import PRODUCT_XML_CONTENTS
-from constants import SYS_LOG_HANDLER
+from .productxml import PRODUCT_XML_CONTENTS
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -30,7 +30,7 @@ class ManagementConnectorTest(fake_filesystem_unittest.TestCase):
         self._system = System()
         assert self._system is not None
 
-    @mock.patch('__builtin__.open')
+    @mock.patch('builtins.open')
     def test_management_connector_system_memory(self, mock_file):
         ''' Test Management Connector System memory '''
 
@@ -43,7 +43,7 @@ class ManagementConnectorTest(fake_filesystem_unittest.TestCase):
         self.assertNotEqual(system_memory['percent'], '')
         self.assertNotEqual(system_memory['total_gb'], '')
 
-    @mock.patch('__builtin__.open')
+    @mock.patch('builtins.open')
     def test_management_connector_system_cpu_time(self, mock_file):
         ''' Test Management Connector System cpu '''
 
@@ -55,7 +55,7 @@ class ManagementConnectorTest(fake_filesystem_unittest.TestCase):
 
         self.assertNotEqual(cpu_time, 0)
 
-    @mock.patch('__builtin__.open')
+    @mock.patch('builtins.open')
     def test_management_connector_get_system_cpu(self, mock_file):
         DEV_LOGGER.debug('***TEST*** test_management_connector_get_system_cpu')
 
@@ -81,9 +81,9 @@ class ManagementConnectorTest(fake_filesystem_unittest.TestCase):
                     "c_mgmt.tlp": None,
                     "": None}
 
-        for path, expected in examples.iteritems():
+        for path, expected in examples.items():
             version = System.get_version_from_file(path)
-            self.assertEquals(version, expected)
+            self.assertEqual(version, expected)
 
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
     def test_platform_supported_against_baked_in_version(self, mock_get_package_version):
@@ -142,39 +142,39 @@ class ManagementConnectorTest(fake_filesystem_unittest.TestCase):
         mock_get_expressway_version.return_value = "12.5"
         self.assertFalse(System.is_penultimate_version())
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('builtins.open', create=True)
     def test_get_platform_type(self, mock_file):
         DEV_LOGGER.debug('***TEST*** test_get_platform_type')
 
         # virtual machine
         mock.mock_open(mock_file, read_data='hypervisor')
-        self.assertEquals("virtual", System.get_platform_type())
+        self.assertEqual("virtual", System.get_platform_type())
 
         # physical machine
         mock.mock_open(mock_file, read_data='')
-        self.assertEquals("physical", System.get_platform_type())
+        self.assertEqual("physical", System.get_platform_type())
 
         # error
         mock_file.side_effect = IOError()
-        self.assertEquals(None, System.get_platform_type())
+        self.assertEqual(None, System.get_platform_type())
 
     @mock.patch('subprocess.check_output')
     def test_get_cpu_cores(self, mock_sub):
         DEV_LOGGER.debug('***TEST*** test_get_cpu_cores')
-        mock_sub.return_value = "2\n"
+        mock_sub.return_value = "2\n".encode('UTF-8')
         res = System.get_cpu_cores()
         cmd = ["nproc", "--all"]
         mock_sub.assert_called_with(cmd)
-        self.assertEquals("2", res)
+        self.assertEqual("2", res)
 
     @mock.patch('subprocess.check_output')
     def test_get_system_disk(self, mock_sub):
         DEV_LOGGER.debug('***TEST*** test_get_system_disk')
-        mock_sub.return_value = 'Filesystem     1K-blocks    Used Available Use% Mounted on\n/dev/sda5         960840  625688    285512  69% /\ndevtmpfs         3049708       0   3049708   0% /dev\nnone             3052088     252   3051836   1% /run\n/dev/ram0         193687    2995    180692   2% /var\n/dev/loop20      1470176   18595   1376879   2% /tmp\n/dev/sda7         960840  161936    749264  18% /tandberg\n/dev/sdb2      121657444 9149632 106321316   8% /mnt/harddisk\ntotal          131344783 9959098 115015207   8% -\n'
+        mock_sub.return_value = 'Filesystem     1K-blocks    Used Available Use% Mounted on\n/dev/sda5         960840  625688    285512  69% /\ndevtmpfs         3049708       0   3049708   0% /dev\nnone             3052088     252   3051836   1% /run\n/dev/ram0         193687    2995    180692   2% /var\n/dev/loop20      1470176   18595   1376879   2% /tmp\n/dev/sda7         960840  161936    749264  18% /tandberg\n/dev/sdb2      121657444 9149632 106321316   8% /mnt/harddisk\ntotal          131344783 9959098 115015207   8% -\n'.encode('UTF-8')
         cmd = ["df", "--total"]
         res = System.get_system_disk()
         mock_sub.assert_called_with(cmd)
-        self.assertEquals({'total_gb': '0.1', 'percent': '8.0', 'total_kb': 128266.3896484375}, res)
+        self.assertEqual({'total_gb': '0.1', 'percent': '8.0', 'total_kb': 128266.3896484375}, res)
 
 
 if __name__ == '__main__':

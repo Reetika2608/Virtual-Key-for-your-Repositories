@@ -796,7 +796,7 @@ JS;
     {
         if(isset($_GET['signature']) && isset($_GET['bootstrap'])) {
             list($success, $error) = BlobLibrary::run_xcommand(
-                $this->rest_data_adapter,
+                $this->/etc/service_template::clean_up on exit." ,
                 "c_mgmt", "verify_signature", $_GET['bootstrap'] . " " . $_GET['signature']
             );
             if(!$success ) {

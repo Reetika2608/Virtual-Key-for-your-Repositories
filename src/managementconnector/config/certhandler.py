@@ -7,6 +7,7 @@ import os
 
 from base_platform.expressway.filesystemmanager import FilesystemManager
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from functools import reduce
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
@@ -77,15 +78,15 @@ class CertHandler(object):
         self._change_callback()
 
 
-def merge_certs(filepaths,output):
+def merge_certs(filepaths, output):
     """ Management Connector Merge list of files in filepaths to create output """
     all_certs = ManagementConnectorProperties.COMBINED_CA_FILE
     all_certs_size_pre_repair = 0
     DEV_LOGGER.info('Detail="ManagementConnector CertHandler combining files"')
-    with open(output,'wb') as outfile:
+    with open(output, 'wb') as outfile:
         for pem in filepaths:
             try:
-                with open(pem,'rb') as infile:
+                with open(pem, 'rb') as infile:
                     copyfileobj(infile, outfile)
             except IOError as error:
                 DEV_LOGGER.error('Detail="Management Connector Cert Handler merge failed with error: %s, stacktrace=%s"',

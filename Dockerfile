@@ -1,4 +1,4 @@
-FROM python:2.7.17
+FROM python:3.9.7
 
 # Install gettext for msgfmt localisation tool
 RUN apt-get update && apt-get install -y \

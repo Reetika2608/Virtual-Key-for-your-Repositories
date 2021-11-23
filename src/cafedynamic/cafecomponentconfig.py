@@ -527,7 +527,7 @@ class CAFEComponentConfig(threading.Thread):
         md5hash = hashlib.md5()  # nosec - md5 hash is acceptable
         with open(file_path, 'r') as myfile:
             for line in myfile:
-                md5hash.update(line)
+                md5hash.update(line.encode('utf-8'))
 
         return md5hash.hexdigest()
 

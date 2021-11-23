@@ -76,7 +76,7 @@ class FileWriter(object):
                 temp_file_path = "%s.%d.tmp" % (self.temp_file_base_path, threading.current_thread().ident)
 
                 DEV_LOGGER.debug('Detail="Created temporary file" File="%s"', temp_file_path)
-                new_file = open(temp_file_path, mode="w")
+                new_file = open(temp_file_path, mode="wb")
                 if self.encoding is not None:
                     new_file.write(contents.encode(self.encoding))
                 else:

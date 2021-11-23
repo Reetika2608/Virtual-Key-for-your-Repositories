@@ -4,7 +4,7 @@ import logging
 import mock
 import unittest
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -35,8 +35,8 @@ class HybridSyslogTests(unittest.TestCase):
         Notes:
         """
         # Sample Records
-        fmc_entry = {u'level': u'DEBUG', u'uuid': u'uuid', u'name': u'hybridservices.managementconnector'}
-        cafe_entry = {u'level': u'INFO', u'uuid': u'8a1d1825-3432-43a6-978a-35097b736cf3', u'name': u'hybridservices.cafedynamic'}
+        fmc_entry = {'level': 'DEBUG', 'uuid': 'uuid', 'name': 'hybridservices.managementconnector'}
+        cafe_entry = {'level': 'INFO', 'uuid': '8a1d1825-3432-43a6-978a-35097b736cf3', 'name': 'hybridservices.cafedynamic'}
 
         # Sample Calls
         fmc_call = mock.call("/configuration/hybridserviceslogger/name/hybridservices.managementconnector",
@@ -50,7 +50,7 @@ class HybridSyslogTests(unittest.TestCase):
         expected_step1_calls = [fmc_call, cafe_call]
         register_default_loggers(ManagementConnectorProperties.DEFAULT_LOGGERS)
         mock_write.assert_has_calls(expected_step1_calls)
-        self.assertEquals(mock_write.call_count, 2)
+        self.assertEqual(mock_write.call_count, 2)
         mock_write.reset_mock()
 
         # Step. 2
@@ -64,7 +64,7 @@ class HybridSyslogTests(unittest.TestCase):
         register_default_loggers([ManagementConnectorProperties.HYBRID_PREFIX + "c_cal"])
         mock_write.assert_called_with("/configuration/hybridserviceslogger/name/hybridservices.c_cal",
                                {"name": "hybridservices.c_cal"})
-        self.assertEquals(mock_write.call_count, 1)
+        self.assertEqual(mock_write.call_count, 1)
         mock_write.reset_mock()
 
     def test_hybrid_services_init(self):
@@ -79,7 +79,7 @@ class HybridSyslogTests(unittest.TestCase):
         """
         from managementconnector.platform.hybridlogsetup import initialise_logging_hybrid_services
         initialise_logging_hybrid_services("test_hybrid_services_init")
-        self.assertEquals(len(logging.getLogger("hybridservices").handlers), 2)
+        self.assertEqual(len(logging.getLogger("hybridservices").handlers), 2)
 
 
 if __name__ == "__main__":

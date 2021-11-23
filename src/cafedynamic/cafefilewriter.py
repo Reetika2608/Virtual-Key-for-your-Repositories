@@ -44,7 +44,7 @@ class CAFEFileWriter(PyratempFileWriter):
         """
 
         try:
-            os.chmod(self.get_file_path(), 0644)
+            os.chmod(self.get_file_path(), 0o644)
         except KeyError as ex:
             raise OSError(ex)
     # -------------------------------------------------------------------------

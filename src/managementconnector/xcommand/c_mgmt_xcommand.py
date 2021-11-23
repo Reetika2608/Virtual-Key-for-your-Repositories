@@ -14,7 +14,7 @@ from managementconnector.platform.hybridlogsetup import initialise_logging_hybri
 initialise_logging_hybrid_services("managementconnector")
 
 import json
-import urllib2
+from urllib import error as urllib_error
 import traceback
 from collections import OrderedDict
 import time
@@ -22,7 +22,7 @@ import os
 import shutil
 import ssl
 import jsonschema
-from urlparse import urlsplit
+from urllib.parse import urlsplit
 from base64 import urlsafe_b64decode, b64decode
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_der_public_key
@@ -151,8 +151,8 @@ def run(command_name, parameters, callback, error_callback):
         if file_data:
             DEV_LOGGER.info('Detail="reapply_cached_rollback_cdb - applying cache for %s"', service_name)
 
-            for table, entry in file_data.iteritems():
-                for path, value in entry.iteritems():
+            for table, entry in file_data.items():
+                for path, value in entry.items():
                     full_path = table + "name/" + path
                     config.write(full_path, {"value": value})
                 # Cleanup file after data has been reapplied.
@@ -182,7 +182,7 @@ def run(command_name, parameters, callback, error_callback):
         try:
             Http.get(url, headers)
             status = "Found_good_certs"
-        except urllib2.HTTPError as http_error:
+        except urllib_error.HTTPError as http_error:
             DEV_LOGGER.error('Detail="precheck response, http failure: %s, reason: %s', http_error, http_error.reason)
             status = "Not_found"
 
@@ -198,7 +198,7 @@ def run(command_name, parameters, callback, error_callback):
             DEV_LOGGER.error('Detail="precheck response, cert failure(3): %s', cert_exception)
             status = "Found_bad_certs"
 
-        except urllib2.URLError as url_error:
+        except urllib_error.URLError as url_error:
             DEV_LOGGER.error('Detail="precheck response, http failure(2): %s', url_error)
             status = "Not_found"
 
@@ -307,7 +307,7 @@ def run(command_name, parameters, callback, error_callback):
             config.write_blob(ManagementConnectorProperties.FUSED, 'true')
 
             target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
-            if(target_type == config.read(ManagementConnectorProperties.SERVICE_NAME)):
+            if target_type == config.read(ManagementConnectorProperties.SERVICE_NAME):
                 config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {config.read(ManagementConnectorProperties.SERVICE_NAME): 'true'})
             else:
                 config.write_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, {config.read(ManagementConnectorProperties.TARGET_TYPE): 'true'})
@@ -322,7 +322,7 @@ def run(command_name, parameters, callback, error_callback):
             # finally clause will handle the callback when everything is completely done
             failure_occurred = False
 
-        except urllib2.HTTPError as http_error:
+        except urllib_error.HTTPError as http_error:
             DEV_LOGGER.error('Detail="Management Connector XCommand failed with HTTPError error: %s, stacktrace=%s, '
                              'reason: %s', http_error, traceback.format_exc(), http_error.reason)
 
@@ -357,7 +357,7 @@ def run(command_name, parameters, callback, error_callback):
 
             error_callback(error)
 
-        except urllib2.URLError as url_error:
+        except urllib_error.URLError as url_error:
             DEV_LOGGER.error('Detail="Management Connector XCommand failed with URLError error: %s, stacktrace=%s',
                              url_error, traceback.format_exc())
 
@@ -409,7 +409,7 @@ def run(command_name, parameters, callback, error_callback):
         DEV_LOGGER.info('Detail="ManagementConnector deregistered check xcommand called"')
 
         database_handler = DatabaseHandler()
-        for x in xrange(ManagementConnectorProperties.CDB_CLEAN_TIMEOUT):
+        for x in range(ManagementConnectorProperties.CDB_CLEAN_TIMEOUT):
             state = database_handler.read(ManagementConnectorProperties.FUSED)
             if not state:
                 message = 'Management Connector is deregistered from the Cisco Collaboration Cloud'
@@ -484,7 +484,7 @@ def run(command_name, parameters, callback, error_callback):
                 b64decode(ManagementConnectorProperties.COMMANDS_TEST_PUB_KEY),
                 default_backend())
         else:
-            with open('/opt/c_mgmt/etc/hercules.pem') as pem:
+            with open('/opt/c_mgmt/etc/hercules.pem', 'rb') as pem:
                 public_key = load_pem_public_key(
                     pem.read(),
                     default_backend())
@@ -495,7 +495,7 @@ def run(command_name, parameters, callback, error_callback):
 
         try:
             public_key.verify(urlsafe_b64decode(signature),
-                              str(urlsafe_b64decode(bootstrap)),
+                              urlsafe_b64decode(bootstrap),
                               padding.PKCS1v15(),
                               hashes.SHA256())
             DEV_LOGGER.info('Detail="Successfully verified the standard signature."')
@@ -504,7 +504,7 @@ def run(command_name, parameters, callback, error_callback):
         except InvalidSignature:
             try:
                 public_key.verify(urlsafe_b64decode(urlsafe_b64decode(signature)),
-                                  str(urlsafe_b64decode(bootstrap)),
+                                  urlsafe_b64decode(bootstrap),
                                   padding.PKCS1v15(),
                                   hashes.SHA256())
                 DEV_LOGGER.info('Detail="Successfully verified the double wrapped signature"')
@@ -530,6 +530,7 @@ def run(command_name, parameters, callback, error_callback):
             config.write_blob(ManagementConnectorProperties.U2C_IDENTITY_HOST, bootstrap_json["identityUrl"])
         if "targetType" in bootstrap_json:
             config.write_blob(ManagementConnectorProperties.TARGET_TYPE, bootstrap_json["targetType"])
+
     def get_bare_url(raw_url):
         """ get_bare_url """
         parsed_url = urlsplit(raw_url)
@@ -537,7 +538,7 @@ def run(command_name, parameters, callback, error_callback):
 
     def usage():
         """Output correct usage information"""
-        message = "Incorrect Command supplied: %s - Current options: " % command_name + ", ".join(run_options.keys())
+        message = "Incorrect Command supplied: %s - Current options: " % command_name + ", ".join(list(run_options.keys()))
         callback(message)
 
     # -------------------------------------------------------------------------
@@ -576,14 +577,14 @@ def run(command_name, parameters, callback, error_callback):
 def error_handler(message):
     """ report error content back from xcommand """
     # print the error message to stdout so that the invoking script can pass along the content
-    print json.dumps(message)
+    print(json.dumps(message))
     sys.exit(ManagementConnectorProperties.SYS_ERROR_CODE)
 
 
 def success_handler(message):
     """ report success content back from xcommand """
     # print the success message to stdout so that invoking script can pass along the content
-    print message
+    print(message)
     sys.exit(ManagementConnectorProperties.SYS_SUCCESS_CODE)
 
 

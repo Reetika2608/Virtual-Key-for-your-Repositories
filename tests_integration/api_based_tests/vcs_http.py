@@ -7,7 +7,7 @@ browser.
 import logging
 import re
 from time import sleep
-from urlparse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 
 import requests
 
@@ -89,7 +89,7 @@ class VCSHttpSession(object):
             verify=False,
             allow_redirects=False
         )
-        ck = self.session.cookies.keys()
+        ck = list(self.session.cookies.keys())
         log.info("Cookies obtained: %s" % str(ck))
         if 'SHARPID' not in ck or 'tandberg_login' not in ck:
             msg = "VCS login failed."
@@ -101,7 +101,7 @@ class VCSHttpSession(object):
         def _verify_login_decorator(self, *args, **kwargs):
             url = "https://" + self.hostname + "/overview"
             r = self.session.get(url, verify=False)
-            ck = self.session.cookies.keys()
+            ck = list(self.session.cookies.keys())
             if 'SHARPID' not in ck or 'tandberg_login' not in ck:
                 self._login()
             fn(self, *args, **kwargs)

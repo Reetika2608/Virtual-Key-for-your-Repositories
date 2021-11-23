@@ -5,7 +5,7 @@ import json
 import sys
 import unittest
 import mock
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -14,7 +14,7 @@ sys.modules['pyinotify'] = mock.MagicMock()
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 from pyfakefs import fake_filesystem_unittest
-from productxml import PRODUCT_XML_CONTENTS
+from .productxml import PRODUCT_XML_CONTENTS
 from managementconnector.cloud.atlas import Atlas
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.platform import http
@@ -31,7 +31,7 @@ def get_version(name):
 
 
 def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
-    ''' used for mock test intercept'''
+    """ used for mock test intercept """
     DEV_LOGGER.info("Mocked Post:" )
 
     rtn =  json.loads(data)
@@ -157,7 +157,7 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
 
         mock_service.get_alarms.return_value = json.loads(alarm_list_str)
 
-        json_response =  self.atlas.register_connector(HEADERS, mock_service)
+        json_response = self.atlas.register_connector(HEADERS, mock_service)
 
         DEV_LOGGER.info('test_post_status: RESPONSE %s' %(json_response))
 
@@ -170,10 +170,10 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
         self.assertTrue(json_response['status']['connectorStatus'] == {})
 
         # host hardware
-        self.assertEquals(json_response['hostHardware']['cpus'], "2")
-        self.assertEquals(json_response['hostHardware']['totalMemory'], "131344384")
-        self.assertEquals(json_response['hostHardware']['totalDisk'], "131344384")
-        self.assertEquals(json_response['hostHardware']['hostType'], "virtual")
+        self.assertEqual(json_response['hostHardware']['cpus'], "2")
+        self.assertEqual(json_response['hostHardware']['totalMemory'], "131344384")
+        self.assertEqual(json_response['hostHardware']['totalDisk'], "131344384")
+        self.assertEqual(json_response['hostHardware']['hostType'], "virtual")
 
         self.assertTrue(json_response['provisioning'] == PROVISIONING)
 
@@ -181,7 +181,6 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
 
 
         DEV_LOGGER.info('test_register_device: end')
-
 
     @mock.patch('managementconnector.cloud.atlas.System')
     @mock.patch('managementconnector.cloud.atlas.jsonhandler.read_json_file')
@@ -216,7 +215,7 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
 
         mock_service.get_alarms.return_value = json.loads(alarm_list_str)
 
-        json_request =  self.atlas._get_post_request_data(mock_service)
+        json_request = self.atlas._get_post_request_data(mock_service)
 
         DEV_LOGGER.info('test_get_post_request_data: RESPONSE %s' %(json_request))
 
@@ -232,7 +231,7 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
 
         mock_service.get_alarms.return_value = json.loads(alarm_list_str)
 
-        json_request =  self.atlas._get_post_request_data(mock_service)
+        json_request = self.atlas._get_post_request_data(mock_service)
 
         DEV_LOGGER.info('test_get_post_request_data: RESPONSE %s' %(json_request))
 
@@ -253,9 +252,9 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
 
         DEV_LOGGER.info('test_get_post_request_data: RESPONSE %s' %(json_request))
 
-        expected_val = [{'text': u'DNS Settings', 'link': alarm_prefix_url + 'dns'},
-                        {'text': u'Proxy Settings', 'link': alarm_prefix_url + 'fusionproxy'},
-                        {'text': u'Ping', 'link': alarm_prefix_url + 'ping'}]
+        expected_val = [{'text': 'DNS Settings', 'link': alarm_prefix_url + 'dns'},
+                        {'text': 'Proxy Settings', 'link': alarm_prefix_url + 'fusionproxy'},
+                        {'text': 'Ping', 'link': alarm_prefix_url + 'ping'}]
 
         alarm = json_request['status']['alarms'][0]
         self.assertEqual(alarm['solution_replacement_values'][0]['link'], expected_val[0]['link'])
@@ -265,9 +264,7 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
 
         http._http_request = _orig_http_request
 
-
         DEV_LOGGER.info('test_get_post_request_data: end')
-
 
     def test_order_connectors(self):
         """

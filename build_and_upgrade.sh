@@ -19,7 +19,7 @@ build(){
     BUILD_TYPE=$2
     if [[ -z "${BUILD_NUMBER}" ]]
     then
-        BUILD_NUMBER=12345
+        BUILD_NUMBER=12346
     fi
     if [[ -z "${BUILD_TYPE}" ]]
     then

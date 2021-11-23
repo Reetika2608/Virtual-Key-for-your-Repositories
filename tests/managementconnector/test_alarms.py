@@ -2,7 +2,7 @@ import unittest
 import sys
 import logging
 import mock
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -85,7 +85,6 @@ class AlarmsTest(unittest.TestCase):
         alarm.clear_alarms([test_id2])
 
         mock_alarmmanager.lower_alarm.assert_called_once_with(test_uuid)
-
 
 
 if __name__ == "__main__":

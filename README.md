@@ -50,7 +50,7 @@ Everything under `/files` will get stuffed into the Debian package
 
 `Xcommand cafe c_mgmt`//telling cafe to look import the c_mgmt.py module under  `/files`
 
-Expressway run on Python 2.7. For compiled Python, pyc files NEEDS to run on the same magic numbers. FMC now has its own Python 2.7.15. 
+Expressway run on Python 2.7. For compiled Python, pyc files NEEDS to run on the same magic numbers. FMC now has its own Python 3.9.7. 
 
 We have wrappers so we can use i.e Python 3 in FMC, but still invoke the 2.7.15 commands on expressway. 
 Commands:

@@ -105,7 +105,7 @@ class CAFEStatusManagerTest(unittest.TestCase):
         component_name = 'my_failure_component'
         status_file = CAFEProperties.get_config_status_file_format() % (CAFEProperties.get_config_status_dir(), component_name)
 
-        for error_type, error_msg in CAFEStatusManager.error_type_to_msg_map().iteritems():
+        for error_type, error_msg in CAFEStatusManager.error_type_to_msg_map().items():
             self.cafe_status_manager.set_status(component_name, CAFEStatusManager.error(), error_type)
             DEV_LOGGER.debug('***TEST*** test_cafe_status_manager_error_status: Verifying error type "%s" error msg "%s".' % (error_type, error_msg))
             self.assertTrue(os.path.exists(status_file),
@@ -144,7 +144,7 @@ class CAFEStatusManagerTest(unittest.TestCase):
         self.assertTrue(os.path.exists(status_file),
                         'Status file "%s" not written for component "%s"' % (status_file, component_name))
 
-        status_data = None;
+        status_data = None
         with open(status_file, 'r') as status:
             status_data = json.load(status)
 
@@ -162,6 +162,7 @@ class CAFEStatusManagerTest(unittest.TestCase):
                          % (CAFEStatusManager.error_type_to_msg_map()[CAFEStatusManager.cafeunknownerror()], status_data['component']['error']['error_msg']))
 
 # =============================================================================
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

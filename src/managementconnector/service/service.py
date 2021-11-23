@@ -6,8 +6,8 @@
 import shutil
 import logging
 import time
-from urllib2 import URLError
-from urllib2 import HTTPError
+from urllib.error import URLError
+from urllib.error import HTTPError
 from distutils.version import StrictVersion
 import re
 
@@ -38,21 +38,21 @@ DISABLE_RETRIES = 20
 
 
 class ServiceException(Exception):
-    ''' handle custom exceptions for service class '''
+    """ handle custom exceptions for service class """
     pass
 
 # =============================================================================
 
 
 class InstallException(ServiceException):
-    ''' handles install exceptions '''
+    """ handles install exceptions """
     pass
 
 # =============================================================================
 
 
 class UninstallException(ServiceException):
-    ''' handles uninstall exceptions '''
+    """ handles uninstall exceptions """
     pass
 
 # =============================================================================
@@ -66,7 +66,7 @@ class EnableException(ServiceException):
 
 
 class DisableException(ServiceException):
-    ''' handles disable exceptions '''
+    """ handles disable exceptions """
     pass
 
 
@@ -74,44 +74,44 @@ class DisableException(ServiceException):
 
 
 class CertNameException(ServiceException):
-    ''' handles disable exceptions '''
+    """ handles disable exceptions """
     pass
 
 
 class DownloadException(ServiceException):
-    ''' handles url/tlp download exceptions '''
+    """ handles url/tlp download exceptions """
     pass
 
 
 class ServiceCertificateExceptionFusionCA(ServiceException):
-    ''' handles url/tlp download exceptions '''
+    """ handles url/tlp download exceptions """
     pass
 
 
 class ServiceCertificateExceptionNameMatch(ServiceException):
-    ''' handles url/tlp download exceptions '''
+    """ handles url/tlp download exceptions """
     pass
 
 
 class ServiceCertificateExceptionInvalidCert(ServiceException):
-    ''' handles url/tlp download exceptions '''
+    """ handles url/tlp download exceptions """
     pass
 
 
 class DownloadTLPAccessException(DownloadException):
-    ''' Invalid TLP Path '''
+    """ Invalid TLP Path """
     pass
 
 
 class DownloadServerUnavailableException(DownloadException):
-    ''' Can't Reach the TLP Server '''
+    """ Can't Reach the TLP Server """
     pass
 
 # =============================================================================
 
 
 class Service(object):
-    ''' Management Connector Service Class'''
+    """ Management Connector Service Class"""
 
     def __str__(self):
         return 'Management Connector Service Class'
@@ -123,7 +123,7 @@ class Service(object):
     # -------------------------------------------------------------------------
 
     def __init__(self, name, config, oauth, ManifestClass=ServiceManifest):
-        ''' Service__init__'''
+        """ Service__init__"""
         self._name = name
         # Mgmt Connector File from which list of enabled services is read
         self._config = config
@@ -141,34 +141,34 @@ class Service(object):
     # -------------------------------------------------------------------------
 
     def get_name(self):
-        ''' Get service name from service object.
-            Returns the service name. '''
+        """ Get service name from service object.
+            Returns the service name. """
         return self._name
 
     def get_install_details(self):
-        ''' Get service config from service object.
-            Returns the service config. '''
+        """ Get service config from service object.
+            Returns the service config. """
         return self._install_details
 
     # -------------------------------------------------------------------------
 
     def update_service_metrics(self):
-        ''' Access method that allows the outside world to
+        """ Access method that allows the outside world to
             call the internal ServiceMetrics update method
-        '''
+        """
         return self._service_metrics.update_service_metrics()
 
     # -------------------------------------------------------------------------
 
     def get_service_metrics(self):
-        '''Return Any Stored Metrics via ServiceMetrics'''
+        """Return Any Stored Metrics via ServiceMetrics"""
 
         return self._service_metrics.get_service_metrics()
 
     # -------------------------------------------------------------------------
 
     def configure(self,  url, version, upgrade_disabled_from_fms):
-        ''' Compares 'new_config' with the service objects existing config.
+        """ Compares 'new_config' with the service objects existing config.
             If there are any config changes, update the system with the
             changes.
 
@@ -180,7 +180,7 @@ class Service(object):
                 raise UninstallException({"message":"The tlp has not un-installed", "name"<blend name>, "version":<blend version>})
                 raise EnableException({"message":"Could not enable service", "name":<ervice name>, "version":<blend version>, "url":<tlp d/l url>})
                 raise DisableException({"message":"Could not disable service", "name":<service name>, "version":<blend version>})
-        '''
+        """
 
         DEV_LOGGER.info('Detail="configure: new_config: %s, url: %s, version: %s, upgrade_disabled_from_fms:%s"' %
                         (self._install_details, url, version, upgrade_disabled_from_fms))
@@ -382,7 +382,7 @@ class Service(object):
         entitled_services = config.read(ManagementConnectorProperties.ENTITLED_SERVICES)
 
         # create list with both name and display_name
-        all_service_details = [service.values() for service in entitled_services]
+        all_service_details = [list(service.values()) for service in entitled_services]
 
         # flatten list and extract unique names
         services_keywords = [name for service in all_service_details for name in service]
@@ -391,12 +391,11 @@ class Service(object):
         connector_keywords = list(set(connector_keywords + services_keywords))
 
         for parameter in alarm.get('parameters', []):
-            if any(keyword in parameter for keyword in connector_keywords if isinstance(parameter, unicode)):
+            if any(keyword in parameter for keyword in connector_keywords if isinstance(parameter, str)):
                 return True
         return False
 
     # -------------------------------------------------------------------------
-
 
     def get_alarms(self):
         "indicates whether alarm is associated with service"
@@ -405,7 +404,7 @@ class Service(object):
 
         alarm_list = self._config.read(ManagementConnectorProperties.ALARMS_RAISED)
 
-        if(not alarm_list):
+        if not alarm_list:
             return rtn_list
 
         for alarm in alarm_list:
@@ -416,7 +415,6 @@ class Service(object):
             if alarm_id in self._manifest.get_external_alarms():
                 if Service.is_related_external_alarm(alarm, self._config):
                     rtn_list.append(alarm)
-
 
         return rtn_list
 
@@ -461,13 +459,13 @@ class Service(object):
             DEV_LOGGER.info('Detail="FMC_Lifecycle _download: downloading {0} tlp complete, took {1} seconds"'
                             .format(self._name, round(download_duration, 3)))
 
-        except InvalidProtocolException, ivpe:
+        except InvalidProtocolException as ivpe:
             raise DownloadTLPAccessException({"message": "problem accessing tlp due to invalid protocol", "reason": ivpe.reason}) # pylint: disable=E1101
-        except HTTPError, httpe:
+        except HTTPError as httpe:
             # HTTP Error means we have found server, but had problem accessing resource
             DEV_LOGGER.error('Detail="_install:HTTP error: reason={0}, code={1}"'.format(httpe.reason, httpe.code))
             raise DownloadTLPAccessException({"message": "problem accessing tlp", "reason": httpe.reason})
-        except URLError, urle:
+        except URLError as urle:
             DEV_LOGGER.error('Detail="_install:failed to reach a server: reason=%s"', urle.reason)
             # URL Error means we could not find TLP Server. 550 is a special case where we tried to FTP
             # a file that did not exist
@@ -475,13 +473,13 @@ class Service(object):
                 raise DownloadTLPAccessException({"message": "problem accessing tlp", "reason": urle.reason})
             else:
                 raise DownloadServerUnavailableException({"message": "failed to reach a server", "reason": urle.reason})
-        except CertificateExceptionFusionCA, cefca:
+        except CertificateExceptionFusionCA as cefca:
             DEV_LOGGER.error('Detail="_install:CertificateExceptionFusionCA: strerror=%s"', cefca)
             raise ServiceCertificateExceptionFusionCA({"message": "IOError", "strerror": cefca})
-        except CertificateExceptionNameMatch, cenm:
+        except CertificateExceptionNameMatch as cenm:
             DEV_LOGGER.error('Detail="_install:CertificateExceptionNameMatch: strerror=%s"', cenm)
             raise ServiceCertificateExceptionNameMatch({"message": "IOError", "strerror": cenm})
-        except CertificateExceptionInvalidCert, ceic:
+        except CertificateExceptionInvalidCert as ceic:
             DEV_LOGGER.error('Detail="_install:CertificateExceptionInvalidCert: strerror=%s"',  ceic)
             raise ServiceCertificateExceptionInvalidCert({"message": "CertException", "strerror": ceic})
 
@@ -490,7 +488,7 @@ class Service(object):
     # -------------------------------------------------------------------------
 
     def _install(self, tlp_path_tmp):
-        ''' install tlp '''
+        """ install tlp """
         name = self._name
         url = self._install_details['url']
         version = self._install_details['version']
@@ -530,7 +528,7 @@ class Service(object):
     # -------------------------------------------------------------------------
 
     def uninstall(self, upgrade=False):
-        ''' uninstall tlp'''
+        """ uninstall tlp"""
         DEV_LOGGER.info('Detail="FMC_Lifecycle _uninstall: un-install TLP: name=%s"' % (self._name))
         if CafeXUtils.is_package_installed(self._name):
             DEV_LOGGER.info('Detail="FMC_Lifecycle _uninstall: TLP: name=%s is currently installed"' % (self._name))
@@ -571,7 +569,7 @@ class Service(object):
     # -------------------------------------------------------------------------
 
     def disable(self, retries=DISABLE_RETRIES):
-        ''' disable '''
+        """ disable """
         DEV_LOGGER.info('Detail="FMC_Lifecycle _disable: disable service: name=%s"' % (self._name))
         # always do it to ensure we have a db entry for a new 'disabled' blend
         self._rest_client.delete_enabled_service_blob(self._name)
@@ -588,7 +586,7 @@ class Service(object):
 
     # -------------------------------------------------------------------------
     def enable(self):
-        ''' enable '''
+        """ enable """
         DEV_LOGGER.info('Detail="FMC_Lifecycle enable: enable service: name=%s"' % (self._name))
         if not (self._is_enabled()):
             self._rest_client.update_blob(ManagementConnectorProperties.ENABLED_SERVICES_STATE, self._name, "true")
@@ -597,7 +595,7 @@ class Service(object):
             DEV_LOGGER.info('Detail="FMC_Lifecycle service: %s is %s "' % (self._name, self._is_enabled()))
 
         for i in range(ENABLE_RETRIES):
-            if (CafeXUtils.is_connector_running(self._name, DEV_LOGGER)):
+            if CafeXUtils.is_connector_running(self._name, DEV_LOGGER):
                 DEV_LOGGER.info('Detail="FMC_Lifecycle enable: service is enabled: name=%s"' % (self._name))
                 break
 
@@ -613,7 +611,7 @@ class Service(object):
                 raise EnableException({"message": "Could not enable service", "name": self._name, "version": version})
 
     def _is_enabled(self, read_from_json=True):
-        ''' get enabled status of service. '''
+        """ get enabled status of service. """
 
         is_enabled = False
 
@@ -632,7 +630,7 @@ class Service(object):
     # -------------------------------------------------------------------------
 
     def requires_refresh(self, version):
-        ''' methods that indicate whether installed version is need of update '''
+        """ methods that indicate whether installed version is need of update """
 
         rtn = False
 
@@ -690,6 +688,7 @@ class Service(object):
         return allowed
 
     # -------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

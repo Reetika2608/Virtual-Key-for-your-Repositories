@@ -1,6 +1,6 @@
 """ Class to Manage U2C Retrieval """
 import json
-from urlparse import urlsplit
+from urllib.parse import urlsplit
 
 from managementconnector.cloud import schema
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties

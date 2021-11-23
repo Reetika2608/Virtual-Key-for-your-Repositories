@@ -81,7 +81,7 @@ class WatchdogThread(threading.Thread):
 
             broken = False
             if working_states:
-                for key, value in working_states.iteritems():
+                for key, value in working_states.items():
                     if ManagementConnectorProperties.WATCHDOG_WORKING_STATE in value:
                         if not value[ManagementConnectorProperties.WATCHDOG_WORKING_STATE]:
                             broken = True

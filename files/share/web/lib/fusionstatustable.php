@@ -249,7 +249,7 @@ class FusionStatus extends AjaxStatus
                    $link_text = "cloudregistration?uuid=";
                 }
                 if($service === "c_mgmt" || $service === "c_ccucmgmt")
-                { 
+                {
                     $new_record['active'] = tt_gettext("Enabled");
                     array_unshift($records, $new_record); // prepend c_mgmt so it appears first by default
                 }

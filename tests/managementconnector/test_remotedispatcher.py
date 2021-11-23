@@ -7,7 +7,7 @@ import unittest
 import logging
 import mock
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
@@ -15,7 +15,7 @@ sys.modules['pyinotify'] = mock.MagicMock()
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 from pyfakefs import fake_filesystem_unittest
-from productxml import PRODUCT_XML_CONTENTS
+from .productxml import PRODUCT_XML_CONTENTS
 from managementconnector.cloud.remotedispatcher import RemoteDispatcher
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
@@ -48,7 +48,7 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
                 "command": {
                     "commandId": "159b5d02-127b-469f-b33a-4dfde4526b1c",
                     "connectorId": "c_mgmt@52A00612",
-                    "action": u"ping",
+                    "action": "ping",
                     "created": "2016-08-05T14:48:05.656Z",
                     "updated": "2016-08-05T14:48:05.656Z",
                     "status": "dispatched",
@@ -99,8 +99,8 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
         """ User Story: US13960 Implement FMC and RemoteDispatcher interaction (Register/Ping)"""
         DEV_LOGGER.info("***TEST*** test_verifying_signature")
         RemoteDispatcher.config = mock.Mock()
-
         RemoteDispatcher.config.read.return_value = 'true'
+
         self.assertTrue(RemoteDispatcher.verify_signature(self.command), "Signature should be authentic in test mode")
 
         # RemoteDispatcher.config.read.return_value = 'false'
@@ -214,7 +214,7 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
         status = RemoteDispatcher.process_ping()
         DEV_LOGGER.info("RemoteDispatcher process_ping: status: %s", status)
 
-        self.assertEquals(status, expected_status)
+        self.assertEqual(status, expected_status)
 
     @mock.patch('managementconnector.cloud.remotedispatcher.RemoteDispatcher.verify_signature')
     @mock.patch('managementconnector.cloud.remotedispatcher.System.am_i_master')
@@ -361,14 +361,14 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
         mock_logarchiver_push_log.return_value = {'logsearchId': '12345', 'status' : 'complete'}
         RemoteDispatcher.oauth = mock.Mock()
         command_output, status = RemoteDispatcher.process_push_logs('12345')
-        self.assertEquals(status, 'complete')
-        self.assertEquals(command_output['c_mgmt'], {'logsearchId': '12345', 'status' : 'complete'})
+        self.assertEqual(status, 'complete')
+        self.assertEqual(command_output['c_mgmt'], {'logsearchId': '12345', 'status' : 'complete'})
 
     def test_processing_push_logs_without_logsearchId(self):
         """ User Story: US13960 Implement FMC and RemoteDispatcher interaction (Register/Ping) """
         command_output, status = RemoteDispatcher.process_push_logs(None)
-        self.assertEquals(status, 'error')
-        self.assertEquals(command_output['c_mgmt'], {'logsearchId': 'Not provided'})
+        self.assertEqual(status, 'error')
+        self.assertEqual(command_output['c_mgmt'], {'logsearchId': 'Not provided'})
 
     @mock.patch('managementconnector.platform.corearchiver.CoreArchiver.retrieve_and_archive_cores')
     def test_processing_core_dump(self, mock_core_dump):
@@ -376,14 +376,14 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
         mock_core_dump.return_value = {'searchId': '12345', 'status' : 'complete'}
         RemoteDispatcher.oauth = mock.Mock()
         command_output, status = RemoteDispatcher.process_core_dump('12345')
-        self.assertEquals(status, 'complete')
-        self.assertEquals(command_output['c_mgmt'], {'searchId': '12345', 'status' : 'complete'})
+        self.assertEqual(status, 'complete')
+        self.assertEqual(command_output['c_mgmt'], {'searchId': '12345', 'status' : 'complete'})
 
     def test_processing_core_dump_without_searchId(self):
         """ User Story: US13627 RD: New Command for Gathering Cores """
         command_output, status = RemoteDispatcher.process_core_dump(None)
-        self.assertEquals(status, 'error')
-        self.assertEquals(command_output['c_mgmt'], {'searchId': 'Not provided'})
+        self.assertEqual(status, 'error')
+        self.assertEqual(command_output['c_mgmt'], {'searchId': 'Not provided'})
 
     @mock.patch('managementconnector.platform.connectivitycheck.ConnectivityCheck.check_connectivity_to_url')
     def test_processing_connectivity_check(self, mock_connectivity_check):
@@ -393,41 +393,41 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
         mock_connectivity_check.return_value = {'pingResult': 'passed', 'getResult': 'passed', 'url': url}
         RemoteDispatcher.oauth = mock.Mock()
         command_output, status = RemoteDispatcher.process_connectivity_check(url)
-        self.assertEquals(status, 'complete')
-        self.assertEquals(command_output['c_mgmt'], {'pingResult': 'passed', 'getResult': 'passed', 'url': url})
+        self.assertEqual(status, 'complete')
+        self.assertEqual(command_output['c_mgmt'], {'pingResult': 'passed', 'getResult': 'passed', 'url': url})
 
         #GET passed, ping failed
         mock_connectivity_check.resest_mock()
         mock_connectivity_check.return_value = {'pingResult': 'failed', 'getResult': 'passed', 'url': url}
         command_output, status = RemoteDispatcher.process_connectivity_check(url)
-        self.assertEquals(status, 'complete')
-        self.assertEquals(command_output['c_mgmt'], {'pingResult': 'failed', 'getResult': 'passed', 'url': url})
+        self.assertEqual(status, 'complete')
+        self.assertEqual(command_output['c_mgmt'], {'pingResult': 'failed', 'getResult': 'passed', 'url': url})
 
         #GET not_found, ping passed
         mock_connectivity_check.resest_mock()
         mock_connectivity_check.return_value = {'pingResult': 'passed', 'getResult': 'not_found', 'url': url}
         command_output, status = RemoteDispatcher.process_connectivity_check(url)
-        self.assertEquals(status, 'complete')
-        self.assertEquals(command_output['c_mgmt'], {'pingResult': 'passed', 'getResult': 'not_found', 'url': url})
+        self.assertEqual(status, 'complete')
+        self.assertEqual(command_output['c_mgmt'], {'pingResult': 'passed', 'getResult': 'not_found', 'url': url})
 
         #GET cert_error, ping failed
         mock_connectivity_check.resest_mock()
         mock_connectivity_check.return_value = {'pingResult': 'failed', 'getResult': 'not_found', 'url': url}
         command_output, status = RemoteDispatcher.process_connectivity_check(url)
-        self.assertEquals(status, 'complete')
-        self.assertEquals(command_output['c_mgmt'], {'pingResult': 'failed', 'getResult': 'not_found', 'url': url})
+        self.assertEqual(status, 'complete')
+        self.assertEqual(command_output['c_mgmt'], {'pingResult': 'failed', 'getResult': 'not_found', 'url': url})
 
     def test_processing_connectivity_check_without_url(self):
         """ User Story: SPARK-31235 RD: New Command to Test Connectivity """
         command_output, status = RemoteDispatcher.process_connectivity_check(None)
-        self.assertEquals(status, 'error')
-        self.assertEquals(command_output['c_mgmt'], {'url': 'Not provided'})
+        self.assertEqual(status, 'error')
+        self.assertEqual(command_output['c_mgmt'], {'url': 'Not provided'})
 
     def test_processing_connectivity_check_with_http_url(self):
         """ User Story: SPARK-31235 RD: New Command to Test Connectivity """
         command_output, status = RemoteDispatcher.process_connectivity_check('http://www.123.abc')
-        self.assertEquals(status, 'error')
-        self.assertEquals(command_output['c_mgmt'], {'url': 'HTTP not supported'})
+        self.assertEqual(status, 'error')
+        self.assertEqual(command_output['c_mgmt'], {'url': 'HTTP not supported'})
 
     @mock.patch('glob.glob')
     @mock.patch('os.path.basename')
@@ -457,6 +457,7 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
         RemoteDispatcher.oauth = mock.Mock()
         command_output, status = RemoteDispatcher.process_push_logs('12345')
         self.assertTrue(mock_gather_config.called)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

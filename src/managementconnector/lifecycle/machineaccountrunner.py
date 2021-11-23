@@ -44,7 +44,7 @@ class MachineAccountRunner(object):
         running = False
 
         if self._machine_thread:
-            running = self._machine_thread.isAlive()
+            running = self._machine_thread.is_alive()
 
         return running
 

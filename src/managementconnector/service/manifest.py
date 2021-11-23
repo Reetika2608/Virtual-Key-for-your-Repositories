@@ -96,11 +96,11 @@ class ServiceManifest():
                                     self.suppressed,
                                     self.external_alarms))
 
-            except IOError, ioex:
+            except IOError as ioex:
                 DEV_LOGGER.error('Detail="ServiceManifest: No Manifest File for %s "', path_to_cat)
                 DEV_LOGGER.error('Detail="ServiceManifest: I/O error, err code %s, err message %s"',
                                  errno.errorcode[ioex.errno], os.strerror(ioex.errno))
-            except AlarmFormatError, afe:
+            except AlarmFormatError as afe:
                 DEV_LOGGER.error('Detail="ServiceManifest: Manifest Format Error. Service %s: %s"',
                                  service_name, afe)
 
@@ -113,7 +113,7 @@ class ServiceManifest():
         rtn = False
 
         if self.init:
-            if alarm_id >= self.start and alarm_id <= self.end:
+            if self.start <= alarm_id <= self.end:
                 rtn = True
 
         DEV_LOGGER.debug('Detail="ServiceManifest(%s): contains_alarm returning %s, for alarm %s"' %
@@ -137,7 +137,7 @@ class ServiceManifest():
         """ return cgroup limit from the manifest. If the maifest has no limits
             then return {'cpu':100, 'memory':100}
         """
-        if (not self.init):
+        if not self.init:
             self.setup(self.service)
 
         return self.cgroup_limits

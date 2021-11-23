@@ -1,8 +1,9 @@
 """ HTTP """
 import threading
 import json
-import urllib2
-import httplib
+from urllib import request as urllib_request
+from urllib import error as urllib_error
+import http.client
 import os
 import ssl
 import socket
@@ -23,25 +24,26 @@ except ImportError:
     import sys
     import mock
     sys.modules['taacrypto'] = mock.Mock()
-    import taacrypto # pylint: disable=ungrouped-imports
+    import taacrypto  # pylint: disable=ungrouped-imports
+
 
 class CertificateExceptionFusionCA(Exception):
-    ''' CertificateExceptionFusionCA '''
+    """ CertificateExceptionFusionCA """
     pass
 
 
 class CertificateExceptionNameMatch(Exception):
-    ''' CertificateExceptionNameMatch '''
+    """ CertificateExceptionNameMatch """
     pass
 
 
 class CertificateExceptionInvalidCert(Exception):
-    ''' CertificateExceptionInvalidCert '''
+    """ CertificateExceptionInvalidCert """
     pass
 
 
 class InvalidProtocolException(Exception):
-    '''InvalidProtocolException'''
+    """InvalidProtocolException"""
     pass
 
 
@@ -71,13 +73,13 @@ class Http(object):
         DEV_LOGGER.debug('Detail="_download: getting html for: path=%s, url=%s"' % (path, url))
 
         headers = dict()
-        headers['Content-Type'] = 'application/json'
+        headers['Content-Type'] = 'application/json; charset=UTF-8'
 
         page = Http._http_request_wrapper(url, headers, None, 'GET', silent=silent, load_validate_json=False)
 
-        meta = page.info()
-        file_size = int(meta.getheaders("Content-Length")[0])
-        DEV_LOGGER.debug('Detail="_download: html file size for: path=%s, url=%s: file size=%d"' % (path, url, file_size))
+        file_size = int(page.getheader("Content-Length"))
+        DEV_LOGGER.debug(
+            'Detail="_download: html file size for: path=%s, url=%s: file size=%d"' % (path, url, file_size))
         chunk_size = 16 * 1024
         with open(path, 'wb') as file_to_write:
             while True:
@@ -131,16 +133,17 @@ class Http(object):
 
     @staticmethod
     def _http_request_wrapper(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
-        ''' wrapper '''
+        """ wrapper """
         headers['TrackingID'] = Http.create_tracking_id()
 
         agent_key = ManagementConnectorProperties.USER_AGENT
 
-        if (agent_key not in headers):
+        if agent_key not in headers:
             headers[agent_key] = ManagementConnectorProperties.USER_AGENT_VALUE
 
         try:
-            response=_http_request(url, headers, data, request_type, silent=silent, schema=schema, load_validate_json=load_validate_json)
+            response = _http_request(url, headers, data, request_type, silent=silent, schema=schema,
+                                     load_validate_json=load_validate_json)
 
         except Exception:
             Http.error_url = url
@@ -157,11 +160,11 @@ class Http(object):
             return None
 
         proxy = {
-                'address': Http._config.read(ManagementConnectorProperties.PROXY_ADDRESS),
-                'port': Http._config.read(ManagementConnectorProperties.PROXY_PORT),
-                'username': Http._config.read(ManagementConnectorProperties.PROXY_USERNAME),
-                'enabled': Http._config.read(ManagementConnectorProperties.PROXY_ENABLED)
-            }
+            'address': Http._config.read(ManagementConnectorProperties.PROXY_ADDRESS),
+            'port': Http._config.read(ManagementConnectorProperties.PROXY_PORT),
+            'username': Http._config.read(ManagementConnectorProperties.PROXY_USERNAME),
+            'enabled': Http._config.read(ManagementConnectorProperties.PROXY_ENABLED)
+        }
 
         if proxy['address'] is None or proxy['port'] is None:
             DEV_LOGGER.debug('Detail="Proxy is not configured."')
@@ -178,7 +181,8 @@ class Http(object):
                     proxy_details = database_handler.read('https_proxy')
                     proxy['password'] = taacrypto.decrypt_with_system_key(proxy_details['password'])
                 except taacrypto.CryptoError:
-                    DEV_LOGGER.debug('Detail="Http.get_proxy: CDB password was not decrypted, defaulting to no password"')
+                    DEV_LOGGER.debug(
+                        'Detail="Http.get_proxy: CDB password was not decrypted, defaulting to no password"')
                     proxy['password'] = None
         else:
             proxy['password'] = None
@@ -205,7 +209,7 @@ class Http(object):
 
         if proxy['enabled'] == 'false':
             DEV_LOGGER.debug('Detail="Proxy is disabled"')
-            return urllib2.ProxyHandler({})
+            return urllib_request.ProxyHandler({})
 
         proxy_credentials = ""
         if proxy['username'] is not None and proxy['password'] is not None:
@@ -215,11 +219,11 @@ class Http(object):
 
         DEV_LOGGER.debug('Detail="Created proxy handler"')
 
-        return urllib2.ProxyHandler({'https': proxy_credentials})
+        return urllib_request.ProxyHandler({'https': proxy_credentials})
 
     @staticmethod
     def install_urllib_opener():
-        """Build and install urllib2 installer with necessary handlers"""
+        """Build and install urllib installer with necessary handlers"""
         DEV_LOGGER.debug('Detail="Install urllib opener"')
 
         if Http._proxy == Http.get_proxy():
@@ -235,10 +239,13 @@ class Http(object):
                 handlers.append(handler)
 
         DEV_LOGGER.debug('Detail="handlers: {}"'.format(handlers))
-        opener = urllib2.build_opener(*handlers)
-        urllib2.install_opener(opener)
+        opener = urllib_request.build_opener(*handlers)
+
+        urllib_request.install_opener(opener)
 
         DEV_LOGGER.debug('Detail="Installed urllib opener"')
+        return handlers
+
 
 # -------------------------------------------------------------------------
 
@@ -246,7 +253,7 @@ THREAD_LOCK = threading.RLock()
 
 
 def _validate_json_response(response, json_schema):
-    ''' Validates a json response according to the schema passed in'''
+    """ Validates a json response according to the schema passed in"""
 
     if json_schema is not None:
         try:
@@ -265,10 +272,10 @@ def _validate_json_response(response, json_schema):
 
 
 def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
-    ''' used for mock test intercept
+    """ used for mock test intercept
         throws CertificateExceptionInvalidCert,
         CertificateExceptionFusionCA,
-        CertificateExceptionNameMatch'''
+        CertificateExceptionNameMatch"""
 
     THREAD_LOCK.acquire()
     try:
@@ -277,31 +284,33 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
             DEV_LOGGER.error('Detail=' + unsupported_protocol_err)
             raise InvalidProtocolException({"message": "problem accessing tlp", "reason": unsupported_protocol_err})
 
-        req = urllib2.Request(url, None, headers)  # nosec - must be https
+        if data is not None and type(data) is not bytes:
+            data = data.encode()
 
-        if data is not None:
-            req.add_data(data)
+        if not (request_type == 'DELETE' or request_type == 'PUT' or request_type == 'POST' or request_type == 'PATCH'):
+            request_type = 'GET'
 
-        if request_type == 'DELETE' or request_type == 'PUT' or request_type == 'POST' or request_type == 'PATCH':
-            req.get_method = lambda: request_type
+        req = urllib_request.Request(url=url, data=data, headers=headers, method=request_type)  # nosec - must be https
 
         # Remove token as we don't want it written to logs
 
         auth_key = 'Authorization'
         headers_copy = headers.copy()
 
-        if (auth_key in headers):
+        if auth_key in headers:
             del headers_copy[auth_key]
 
         try:
-            response = urllib2.urlopen(req, timeout=ManagementConnectorProperties.HTTP_TIMEOUT)  # nosec - must be https
-        except urllib2.URLError as url_exception:
+            response = urllib_request.urlopen(req, timeout=ManagementConnectorProperties.HTTP_TIMEOUT)  # nosec - must be https
+        except urllib_error.URLError as url_exception:
             if silent:
-                DEV_LOGGER.error('Detail="RAW: _http_request silent: load_validate_json=%s, type=%s, url=%s, headers=%s"' %
-                                (load_validate_json, request_type, url, headers_copy))
+                DEV_LOGGER.error(
+                    'Detail="RAW: _http_request silent: load_validate_json=%s, type=%s, url=%s, headers=%s"' %
+                    (load_validate_json, request_type, url, headers_copy))
             else:
-                DEV_LOGGER.error('Detail="RAW: _http_request: load_validate_json=%s, type=%s, url=%s, headers=%s, data=%s"' %
-                                (load_validate_json, request_type, url, headers_copy, data))
+                DEV_LOGGER.error(
+                    'Detail="RAW: _http_request: load_validate_json=%s, type=%s, url=%s, headers=%s, data=%s"' %
+                    (load_validate_json, request_type, url, headers_copy, data))
 
             if str(url_exception).count("certificate") > 0:
                 if ManagementConnectorProperties.is_fusion_certs_added():
@@ -321,28 +330,31 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
         response = _validate_json_response(response, schema)
 
     if silent:
-        DEV_LOGGER.info('Detail="RAW: _http_request_response silent: type=%s, url=%s, load_validate_json=%s, headers=%s"' %
-                        (request_type, url, load_validate_json, headers_copy))
+        DEV_LOGGER.info(
+            'Detail="RAW: _http_request_response silent: type=%s, url=%s, load_validate_json=%s, headers=%s"' %
+            (request_type, url, load_validate_json, headers_copy))
     else:
-        DEV_LOGGER.info('Detail="RAW: _http_request_response: type=%s, url=%s, load_validate_json=%s, headers=%s, data=%s, response = %s"' %
-                        (request_type, url, load_validate_json, headers_copy, data, response))
+        DEV_LOGGER.info(
+            'Detail="RAW: _http_request_response: type=%s, url=%s, load_validate_json=%s, headers=%s, data=%s, '
+            'response = %s"' %
+            (request_type, url, load_validate_json, headers_copy, data, response))
 
     return response
 
 
-class ValidHTTPSConnection(httplib.HTTPConnection):
-    ''' SSL communication
+class ValidHTTPSConnection(http.client.HTTPConnection):
+    """ SSL communication
       uses ca file to validate cert.
-      Will always validate and use strick checking (match_hostname)'''
+      Will always validate and use strict checking (match_hostname)"""
 
-    default_port = httplib.HTTPS_PORT
+    default_port = http.client.HTTPS_PORT
 
     def __init__(self, *args, **kwargs):
-        ''' Constructor '''
-        httplib.HTTPConnection.__init__(self, *args, **kwargs)
+        """ Constructor """
+        http.client.HTTPConnection.__init__(self, *args, **kwargs)
 
     def connect(self):
-        ''' Connect to a host on a given (SSL) port. '''
+        """ Connect to a host on a given (SSL) port. """
         # On first fuse there is a chance that this file doesn't exist so now we are checking
         # here every time.
         if os.path.exists(ManagementConnectorProperties.COMBINED_CA_FILE):
@@ -383,7 +395,7 @@ class ValidHTTPSConnection(httplib.HTTPConnection):
             san = "Not found"
 
         DEV_LOGGER.debug('Detail="Certificate information: subjectAltName: %s serial_number: %s"'
-                        % (san, serial_number))
+                         % (san, serial_number))
 
         try:
             match_hostname(cert, actual_host)
@@ -394,9 +406,9 @@ class ValidHTTPSConnection(httplib.HTTPConnection):
                 raise CertificateExceptionNameMatch()
 
 
-class ValidHTTPSHandler(urllib2.HTTPSHandler):
-    ''' ValidHTTPSHandler '''
+class ValidHTTPSHandler(urllib_request.HTTPSHandler):
+    """ ValidHTTPSHandler """
 
     def https_open(self, req):
-        ''' https_open '''
+        """ https_open """
         return self.do_open(ValidHTTPSConnection, req)

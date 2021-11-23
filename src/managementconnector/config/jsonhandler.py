@@ -6,6 +6,7 @@ import errno
 
 from base_platform.expressway.filesystemmanager import FilesystemManager
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
+from functools import reduce
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
@@ -119,8 +120,8 @@ class JsonHandler(object):
         except KeyError:
             if parts not in ManagementConnectorProperties.accepted_missing:
                 DEV_LOGGER.debug('Detail="Error occurred getting config. Parts %s did not exist in configuration. '
-                             'Please check %s to ensure you have an up to date config."' %
-                             (parts, self.file_notify_path))
+                                 'Please check %s to ensure you have an up to date config."' %
+                                 (parts, self.file_notify_path))
         return output
 
     def get_int(self, parts):
@@ -202,6 +203,7 @@ def get_last_modified(files):
         content[extension_name] = get_last_modified_timestamp(file_path)
 
     return content
+
 
 def get_last_modified_timestamp(file_path):
     """ gets  last modified timestamp for individual file """

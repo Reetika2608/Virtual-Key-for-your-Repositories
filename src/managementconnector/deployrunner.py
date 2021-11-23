@@ -41,7 +41,7 @@ class DeployRunner(object):
             if self._deploy_thread is not None:
                 self._deploy_thread.stop()
                 self._deploy_thread.join(ManagementConnectorProperties.SHUT_DOWN_WAIT)
-                DEV_LOGGER.info('Detail="DeployRunner: isAlive returns %s."' % (self._deploy_thread.isAlive()))
+                DEV_LOGGER.info('Detail="DeployRunner: isAlive returns %s."' % (self._deploy_thread.is_alive()))
                 self._deploy_thread = None
 
     # -------------------------------------------------------------------------
@@ -51,7 +51,7 @@ class DeployRunner(object):
         running = False
 
         if self._deploy_thread:
-            running = self._deploy_thread.isAlive()
+            running = self._deploy_thread.is_alive()
 
         return running
 

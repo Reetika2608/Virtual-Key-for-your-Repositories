@@ -19,6 +19,7 @@ TARGET_TYPE = Config(inotify=False).read(ManagementConnectorProperties.TARGET_TY
 
 class DeviceManager(object):
     """ Management Connector DeviceManager """
+
     ## Convert all SERVICE_NAME to ConnectorType
 
     def __init__(self):
@@ -27,7 +28,7 @@ class DeviceManager(object):
         DEV_LOGGER.info('Detail="FMC_Websocket WDM Device Info - tt: %s"' % tt)
 
     @staticmethod
-    #---------------------------------------------------
+    # ---------------------------------------------------
     def register(header, config, force_create):
         """ Register FMC with WDM - Based on Calendar Connector  """
         target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
@@ -46,15 +47,16 @@ class DeviceManager(object):
 
             return device_details
 
-        except Exception as error: # pylint: disable=W0703
-            DEV_LOGGER.error('Detail="FMC_Websocket Registration Exception occurred:%s, stacktrace=%s"' % (repr(error), traceback.format_exc()))
+        except Exception as error:  # pylint: disable=W0703
+            DEV_LOGGER.error('Detail="FMC_Websocket Registration Exception occurred:%s, stacktrace=%s"' % (
+            repr(error), traceback.format_exc()))
 
             DeviceManager.remove_mercury_config_from_disk(target_type)
 
             raise error
 
     @staticmethod
-    #---------------------------------------------------
+    # ---------------------------------------------------
     def register_with_wdm(header, config):
         """ Register FMC with WDM """
 
@@ -72,19 +74,21 @@ class DeviceManager(object):
         time_refreshed = int(round(time.time()))
 
         # Useful to write out connection details for End-End Testing
-        DeviceManager.write_mercury_config_to_disk(wdm_device.split('/')[-1], wdm_device, time_refreshed, config.read(ManagementConnectorProperties.TARGET_TYPE))
+        DeviceManager.write_mercury_config_to_disk(wdm_device.split('/')[-1], wdm_device, time_refreshed,
+                                                   config.read(ManagementConnectorProperties.TARGET_TYPE))
 
-        DEV_LOGGER.info('Detail="FMC_Websocket WDM Device Info - WebSocketURL: %s. DeviceID: %s"' % (web_socket_url, wdm_device))
+        DEV_LOGGER.info(
+            'Detail="FMC_Websocket WDM Device Info - WebSocketURL: %s. DeviceID: %s"' % (web_socket_url, wdm_device))
 
-        return {"device_url": wdm_device, "ws_url": web_socket_url,  "last_refreshed" : time_refreshed}
+        return {"device_url": wdm_device, "ws_url": web_socket_url, "last_refreshed": time_refreshed}
 
-
-    #---------------------------------------------------
+    # ---------------------------------------------------
     @staticmethod
     def refresh_with_wdm(header, config):
         """ Refresh FMC with WDM """
         target_type = config.read(ManagementConnectorProperties.TARGET_TYPE)
-        json_content = jsonhandler.read_json_file(ManagementConnectorProperties.MERCURY_FILE % (target_type, target_type))
+        json_content = jsonhandler.read_json_file(
+            ManagementConnectorProperties.MERCURY_FILE % (target_type, target_type))
 
         wdm_data = DeviceManager.get_registration_data(config)
 
@@ -104,11 +108,13 @@ class DeviceManager(object):
             # TIme of refresh - used for testing
             time_refreshed = int(round(time.time()))
 
-            DeviceManager.write_mercury_config_to_disk(wdm_device.split('/')[-1], wdm_device, time_refreshed, target_type)
+            DeviceManager.write_mercury_config_to_disk(wdm_device.split('/')[-1], wdm_device, time_refreshed,
+                                                       target_type)
 
-            DEV_LOGGER.info('Detail="FMC_Websocket Refreshed WDM Device Info - WebSocketURL: %s. DeviceID: %s"' % (web_socket_url, wdm_device))
+            DEV_LOGGER.info('Detail="FMC_Websocket Refreshed WDM Device Info - WebSocketURL: %s. DeviceID: %s"' % (
+            web_socket_url, wdm_device))
 
-            return {"device_url": wdm_device, "ws_url": web_socket_url,  "last_refreshed": time_refreshed}
+            return {"device_url": wdm_device, "ws_url": web_socket_url, "last_refreshed": time_refreshed}
         else:
             raise Exception("Empty or Missing Mercury File, path: %s" % ManagementConnectorProperties.MERCURY_FILE
                             % (target_type, target_type))
@@ -140,7 +146,6 @@ class DeviceManager(object):
 
         return wdm_data
 
-
     # -------------------------------------------------------------------------
     @staticmethod
     def deregister_from_wdm(header, target_type):
@@ -152,7 +157,9 @@ class DeviceManager(object):
 
             try:
 
-                wdm_device = jsonhandler.read_json_file(ManagementConnectorProperties.MERCURY_FILE % (target_type, target_type))['device_url']
+                wdm_device = \
+                jsonhandler.read_json_file(ManagementConnectorProperties.MERCURY_FILE % (target_type, target_type))[
+                    'device_url']
 
                 Http.delete(wdm_device, header)
 
@@ -167,7 +174,7 @@ class DeviceManager(object):
     def write_mercury_config_to_disk(device_id, device_url, time_refreshed, target_type):
         """ Write Mercury Information out to disk """
 
-        mercury_data = {"route": device_id, "device_url" : device_url, "last_refreshed": time_refreshed }
+        mercury_data = {"route": device_id, "device_url": device_url, "last_refreshed": time_refreshed}
 
         DEV_LOGGER.info('Detail="FMC_Websocket WDM Device Info - Write Config: %s"' % TARGET_TYPE)
 

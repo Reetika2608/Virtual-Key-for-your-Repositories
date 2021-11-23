@@ -33,11 +33,11 @@ class AssertImportCommand(Command):
                     filepath = os.path.join(root, filename)
                     if "managementconnector" in filepath or "cafedynamic" in filepath:
                         continue
-                    print "Neither required patterns found in filepath: {}".format(filepath)
+                    print("Neither required patterns found in filepath: {}".format(filepath))
                     sys.exit(1)
         else:
-            print "audit_import_paths: Failure: should be ran on ni build directory {}, but did not exist as expected"\
-                .format(ni_dir)
+            print("audit_import_paths: Failure: should be ran on ni build directory {}, but did not exist as expected"\
+                .format(ni_dir))
             sys.exit(1)
 
     def run(self):

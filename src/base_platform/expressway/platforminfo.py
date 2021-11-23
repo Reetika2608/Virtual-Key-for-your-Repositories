@@ -12,7 +12,6 @@ import re
 import subprocess
 import xml.etree.cElementTree as ElementTree
 
-
 DEV_LOGGER = logging.getLogger("developer.platform.platforminfo")
 
 
@@ -181,15 +180,15 @@ class PlatformInfo(object):
         for interface_element in tree.findall('hardware/network/interface'):
             try:
                 self.network_interfaces.append({
-                    'name' : interface_element.findtext('name'),
-                    'device' : interface_element.findtext('device'),
-                    })
+                    'name': interface_element.findtext('name'),
+                    'device': interface_element.findtext('device'),
+                })
                 virtual_ifaces = int(interface_element.findtext('virtual_interfaces'))
                 for index in range(0, virtual_ifaces):
                     self.network_interfaces.append({
-                        'name' : interface_element.findtext('name'),
-                        'device' : interface_element.findtext('device')  + ":" + str(index),
-                        })
+                        'name': interface_element.findtext('name'),
+                        'device': interface_element.findtext('device') + ":" + str(index),
+                    })
             except (TypeError, ValueError):
                 # ignore malformed / missing (virtual) interfaces
                 pass
@@ -220,20 +219,21 @@ class PlatformInfo(object):
     @staticmethod
     def _is_docker():
         """Detects if we are running inside a docker container."""
-        cgroupinfo = ''.join(file('/proc/1/cgroup', 'r').readlines())
+        cgroupinfo = ''.join(open('/proc/1/cgroup', 'r').readlines())
         return re.search(r'\b:/docker/\b', cgroupinfo)
 
     def _get_user_agent(self):
         """Returns a string to be used as User-Agent in HTTP requests"""
         maint = '' if self.version_maintenance == '0' else '.' + self.version_maintenance
         user_agent = '%s/%s%s.%s%s' % (self.product_name.replace(' ', '-'),
-                self.version_code, self.version_major, self.version_minor, maint)
+                                       self.version_code, self.version_major, self.version_minor, maint)
         return user_agent
 
     def _get_serial_number(self):
         """Returns the hardware serial number."""
         try:
-            output, stderr = subprocess.Popen(["/sbin/serialno"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+            output, stderr = subprocess.Popen(["/sbin/serialno"], stdout=subprocess.PIPE,
+                                              stderr=subprocess.PIPE).communicate()
             match = self.serialno_re.search(output)
             if not match:
                 DEV_LOGGER.error('Detail="Failed to read serial number: %s"' % stderr)
@@ -264,7 +264,7 @@ class PlatformInfo(object):
         if match:
             return match.group(1)
         else:
-            DEV_LOGGER.warn('Detail="Release key file invalid"')
+            DEV_LOGGER.warning('Detail="Release key file invalid"')
             return ''
 
     def _is_release_key_valid(self):
@@ -293,11 +293,13 @@ class PlatformInfo(object):
             self._hardware_serial_number = self._get_serial_number()
         return self._hardware_serial_number
 
+
 def is_hedge():
     """
     Utility method to check if the node is a hedge
     """
     return PlatformInfo().is_hedge
+
 
 def is_docker():
     """
@@ -305,17 +307,19 @@ def is_docker():
     """
     return PlatformInfo().is_docker
 
+
 def is_ce1200():
     """
     Utility method to check if the box is of CE1200 hardware type.
     Currently CE1200 hardware serial number starts with 52E.
     """
     if PlatformInfo().hardware_serial_number.startswith("52") and PlatformInfo().version_code == "X":
-        return PlatformInfo().hardware_serial_number[2] not in  ["A", "B", "C", "D"]
+        return PlatformInfo().hardware_serial_number[2] not in ["A", "B", "C", "D"]
     return False
+
 
 def uses_installwizard():
     '''
        Utility to check if the node makes use of install wizard
     '''
-    return (PlatformInfo().uses_installwizard.lower() == "true")
+    return PlatformInfo().uses_installwizard.lower() == "true"

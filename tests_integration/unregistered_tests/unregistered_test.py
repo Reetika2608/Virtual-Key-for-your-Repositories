@@ -121,8 +121,8 @@ class UnregisteredTest(unittest.TestCase):
         alarm_id_limit = 60073
 
         LOG.debug('***TEST Start***')
-        c_mgmt_alarm_range = range(60050, 60099 + 1)
-        known_alarm_ids = range(60050, alarm_id_limit + 1)
+        c_mgmt_alarm_range = list(range(60050, 60099 + 1))
+        known_alarm_ids = list(range(60050, alarm_id_limit + 1))
         onboard_alarms = []
 
         for alarm in known_alarm_ids:

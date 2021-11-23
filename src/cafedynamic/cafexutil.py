@@ -2,10 +2,8 @@
 
 import os
 import subprocess  # nosec - usage validated
-from subprocess import check_output  # nosec - usage validated
 import imp
 import pwd
-import commands
 import json
 import errno
 import re
@@ -86,7 +84,7 @@ class CafeXUtils(object):
         try:
             with open(os.devnull, 'w') as devnull:
                 command = ["dpkg", "-s", package_name]
-                package_information = check_output(command, stderr=devnull)  # nosec - package name is not user supplied
+                package_information = subprocess.check_output(command, stderr=devnull).decode()  # nosec - package name is not user supplied
         except subprocess.CalledProcessError:
             # returned non-zero exit status, returning none object
             package_information = None
@@ -181,7 +179,7 @@ class CafeXUtils(object):
             try:
                 with open(path, 'r') as json_file:
                     state = json.load(json_file)
-            except IOError, ioe:
+            except IOError as ioe:
                 # Catch and ignore IO errors, as file may not exist.
                 logger.debug('Detail="is_package_installing: Installing file did not exist at %s: for component: %s"'
                              % (path, package_name))
@@ -227,7 +225,7 @@ class CafeXUtils(object):
 
         # grep contains a space to ensure traffic_server is not returned
         # connector_type cannot be supplied by an external process
-        output = commands.getstatusoutput("dpkg -l | grep \" %s\" | awk '{print $2}'" % (connector_type))  # nosec
+        output = subprocess.getstatusoutput("dpkg -l | grep \" %s\" | awk '{print $2}'" % (connector_type))  # nosec
 
         if output[1]:
             rtn_list = output[1].split()
@@ -248,9 +246,9 @@ class CafeXUtils(object):
         if package_information:
             version_string = "Version: "
             start = package_information.find(version_string)+len(version_string)
-            if start >= 0:
+            if int(start) >= 0:
                 end = package_information.find("\n", start)
-                if end >= 0:
+                if int(end) >= 0:
                     version = package_information[start:end]
 
         return version
@@ -362,7 +360,7 @@ class CafeXUtils(object):
                         if op_status in legacy_permitted_status:
                             return op_status
 
-        except IOError, ioerror:
+        except IOError as ioerror:
             logger.error('Detail="get_operation_status: I/O error connector %s, err code %s, err message %s"' %
                          (connector_name, errno.errorcode[ioerror.errno], os.strerror(ioerror.errno)))
         except ValueError:
@@ -386,7 +384,7 @@ class CafeXUtils(object):
         """
 
         if mode is None:
-            CafeXUtils.makedirs(path, 0777)
+            CafeXUtils.makedirs(path, 0o777)
         else:
             if CafeXUtils.makedirs(path, mode):
                 os.chmod(path, mode)

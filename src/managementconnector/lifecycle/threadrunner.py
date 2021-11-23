@@ -27,7 +27,6 @@ class ThreadRunner(object):
     def start(self):
         """ Start Mercury Thread """
         with self.lock:
-
             DEV_LOGGER.debug('Detail="FMC_Lifecycle ThreadRunner: start()"')
             if not self.running():
                 self._thread = self._thread_pointer(self._config, self._stop_event)
@@ -40,7 +39,7 @@ class ThreadRunner(object):
         running = False
 
         if self._thread:
-            running = self._thread.isAlive()
+            running = self._thread.is_alive()
 
         return running
 

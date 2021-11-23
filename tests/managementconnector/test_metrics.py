@@ -8,7 +8,7 @@ import mock
 import json
 import unittest
 import logging
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -170,12 +170,13 @@ class MetricsTest(unittest.TestCase):
         # Returns a list of tuples with call arguments
         called_with = mock_http.post.call_args
 
-        self.assertEquals(called_with[0][0], 'metrics_host/metrics_url')
-        self.assertEquals(called_with[0][1], {'Content-Type': 'application/json', 'User-agent': 'user_agent/service_version'})
+        self.assertEqual(called_with[0][0], 'metrics_host/metrics_url')
+        self.assertEqual(called_with[0][1], {'Content-Type': 'application/json', 'User-agent': 'user_agent/service_version'})
 
         json_value = json.loads(called_with[0][2])
         metrics_value = {"metrics": [{"value": {"connector_previous": {"url": "some_previous_path", "version": "service_version"}, "connector_current": {"url": "some_current_path", "version": "service_version"}, "connector_status": "on", "connector_state": "running", "connector_memory": "10", "connector_start": "on", "connector_cpu": "10"}, "context": {"connector_version": "service_version", "connector_type": "service_name", "cluster_id": "guid", "vcs_version": "vcs_version", "connector_id": "service_name@serialnumber"}, "key": "connector_status", "time": "current_time"}]}
-        self.assertEquals(json_value, metrics_value)
+
+        self.assertEqual(json_value, metrics_value)
 
 
     @mock.patch('managementconnector.cloud.metrics.Http')
@@ -226,22 +227,26 @@ class MetricsTest(unittest.TestCase):
         # Returns a list of tuples with call arguments
         called_with = mock_http.post.call_args
 
-        self.assertEquals(called_with[0][0], 'metrics_host/metrics_url')
-        self.assertEquals(called_with[0][1], {'Content-Type': 'application/json', 'User-agent': 'user_agent/service_version'})
+        self.assertEqual(called_with[0][0], 'metrics_host/metrics_url')
+        self.assertEqual(called_with[0][1], {'Content-Type': 'application/json', 'User-agent': 'user_agent/service_version'})
 
         json_value = json.loads(called_with[0][2])
 
         # Alarm title, description etc get generated as "alm.uuid.*" as the alarm id doesn't actually exist
-        expected_alarm = {u'description': u'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.description',
-                          u'title': u'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.title', u'last_reported': u'2014-11-26T14:23:31',
-                          u'solution': u'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.solution',
-                          u'solution_replacement_values': [], u'first_reported': u'2014-11-26T14:20:12', u'id': u'66666',
-                          u'severity': u'error'}
+        expected_alarm = {'description': 'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.description',
+                          'title': 'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.title', 'last_reported': '2014-11-26T14:23:31',
+                          'solution': 'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.solution',
+                          'solution_replacement_values': [], 'first_reported': '2014-11-26T14:20:12', 'id': '66666',
+                          'severity': 'error'}
 
-        metrics_value = {"metrics": [{"value": expected_alarm, "context": {"connector_version": "service_version", "connector_type": "service_name", "cluster_id": "guid", "vcs_version": "vcs_version", "connector_id": "service_name@serialnumber"}, "key": "connector_alarm", "time": "current_time"}]}
+        metrics_value = {"metrics": [{"value": expected_alarm,
+                                      "context": {"connector_version": "service_version", "connector_type": "service_name",
+                                                  "cluster_id": "guid", "vcs_version": "vcs_version",
+                                                  "connector_id": "service_name@serialnumber"}, "key": "connector_alarm",
+                                      "time": "current_time"}]}
 
         # Step 3.
-        self.assertEquals(json_value, metrics_value)
+        self.assertEqual(json_value, metrics_value)
         self.assertIn("description", json_value['metrics'][0]['value'])
 
 
@@ -293,21 +298,21 @@ class MetricsTest(unittest.TestCase):
         # Returns a list of tuples with call arguments
         called_with = mock_http.post.call_args
 
-        self.assertEquals(called_with[0][0], 'metrics_host/metrics_url')
-        self.assertEquals(called_with[0][1], {'Content-Type': 'application/json', 'User-agent': 'user_agent/service_version'})
+        self.assertEqual(called_with[0][0], 'metrics_host/metrics_url')
+        self.assertEqual(called_with[0][1], {'Content-Type': 'application/json', 'User-agent': 'user_agent/service_version'})
 
         json_value = json.loads(called_with[0][2])
 
         # Alarm title, description etc get generated as "alm.uuid.*" as the alarm id doesn't actually exist
-        expected_alarm = {u'title': u'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.title', u'last_reported': u'2014-11-26T14:23:31',
-                          u'solution': u'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.solution',
-                          u'solution_replacement_values': [], u'first_reported': u'2014-11-26T14:20:12', u'id': u'66666',
-                          u'severity': u'error'}
+        expected_alarm = {'title': 'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.title', 'last_reported': '2014-11-26T14:23:31',
+                          'solution': 'alm.aaaf0813-09cb-4e23-9182-f3996d24cc9e.solution',
+                          'solution_replacement_values': [], 'first_reported': '2014-11-26T14:20:12', 'id': '66666',
+                          'severity': 'error'}
 
         metrics_value = {"metrics": [{"value": expected_alarm, "context": {"connector_version": "service_version", "connector_type": "c_test", "cluster_id": "guid", "vcs_version": "vcs_version", "connector_id": "c_test@serialnumber"}, "key": "connector_alarm", "time": "current_time"}]}
 
         # Step 3.
-        self.assertEquals(json_value, metrics_value)
+        self.assertEqual(json_value, metrics_value)
         self.assertNotIn("description", json_value['metrics'][0]['value'])
 
 
@@ -353,7 +358,7 @@ class MetricsTest(unittest.TestCase):
         # Returns a list of tuples with call arguments
         called_with = mock_http.post.call_args
         json_resp = json.loads(called_with[0][2])
-        self.assertEquals(json_resp["metrics"][0]["value"]["certManagement"], "")
+        self.assertEqual(json_resp["metrics"][0]["value"]["certManagement"], "")
 
         # test with a value of "true" - this is equivalent to managed
         CERT_MANAGED = 'true'
@@ -361,7 +366,7 @@ class MetricsTest(unittest.TestCase):
         metrics.send_metrics(HEADERS, mock_service)
         called_with = mock_http.post.call_args
         json_resp = json.loads(called_with[0][2])
-        self.assertEquals(json_resp["metrics"][0]["value"]["certManagement"], "true")
+        self.assertEqual(json_resp["metrics"][0]["value"]["certManagement"], "true")
 
         # test with a value of "false" - this is equivalent to managed
         CERT_MANAGED = 'false'
@@ -369,7 +374,7 @@ class MetricsTest(unittest.TestCase):
         metrics.send_metrics(HEADERS, mock_service)
         called_with = mock_http.post.call_args
         json_resp = json.loads(called_with[0][2])
-        self.assertEquals(json_resp["metrics"][0]["value"]["certManagement"],"false")
+        self.assertEqual(json_resp["metrics"][0]["value"]["certManagement"],"false")
 
         DEV_LOGGER.info('test_send_metrics_certmanagement: end')
 

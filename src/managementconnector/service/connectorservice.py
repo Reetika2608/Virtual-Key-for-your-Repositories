@@ -20,8 +20,8 @@ class ConnectorService(Service):
         Model a Service (Management Connector)
     """
     # -------------------------------------------------------------------------
-    def __init__(self, name,  config, oauth):
-        ''' Dependency __init__'''
+    def __init__(self, name, config, oauth):
+        """ Dependency __init__"""
         DEV_LOGGER.debug('Detail="Initialising ConnectorService object for %s"' % name)
         Service.__init__(self, name, config, oauth)
 
@@ -54,7 +54,7 @@ class ConnectorService(Service):
                                     {"c_mgmt": {"version": "8.11-1.0.321357"}})
 
         # More-or-less inline with Service Equivalent - No disabling (or enabling) of these dependency types
-        if (self.update_allowed(version) and prevent_upgrade.lower() == "off"):
+        if self.update_allowed(version) and prevent_upgrade.lower() == "off":
 
             DEV_LOGGER.info('Detail="ConnectorService configure: apply config changes for %s"' % (self._name))
 
@@ -108,7 +108,7 @@ class ConnectorService(Service):
     # -------------------------------------------------------------------------
 
     def disable(self, retries=None):
-        ''' disable '''
+        """ disable """
 
         # Does Nothing Overriding Service method
 

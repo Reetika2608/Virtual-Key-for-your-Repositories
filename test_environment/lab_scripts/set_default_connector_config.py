@@ -52,12 +52,12 @@ def set_cdb_entry(hostname, admin_user, admin_pass, cdb_path, entry):
         requests.post('https://' + hostname + cdb_path, data='value=' + json.dumps(entry),
                       auth=(admin_user, admin_pass), verify=False)
     except:
-        print "CDB Set failed: path {} and entry: {} {}".format(cdb_path, entry)
+        print("CDB Set failed: path {} and entry: {}".format(cdb_path, entry))
 
 
 hostname = sys.argv[1]
 admin_user = "admin"
-admin_pass = "Cisco!23"
+admin_pass = "x"
 
 set_cdb_entry(hostname, admin_user, admin_pass, c_ucmc_config_path, fake_c_ucmc_config)
 set_cdb_entry(hostname, admin_user, admin_pass, c_cal_config_path, fake_c_cal_config)

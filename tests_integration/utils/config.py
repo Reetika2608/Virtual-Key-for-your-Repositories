@@ -40,7 +40,7 @@ class Config(object):
         for config_file in file_names:
             if os.path.isfile(config_file):
                 with open(config_file, 'r') as ymlfile:
-                    cfg = yaml.load(ymlfile)
+                    cfg = yaml.safe_load(ymlfile)
                     for section in cfg:
                         self.config_dict.update(cfg[section])
 

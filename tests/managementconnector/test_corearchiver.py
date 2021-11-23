@@ -5,7 +5,7 @@ import logging
 import ssl
 import mock
 import sys
-from constants import SYS_LOG_HANDLER
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -84,6 +84,7 @@ class CoreArchiverTest(unittest.TestCase):
         return_value = CoreArchiver.retrieve_and_archive_cores(mock_config, mock_logger, "12345678")
         self.assertEqual(expected_value, return_value)
         mock_remove.assert_called_with('/test2')
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

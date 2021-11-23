@@ -1,5 +1,5 @@
 """ Connectivity check processor """
-import urllib2
+from urllib import error as urllib_error
 import subprocess  # nosec - usage validated
 import time
 
@@ -42,7 +42,7 @@ class ConnectivityCheck(object):
         try:
             Http.get(https_url, headers)
             status = "passed"
-        except urllib2.HTTPError as http_error:
+        except urllib_error.HTTPError as http_error:
             DEV_LOGGER.error('Detail="Check connectivity response, http failure: %s, reason: %s"',
                              http_error, http_error.reason)
             status = "http_error"
@@ -55,7 +55,7 @@ class ConnectivityCheck(object):
         except CertificateExceptionInvalidCert as cert_exception:
             DEV_LOGGER.error('Detail="Check connectivity response, cert failure(3): %s"', cert_exception)
             status = "cert_error"
-        except urllib2.URLError, url_error:
+        except urllib_error.URLError as url_error:
             DEV_LOGGER.error('Detail="Check connectivity response, http failure(2): %s"', url_error)
             status = "not_found"
         except Exception as exception: # pylint: disable=W0703

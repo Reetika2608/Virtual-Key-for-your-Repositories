@@ -30,6 +30,8 @@ class CrashMonitor(object):
         DEV_LOGGER.debug('Detail="check_crashes: alarm_list: %s' % alarm_list)
 
         if alarm_list:
+            if self._last_crash_check is None:
+                self._last_crash_check = 0
             alarm_list = [alarm for alarm in alarm_list if int(alarm['last_reported']) >= self._last_crash_check]
             self._last_crash_check = time.time()
             for alarm in alarm_list:
@@ -62,7 +64,7 @@ class CrashMonitor(object):
             connectors['c_cal'] = ["c_cal", "calendar-connector", "java", "d_openj"]
 
         for parameter in alarm.get('parameters', []):
-            for service_name, keywords in connectors.iteritems():
+            for service_name, keywords in connectors.items():
                 for connector_keyword in keywords:
                     if connector_keyword in str(parameter):
                         DEV_LOGGER.info('Detail="Detected Crash : service: %s, connector_keyword: %s"'

@@ -32,7 +32,7 @@ LOG4_LEVEL_MAP = {
     'TRACE': logging.TRACE,
     }
 
-for name, level in LOG4_LEVEL_MAP.iteritems():
+for name, level in LOG4_LEVEL_MAP.items():
     logging.addLevelName(level, name)
 
 
@@ -167,7 +167,7 @@ log4j.logger.network=INFO, networkAppender
         value is the log4 log level
         """
 
-        log_levels = [self._get_log4_logger_configuration(key, value) for key, value in log_levels.iteritems()]
+        log_levels = [self._get_log4_logger_configuration(key, value) for key, value in log_levels.items()]
 
         log_conf_paramaters = {}
         log_conf_paramaters['generator'] = __name__

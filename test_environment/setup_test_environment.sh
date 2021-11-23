@@ -30,7 +30,7 @@ set -e
 
 # Params for virtualenv, expected to be tweaked for your project needs.
 VE_DIR='venv'
-VE_PYTHON='python2.7'
+VE_PYTHON='python3.9'
 VE_PROMPT='(venv) '
 
 function prep_env()

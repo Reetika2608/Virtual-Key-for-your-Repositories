@@ -9,7 +9,7 @@ pipelineProperties(name: 'management-connector',
 DEB_VERSION = ''
 TLP_FILE = ''
 CONNECTOR_TYPES = ['c_ccucmgmt', 'c_mgmt']  // List parameter for Connector Types
-def pythonBuilder = 'containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave:latest'
+def pythonBuilder = 'containers.cisco.com/hybrid_services_gen/fmc-builder-py3-base-ssh-slave:latest'
 def builderName = 'local-spark-pythonbuilder-fmc'
 
 timestamps {
@@ -21,11 +21,11 @@ timestamps {
                 try {
                       checkout scm
 
-                      sh returnStatus: true, script: """
-                      # Remove any previous unremoved containers,if they weren't removed earlier
-                      ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
-                      [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
-                      """
+                      // # Remove any previous unremoved containers,if they weren't removed earlier
+                      sh("docker ps -aq --filter name=${builderName} | grep -q . && echo Found ERRANT_CONTAINERS, Removing && docker rm --force ${builderName} || echo No ERRANT_CONTAINERS")
+
+                      // Remove existing image only on changes made to base slave image
+                      // sh("docker rmi ${pythonBuilder}")
 
                       def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
                       sh("docker cp ./ ${builderName}:/home/jenkins")
@@ -70,11 +70,8 @@ timestamps {
                 } finally {
                       deleteDir()
                       cleanWs()
-                      sh returnStatus: true, script: """
-                      # Remove any previous support containers
-                      ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
-                      [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
-                      """
+                      // # Remove any previous unremoved containers,if they weren't removed earlier
+                      sh("docker ps -aq --filter name=${builderName} | grep -q . && echo Found ERRANT_CONTAINERS, Removing && docker rm --force ${builderName} || echo No ERRANT_CONTAINERS")
                 }
             }
         }
@@ -125,11 +122,9 @@ timestamps {
 
                       checkout scm
 
-                      sh returnStatus: true, script: """
-                      # Remove any previous unremoved containers,if they weren't removed earlier
-                      ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
-                      [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
-                      """
+                      // # Remove any previous unremoved containers,if they weren't removed earlier
+                      sh("docker ps -aq --filter name=${builderName} | grep -q . && echo Found ERRANT_CONTAINERS, Removing && docker rm --force ${builderName} || echo No ERRANT_CONTAINERS")
+
                       def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
                       sh("docker cp ./ ${builderName}:/home/jenkins")
                       sh("docker exec ${builderName} pwd")
@@ -303,11 +298,8 @@ timestamps {
                 } finally {
                       deleteDir()
                       cleanWs()
-                      sh returnStatus: true, script: """
-                      # Remove any previous support containers
-                      ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
-                      [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
-                      """
+                      // # Remove any previous unremoved containers,if they weren't removed earlier
+                      sh("docker ps -aq --filter name=${builderName} | grep -q . && echo Found ERRANT_CONTAINERS, Removing && docker rm --force ${builderName} || echo No ERRANT_CONTAINERS")
                 }
             }
         }
@@ -378,11 +370,8 @@ timestamps {
                     try {
                         checkout scm
 
-                        sh returnStatus: true, script: """
-                        # Remove any previous unremoved containers,if they weren't removed earlier
-                        ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
-                        [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
-                        """
+                        // # Remove any previous unremoved containers,if they weren't removed earlier
+                        sh("docker ps -aq --filter name=${builderName} | grep -q . && echo Found ERRANT_CONTAINERS, Removing && docker rm --force ${builderName} || echo No ERRANT_CONTAINERS")
                         def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
                         sh("docker cp ./ ${builderName}:/home/jenkins")
                         sh("docker exec ${builderName} pwd")
@@ -461,11 +450,8 @@ timestamps {
                     } finally {
                         deleteDir()
                         cleanWs()
-                        sh returnStatus: true, script: """
-                        # Remove any previous support containers
-                        ERRANT_CONTAINERS=\$(docker ps -aq --filter "name=${builderName}")
-                        [[ -n \$ERRANT_CONTAINERS ]] && docker rm --force \$ERRANT_CONTAINERS || true
-                        """
+                        // # Remove any previous unremoved containers,if they weren't removed earlier
+                        sh("docker ps -aq --filter name=${builderName} | grep -q . && echo Found ERRANT_CONTAINERS, Removing && docker rm --force ${builderName} || echo No ERRANT_CONTAINERS")
                     }
                 }
             }

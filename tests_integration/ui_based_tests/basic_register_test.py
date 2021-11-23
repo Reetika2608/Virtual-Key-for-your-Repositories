@@ -147,9 +147,16 @@ class BasicRegisterTest(unittest.TestCase):
 
             expected_status = 'Running' if connector == 'c_mgmt' else 'Not configured'
             status = ui_connector_statuses[expected_display_name]
-            self.assertEqual(status, expected_status,
-                             'Expected {} to be in state {}, found {}'.format(expected_display_name, expected_status,
-                                                                              status))
+            try:
+                self.assertEqual(status, expected_status,
+                                 'Expected {} to be in state {}, found {}'.format(expected_display_name, expected_status,
+                                                                                  status))
+            except:
+                expected_status = 'Running, with alarms'
+                self.assertEqual(status, expected_status,
+                                 'Expected {} to be in state {}, found {}'.format(expected_display_name,
+                                                                                  expected_status,
+                                                                                  status))
 
             LOG.info("Found {} with status {} in UI".format(expected_display_name, expected_status))
 

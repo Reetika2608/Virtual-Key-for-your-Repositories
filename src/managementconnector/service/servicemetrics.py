@@ -11,12 +11,12 @@ ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 
 
 class ServiceMetrics(object):
-    ''' Service metric class'''
+    """ Service metric class"""
     def __init__(self, name, ManifestClass=ServiceManifest):
-        ''' ServiceMetrics__init__'''
+        """ ServiceMetrics__init__"""
         self._name = name
         self._manifest = ManifestClass(self._name)
-        self._total_system_memory = long(System.get_system_mem()['total_kb']) * 1024
+        self._total_system_memory = int(System.get_system_mem()['total_kb']) * 1024
         self._manifest_limits = self._manifest.get_cgroup_limits()
         self._current_process_cpu_time = 0
         self._current_system_cpu_time = 0
@@ -30,11 +30,11 @@ class ServiceMetrics(object):
     # -------------------------------------------------------------------------
 
     def _get_cgroup_cpu_time(self):
-        ''' Get a list of all processes that are running in the service's
+        """ Get a list of all processes that are running in the service's
             cgroup. For each pid read /proc/PID/stat and get columns 13 &
             14 (user time & system time). Add all these up for the total
             cpu time of the cgroup/connector
-        '''
+        """
 
         group_cpu = 0
         try:
@@ -43,8 +43,8 @@ class ServiceMetrics(object):
                     try:
                         with open('/proc/' + line.rstrip('\n') + '/stat', 'r') as statfile:
                             stat_data = statfile.readline().split()
-                            group_cpu = group_cpu + long(stat_data[13])
-                            group_cpu = group_cpu + long(stat_data[14])
+                            group_cpu = group_cpu + int(stat_data[13])
+                            group_cpu = group_cpu + int(stat_data[14])
                     except (IOError, OSError) as file_err:
                         DEV_LOGGER.info('Detail="_get_cgroup_cpu_time:Error reading from file: errno=%s, strerror=%s. Service(%s) child process(%s) may have stopped"' %
                                         (file_err.errno, file_err.strerror, self._name, line.rstrip('\n')))
@@ -54,7 +54,7 @@ class ServiceMetrics(object):
         return group_cpu
 
     def update_service_metrics(self):
-        ''' Calculate and log process usage statistics.
+        """ Calculate and log process usage statistics.
             Memory: Usage comes easily from control group files. Read the
                     current usage and calculate and log basic stats.
             CPU:    Requires some calculation. On every call to this method
@@ -67,7 +67,7 @@ class ServiceMetrics(object):
                     method was called (which happens every ~30 seconds). The
                     two deltas can then be used to calculate the percentage of
                     how much CPU time this service used since the last call.
-        '''
+        """
 
         new_process_cpu_time = self._get_cgroup_cpu_time()
         new_system_cpu_time = System.get_system_cpu_time()
@@ -82,11 +82,11 @@ class ServiceMetrics(object):
 
         try:
             with open('/cgroup/' + self._name + '/memory.usage_in_bytes', 'r') as memory_usage_file:
-                memory_usage_in_bytes = long(memory_usage_file.read())
+                memory_usage_in_bytes = int(memory_usage_file.read())
         except (IOError, OSError) as file_err:
             DEV_LOGGER.error('Detail="update_service_metrics:Error reading from file: errno=%s, strerror=%s."' %
                              (file_err.errno, file_err.strerror))
-            memory_usage_in_bytes = long(0)
+            memory_usage_in_bytes = int(0)
 
         self._percent_system_memory = 100 * float(memory_usage_in_bytes) / float(self._total_system_memory)
 
@@ -106,7 +106,7 @@ class ServiceMetrics(object):
 # =============================================================================
 
     def get_service_metrics(self):
-        ''' Return the average of CPU and memory metrics since this method was last called'''
+        """ Return the average of CPU and memory metrics since this method was last called"""
         average_cpu = 0
         average_mem = 0
         if len(self._avg_cpu_data) > 0:

@@ -11,9 +11,9 @@ import unittest
 import time
 
 from pyfakefs import fake_filesystem_unittest
-from productxml import PRODUCT_XML_CONTENTS
-from urllib2 import HTTPError
-from constants import SYS_LOG_HANDLER
+from .productxml import PRODUCT_XML_CONTENTS
+from urllib.error import HTTPError
+from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -271,6 +271,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         mercury._ws = mock_socket
 
         mercury.on_close(None)
+        time.sleep(2)  # wait for Mercury to shutdown
 
         mock_handle_exception.assert_called()
         self.assertFalse(mercury._running, "Mercury running is True, expected False")
@@ -358,7 +359,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
 
         DEV_LOGGER.info("***TEST*** test_handle_mercury_exception")
         device_url = "12345"
-        error_response = "error_response"
+        error_response = b"error_response"
         stream = io.TextIOWrapper(io.BytesIO(error_response))
         header_val = "header"
         mocked_format = "stacktrace"
