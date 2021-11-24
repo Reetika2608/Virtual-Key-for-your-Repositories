@@ -260,7 +260,7 @@ class ExceptionScreenshottingListener(AbstractEventListener):
 
         LOG.info("Saving source code: %s.txt", file_name)
         with open("{}.txt".format(file_name), "w") as f:
-            f.write(driver.page_source.encode('utf-8'))
+            f.write(driver.page_source)
 
         super(ExceptionScreenshottingListener, self).on_exception(exception, driver)
 

@@ -65,7 +65,7 @@ class BasicBootstrapTest(unittest.TestCase):
                              self.config.exp_admin_user(),
                              self.config.exp_admin_pass())
 
-            navigate_expressway_menus(self.web_driver, ["Applications", "Hybrid Services", "Connector Management"])
+            self.web_driver.get('https://' + self.config.exp_hostname_primary() + '/fusionregistration')
             self.assertTrue(wait_until_true(is_in_page_source, 30, 1,
                                             *(self.web_driver,
                                               'You must first register your Expressway as a resource through Cisco')),
