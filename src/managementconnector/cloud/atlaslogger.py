@@ -38,7 +38,7 @@ class AtlasLogger(object):
         log_headers = {
             'Authorization': 'Bearer ' + self._oauth.get_access_token(),
             'Content-Type': 'application/json',
-            'User-Agent': user_agent,
+            'User-agent': user_agent,
         }
 
         return log_headers
@@ -86,7 +86,7 @@ class AtlasLogger(object):
         user_agent = self._config.read(ManagementConnectorProperties.METRICS_UA) + "/" + version
 
         headers = {'Content-Type': 'application/octet-stream',
-                   'User-Agent': user_agent,
+                   'User-agent': user_agent,
                    'X-Trans-Id': str(uuid())}  # TODO: Check if we still need this now that we've moved to AWS
 
         with open(log_path, mode='rb') as file_handle:  # b is important -> binary
@@ -106,7 +106,7 @@ class AtlasLogger(object):
         log_headers = {
             'Authorization': 'Bearer ' + self._oauth.get_access_token(),
             'Content-Type': 'application/json',
-            'User-Agent': user_agent,
+            'User-agent': user_agent,
         }
 
         logging_url = self._config.read(ManagementConnectorProperties.LOGGING_HOST) + \
