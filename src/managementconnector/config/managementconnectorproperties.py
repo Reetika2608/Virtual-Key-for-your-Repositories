@@ -180,6 +180,8 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     # This matches the template in case the config comes back as None.
     DEFAULT_POLL_TIME = 30
 
+    # TODO: Check if USER_AGENT can be changed to 'User-Agent'
+    # This affects 'User-Agent' headers in src/cloud/atlaslogger.py that is sent to client logs service
     USER_AGENT = 'User-agent'
     USER_AGENT_VALUE = 'FMC'
 
