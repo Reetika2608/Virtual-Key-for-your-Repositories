@@ -139,7 +139,8 @@ install_external_dependencies(){
     # Extra python dependencies
     pip install pyinotify==0.9.6 --target=debian/data/opt/c_mgmt/lib/pyinotify/ --no-dependencies
     pip install six==1.13.0 --target=debian/data/opt/c_mgmt/lib/six/ --no-dependencies
-    pip install httplib2==0.18.0 --target=debian/data/opt/c_mgmt/lib/httplib/ --no-dependencies
+    pip install httplib2==0.20.2 --target=debian/data/opt/c_mgmt/lib/httplib/ --no-dependencies
+    pip install pyparsing==2.4.7 --target=debian/data/opt/c_mgmt/lib/httplib/ --no-dependencies
     pip install pyratemp==0.3.2 --target=debian/data/opt/c_mgmt/lib/pyratemp/ --no-dependencies
     pip install jsonschema==3.1.0 --target=debian/data/opt/c_mgmt/lib/jsonschema/
     pip install idna==3.3 --target=debian/data/opt/c_mgmt/lib/idna/ --no-dependencies
