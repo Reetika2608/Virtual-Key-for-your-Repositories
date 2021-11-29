@@ -75,7 +75,7 @@ class UpgradeTest(unittest.TestCase):
                                        self.config.exp_admin_pass()),
                          "cafeblobconfiguration is empty in CDB. Is %s fused?" % self.config.exp_hostname_primary())
         for connector in self.config.expected_connectors():
-            self.assertTrue(wait_until_true(is_connector_installed, 10, 1,
+            self.assertTrue(wait_until_true(is_connector_installed, 30, 1,
                                             *(self.config.exp_hostname_primary(),
                                               self.config.exp_root_user(),
                                               self.config.exp_root_pass(),

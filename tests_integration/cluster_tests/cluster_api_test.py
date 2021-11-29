@@ -176,7 +176,7 @@ class ClusterSmokeTest(unittest.TestCase):
                                                 self.config.exp_admin_pass(),
                                                 connector)
                     # Soft wait for the connector to start up
-                    wait_until_true(is_connector_running, 10, 1,
+                    wait_until_true(is_connector_running, 20, 1,
                                     *(expressway, self.config.exp_root_user(), self.config.exp_root_pass(), connector))
 
                 # 6. Verify that connectors are running with correct number of processes

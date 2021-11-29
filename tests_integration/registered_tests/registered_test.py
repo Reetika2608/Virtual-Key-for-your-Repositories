@@ -99,7 +99,7 @@ class RegisteredTest(unittest.TestCase):
                 LOG.info("alarm raised: %s", alarm_to_raise in alarm_list)
                 return alarm in alarm_list
 
-            self.assertTrue(wait_until_true(is_alarm_raised_on_exp, 25, 1, alarm_to_raise),
+            self.assertTrue(wait_until_true(is_alarm_raised_on_exp, 30, 1, alarm_to_raise),
                             "Alarm {} was not raised in time on the Expressway.".format(alarm_to_raise))
 
             self.assertTrue(wait_until_true(is_alarm_raised, 90, 1, *(self.config.org_id(),
@@ -130,7 +130,7 @@ class RegisteredTest(unittest.TestCase):
             {"action": "ping"},
             self.access_token)
 
-        self.assertTrue(wait_until_true(is_command_complete, 40, 1, *(
+        self.assertTrue(wait_until_true(is_command_complete, 60, 1, *(
             self.config.org_id(),
             self.connector_id,
             self.config.rd_server(),
@@ -170,7 +170,7 @@ class RegisteredTest(unittest.TestCase):
 
             return updated
 
-        self.assertTrue(wait_until_true(logging_metadata_available, 360, 10, atlas_logging_url),
+        self.assertTrue(wait_until_true(logging_metadata_available, 420, 10, atlas_logging_url),
                         "Did not get logging metadata in time")
 
         response = get_log_data_from_atlas(atlas_logging_url, search_uuid, self.access_token)
@@ -209,7 +209,7 @@ class RegisteredTest(unittest.TestCase):
             return file_exists(hostname, root_user, root_pass, file)
 
         LOG.info("Step 1: Ensure Connectors Heartbeat file exists, connector=%s", connector)
-        self.assertTrue(wait_until_true(check_for_file, 40, 3,
+        self.assertTrue(wait_until_true(check_for_file, 60, 3,
                                         *(self.config.exp_hostname_primary(),
                                           self.config.exp_root_user(),
                                           self.config.exp_root_pass(),
@@ -443,7 +443,7 @@ class RegisteredTest(unittest.TestCase):
         # 7. Verify that a new c_mgmt.heartbeat file has been written on-box.
         # FMC only writes a heartbeat file to disk after a successful POST to FMS. Once this file exists then
         # we have posted a heartbeat using the new machine account.
-        self.assertTrue(wait_until_true(file_exists, 60, 5, *(self.config.exp_hostname_primary(),
+        self.assertTrue(wait_until_true(file_exists, 90, 5, *(self.config.exp_hostname_primary(),
                                                               self.config.exp_root_user(),
                                                               self.config.exp_root_pass(),
                                                               "/var/run/c_mgmt/c_mgmt.heartbeat")),
@@ -473,7 +473,7 @@ class RegisteredTest(unittest.TestCase):
                 if state:
                     enable_expressway_connector(self.config.exp_hostname_primary(), self.config.exp_admin_user(),
                                                 self.config.exp_admin_pass(), "c_mgmt")
-                    self.assertTrue(wait_until_true(is_connector_running, 10, 1,
+                    self.assertTrue(wait_until_true(is_connector_running, 30, 1,
                                                     *(self.config.exp_hostname_primary(),
                                                       self.config.exp_root_user(),
                                                       self.config.exp_root_pass(),
@@ -511,7 +511,7 @@ class RegisteredTest(unittest.TestCase):
             finally:
                 enable_expressway_connector(self.config.exp_hostname_primary(), self.config.exp_admin_user(),
                                             self.config.exp_admin_pass(), "c_mgmt")
-                if not wait_until_true(is_connector_running, 10, 1,
+                if not wait_until_true(is_connector_running, 30, 1,
                                        *(self.config.exp_hostname_primary(),
                                          self.config.exp_root_user(),
                                          self.config.exp_root_pass(),

@@ -94,7 +94,7 @@ class UnregisteredTest(unittest.TestCase):
             requests.post('https://' + self.config.exp_hostname_primary() + full_path, data='level=DEBUG',
                           auth=(self.config.exp_admin_user(), self.config.exp_admin_pass()), verify=False)
 
-            self.assertTrue(wait_until_true(has_log_configuration_updated, 5, 1, *(
+            self.assertTrue(wait_until_true(has_log_configuration_updated, 30, 1, *(
                 self.config.exp_hostname_primary(),
                 self.config.exp_root_user(),
                 self.config.exp_root_pass())),

@@ -50,7 +50,7 @@ class BasicRegisterTest(unittest.TestCase):
                             create_screenshotting_retrying_web_driver(log_dir=cls.log_directory, max_retries=20))
 
         for connector in cls.config.expected_connectors():
-            assert wait_until_true(is_connector_installed, 360, 10,
+            assert wait_until_true(is_connector_installed, 420, 10,
                                    *(cls.config.exp_hostname_primary(),
                                      cls.config.exp_root_user(),
                                      cls.config.exp_root_pass(),
