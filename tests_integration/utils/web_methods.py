@@ -100,11 +100,11 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     web_driver.find_element_by_xpath('//button').click()
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
-    time.sleep(5)
+    time.sleep(10)
     web_driver.find_element_by_xpath("//span[contains(text(),'Hybrid')]").click()
     time.sleep(2)
     web_driver.get('https://' + control_hub + '/hybrid-services/clusters')
-    time.sleep(3)
+    time.sleep(10)
     web_driver.find_element_by_css_selector('button[ng-click="$ctrl.addResource()"]').click()
     web_driver.find_element_by_id('selectedType_expressway').send_keys(' ')
     web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
@@ -360,7 +360,7 @@ def enable_expressway_cert_management(exp_hostname, admin_user, admin_pass, web_
         web_driver.get("https://" + exp_hostname + "/fusioncerts")
         web_driver.find_element_by_name('formbutton').click()
         web_driver.get("https://" + exp_hostname + "/fusioncerts")
-        if not wait_until_true(is_in_page_source, 45, 1, *(web_driver, "The following certificates have been added by Cisco.")):
+        if not wait_until_true(is_in_page_source, 90, 1, *(web_driver, "The following certificates have been added by Cisco.")):
             raise WaitTimeoutException("Timed out waiting for certificates-managed-by-Cisco message")
     finally:
         if close_web_driver:
