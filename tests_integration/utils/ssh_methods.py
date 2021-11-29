@@ -35,7 +35,7 @@ def run_ssh_command(hostname, username, password, command):
     """ ssh to remote machine and run command  """
     raw_output = ""
     attempt = 0
-    max_attempts = 5
+    max_attempts = 3
     while raw_output == "" and attempt < max_attempts:
         raw_output = paramiko_ssh_command(hostname, username, password, command)
         attempt = attempt + 1
