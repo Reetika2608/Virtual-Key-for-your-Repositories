@@ -3,6 +3,10 @@ name: management-connector
 version: ${project.version}
 deploy-file: c_mgmt*.tlp
 
+# reviewed-on - The date on which the service owner has most recently reviewed the
+#               content of this microservice file for correctness and completeness
+reviewed-on: 2021-12-06
+
 owner:
   email: {roshin : "Roshin Thovarai", madanant : "Madhuri Ananthanarayana" }
   pagerduty: https://ciscospark.pagerduty.com/services/P34VTKY
