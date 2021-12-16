@@ -352,15 +352,17 @@ class Mercury(threading.Thread):
         error_response = None
         if hasattr(merc_exception, 'read'):
             try:
-                error_response = merc_exception.read().encode()
+                error_response = merc_exception.read()
             except IOError:
                 pass
 
         device_url = self.get_device_url()
 
         error_content = {"error_type": str(merc_exception.__class__), "stacktrace": stack_trace,
-                         "error_reason": error_reason, "error_response": error_response, "device_url": device_url}
-
+                         "error_reason": error_reason,
+                         "error_response": error_response if type(error_response) == bytes else
+                         error_response.encode(),  # error_response might be bytes/str
+                         "device_url": device_url}
         DEV_LOGGER.error('Detail="Exception occurred, error_content=%s"' % error_content)
 
         # Try sending Mercury Exception to Metrics, in order to track live issues
