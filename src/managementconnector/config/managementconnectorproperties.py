@@ -112,6 +112,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     HTTP_TIMEOUT = 15
     WS_PING_TIMEOUT = 10
     WS_PING_INTERVAL = 30
+    WS_PROXY_TYPE = 'http'
 
     SYS_SUCCESS_CODE = 0
     SYS_UNKNOWN_ERROR_CODE = 1

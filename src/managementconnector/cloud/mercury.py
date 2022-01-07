@@ -219,7 +219,8 @@ class Mercury(threading.Thread):
             self._ws.run_forever(sslopt=sslopt_ca_certs, http_proxy_host=proxy_address, http_proxy_port=proxy_port,
                                  http_proxy_auth=proxy_auth,
                                  ping_interval=ManagementConnectorProperties.WS_PING_INTERVAL,
-                                 ping_timeout=ManagementConnectorProperties.WS_PING_TIMEOUT)
+                                 ping_timeout=ManagementConnectorProperties.WS_PING_TIMEOUT,
+                                 proxy_type=ManagementConnectorProperties.WS_PROXY_TYPE)
 
         DEV_LOGGER.info('Detail="FMC_Websocket: Exiting run_forever thread"')
 
@@ -360,8 +361,8 @@ class Mercury(threading.Thread):
 
         error_content = {"error_type": str(merc_exception.__class__), "stacktrace": stack_trace,
                          "error_reason": error_reason,
-                         "error_response": error_response if type(error_response) == bytes else
-                         error_response.encode(),  # error_response might be bytes/str
+                         "error_response": error_response.encode() if type(error_response) == str else
+                         error_response,  # error_response might be bytes/str
                          "device_url": device_url}
         DEV_LOGGER.error('Detail="Exception occurred, error_content=%s"' % error_content)
 
