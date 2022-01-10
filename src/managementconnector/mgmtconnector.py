@@ -174,7 +174,7 @@ class ManagementConnector(object):
         target_type = self._config.read(ManagementConnectorProperties.TARGET_TYPE)
 
         if enabled_services is not None and enabled_services_states:
-            for name in enabled_services_states.keys():
+            for name in list(enabled_services_states.keys()):
                 if name == target_type:
                     # Check if Enabled and not already deployed
                     DEV_LOGGER.debug('Detail="ManagementConnector checking blob mode to manage deploy state for '

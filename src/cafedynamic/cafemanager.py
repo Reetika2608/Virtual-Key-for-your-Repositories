@@ -407,7 +407,7 @@ class CAFEManager(object):
 
         # destroy any CAFEComponentConfig objects.
         # Each objects destructor will in turn unregister inotifys for any CDB tables it was interested in
-        for template_file_path in self.managed_component_configs.keys(): # pylint: disable=C0201
+        for template_file_path in list(self.managed_component_configs.keys()): # pylint: disable=C0201
             self.managed_component_configs[template_file_path].stop()
             del self.managed_component_configs[template_file_path]
 
