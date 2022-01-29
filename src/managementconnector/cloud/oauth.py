@@ -6,9 +6,13 @@ import json
 import traceback
 from urllib import error as urllib_error
 import taacrypto
+from random import SystemRandom as RandomGenerator
 
 from managementconnector.platform.http import Http
 from managementconnector.cloud import schema
+
+from managementconnector.cloud.u2c import U2C
+from managementconnector.config.databasehandler import DatabaseHandler
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
@@ -29,6 +33,8 @@ class OAuth(object):
         self._config = config
 
         self._http_error_raised = False
+
+        self._u2c = U2C(self._config, None, Http, DatabaseHandler())
 
     # -------------------------------------------------------------------------
 
@@ -75,7 +81,7 @@ class OAuth(object):
                     bearer_token = self._get_token_for_machine_account()
                     self.oauth_response = self._get_oauth_resp_from_idp(bearer_token['BearerToken'])
                 else:
-                    self.oauth_response = self._refresh_oauth_resp_with_idp()
+                    self.oauth_response = self.refresh_oauth_resp_with_idp()
 
             return self.oauth_response["access_token"]
         else:
@@ -99,11 +105,14 @@ class OAuth(object):
 
     # -------------------------------------------------------------------------
 
-    def get_header(self):
+    def get_header(self, access_token=None):
         """ return header with Access Token """
         headers = dict()
         headers['Content-Type'] = 'application/json'
-        headers['Authorization'] = "Bearer " + self.get_access_token()
+        if access_token is not None:
+            headers['Authorization'] = "Bearer " + access_token
+        else:
+            headers['Authorization'] = "Bearer " + self.get_access_token()
         return headers
 
     # -------------------------------------------------------------------------
@@ -183,7 +192,111 @@ class OAuth(object):
 
     # -------------------------------------------------------------------------
 
-    def _refresh_oauth_resp_with_idp(self):
+    def refresh_oauth_resp_with_idp(self, migration=False):
+        """refresh the OAuth Response, by sending a refresh request to the IDP"""
+
+        DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_response_with_idp:"')
+
+        body = 'grant_type=refresh_token&refresh_token=' + self.oauth_response["refresh_token"]
+        headers = self._get_idp_headers()
+
+        idp_info = self._config.read(ManagementConnectorProperties.OAUTH_BASE)
+
+        idp_url = idp_info["idpHost"] + "/" + ManagementConnectorProperties.IDP_URL
+
+        """
+        if migration is in progress
+            Enter into polling CI for new token with exponential backoff retry algorithm
+            if response received
+                resume operations
+            else
+                retry till timeout
+        else
+            normal refresh token call
+        """
+        try:
+            if migration:
+                response = self.exponential_backoff_retry(Http.post, ManagementConnectorProperties.CI_POLL_TIMEOUT,
+                                                          ManagementConnectorProperties.CI_POLL_BACKOFF,
+                                                          ManagementConnectorProperties.CI_POLL_REFRESH_INTERVAL,
+                                                          *(idp_url, headers,
+                                                            body, True, schema.REFRESH_ACCESS_TOKEN_RESPONSE))
+            else:
+                response = Http.post(idp_url, headers, body, silent=True, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
+        except urllib_error.HTTPError as error:
+            DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: code=%s, url=%s"' % (
+                error.code, error.url))
+            if error.code == 400:
+                self._revive_on_http_error(error)
+        except Exception as e:
+            DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: msg=%s, url=%s"' % (
+                e, idp_url))
+
+        self._update_revive_status()
+
+        # Update some the OAuth Fields
+        self.oauth_response["access_token"] = response["access_token"]
+
+        if "accountExpiration" in response:
+            self.oauth_response["accountExpiration"] = response["accountExpiration"]
+
+        self.oauth_response["expires_in"] = response["expires_in"]
+
+        self.oauth_response["time_read"] = self.get_current_time()
+
+        # Mark the last time the refresh token was used
+        self.oauth_response["refresh_time_read"] = self.get_current_time()
+
+        DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_resp_with_idp: refresh_time_read %s; expires_in %s "' %
+                        (self.oauth_response["refresh_time_read"], self.oauth_response["expires_in"]))
+
+        # user catalog refresh
+        self.refresh_u2c()
+
+        return self.oauth_response
+
+    # -------------------------------------------------------------------------
+
+    @staticmethod
+    def exponential_backoff_retry(predicate, timeout, backoff=2, refresh_interval=30, *args):
+        """ Calls the predicate function with an increasing delay between successive retries """
+        backoff_time = RandomGenerator().random()
+        must_end = time.time() + timeout
+        refresh_time = time.time() + refresh_interval
+        DEV_LOGGER.info('Detail="Org Migration: Polling CI"')
+        while time.time() < must_end:
+            try:
+                response = predicate(*args)
+                return response
+            except urllib_error.HTTPError as error:
+                DEV_LOGGER.error('Detail="Org Migration: RAW: FMC_OAuth  exponential_backoff_retry('
+                                 'refresh_oauth_resp_with_idp): '
+                                 'error: code=%s, url=%s"' % (error.code, error.url))
+                pass
+            # refresh the backoff once refresh interval is reached
+            if time.time() >= refresh_time:
+                DEV_LOGGER.debug('Detail="Org Migration: Refresh interval reached.."')
+                backoff_time = RandomGenerator().random()
+                refresh_time = time.time() + refresh_interval
+            # retry delay increases by a factor of backoff (example: backoff=2seconds) everytime
+            backoff_time = (backoff_time + backoff) + RandomGenerator().random()
+            DEV_LOGGER.debug(f'Detail="Org Migration: Will call CI after {backoff_time} seconds"')
+            time.sleep(backoff_time)  # sleep
+        DEV_LOGGER.debug(f'Detail="Org Migration: Failed to fetch response even after {timeout} seconds"')
+        raise Exception('Unable to reach CI')
+
+    # -------------------------------------------------------------------------
+
+    def refresh_u2c(self):
+        # update user catalog - after every token refresh
+        DEV_LOGGER.debug('Detail="FMC_OAuth refresh_u2c: Refresh user catalog"')
+        self._u2c.update_user_catalog(header=self.get_header(access_token=self.oauth_response["access_token"]))
+        DEV_LOGGER.debug('Detail="FMC_OAuth refresh_u2c: User Catalog refresh done"')
+        return
+
+    # -------------------------------------------------------------------------
+
+    def refresh_oauth_resp_with_idp_old(self):
         """refresh the OAuth Response, by sending a refresh request to the IDP"""
 
         DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_response_with_idp:"')

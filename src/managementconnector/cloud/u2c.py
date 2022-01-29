@@ -36,17 +36,23 @@ class U2C(object):
         self._database_handler = database
         self._identity_and_u2c_host_check = False
 
-    def update_user_catalog(self):
+    def update_user_catalog(self, header=None):
         """ Update any service in the U2C User URL List"""
         DEV_LOGGER.debug('Detail="FMC_U2C update_user_catalog: updating user catalog"')
         host = self._config.read(ManagementConnectorProperties.U2C_HOST)
         if isinstance(host, dict):  # Workaround for SPARK-91437: If the u2c url was NOT set, we wrote the wrong value to the DB
             host = host["value"].replace('"', '').replace('\\', '')
         user_service_url = self._config.read(ManagementConnectorProperties.U2C_USER_SERVICE_URL)
-        service_catalogs = self._http.get(
-            host + user_service_url + SERVICE_PREFIX + self.build_services_list(self.service_map),
-            headers=self._oauth.get_header(),
-            schema=schema.U2C_SERVICES_RESPONSE)
+        if header is not None:
+            service_catalogs = self._http.get(
+                host + user_service_url + SERVICE_PREFIX + self.build_services_list(self.service_map),
+                headers=header,
+                schema=schema.U2C_SERVICES_RESPONSE)
+        else:
+            service_catalogs = self._http.get(
+                host + user_service_url + SERVICE_PREFIX + self.build_services_list(self.service_map),
+                headers=self._oauth.get_header(),
+                schema=schema.U2C_SERVICES_RESPONSE)
         U2C.process_catalog(self._config, service_catalogs["services"])
 
         if not self._identity_and_u2c_host_check:
