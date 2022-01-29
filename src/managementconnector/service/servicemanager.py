@@ -385,3 +385,38 @@ class ServiceManager():
             self.remove(service_name)
 
     # =============================================================================
+
+    def get_enabled_connectors(self, connectors=[]):
+        """ Get enabled connectors from list """
+        enabled_connectors = {"services": [], "names": []}
+        for connector in connectors:
+            connector_service = self.get(connector)
+            if connector_service:
+                connector_status = connector_service.get_status()
+                if connector_status["enabled"]:
+                    enabled_connectors["services"].append(connector_service)
+                    enabled_connectors["names"].append(connector)
+        DEV_LOGGER.info('Detail="FMC_Lifecycle ServiceManager: enabled_connectors=%s"' % enabled_connectors["names"])
+        return enabled_connectors
+
+    # =============================================================================
+
+    @staticmethod
+    def disable_connectors(connectors=[]):
+        """ Disable all connectors from list """
+        for connector_service in connectors:
+            connector_service.disable()
+            DEV_LOGGER.info('Detail="FMC_Lifecycle ServiceManager: disable: connector=%s"' % connector_service.get_name())
+        return
+
+    # =============================================================================
+
+    @staticmethod
+    def enable_connectors(connectors=[]):
+        """ Enable all connectors from list """
+        for connector_service in connectors:
+            connector_service.enable()
+            DEV_LOGGER.info('Detail="FMC_Lifecycle ServiceManager: enable: connector=%s"' % connector_service.get_name())
+        return
+
+    # =============================================================================
