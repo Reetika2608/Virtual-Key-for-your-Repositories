@@ -870,6 +870,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('cbbf0813-09cb-4e23-9182-f3996d24cc9e')
 
+    @mock.patch('managementconnector.deploy.OrgMigration')
     @mock.patch("managementconnector.platform.system.System.get_system_cpu")
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
     @mock.patch('managementconnector.cloud.atlas.jsonhandler.write_json_file')
@@ -948,6 +949,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('3e544328-598e-11e6-8b77-86f30ca893d3')
 
+    @mock.patch("managementconnector.deploy.OrgMigration")
     @mock.patch("managementconnector.platform.system.System.get_cpu_cores")
     @mock.patch("managementconnector.platform.system.System.get_system_disk")
     @mock.patch("managementconnector.platform.system.System.get_system_cpu")
@@ -960,7 +962,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
     @mock.patch('managementconnector.deploy.MCAlarm')
     def test_zdeploy_no_service_connectors(self, mock_alarm, mock_oauth, mock_http, mock_config, mock_crash_montor,
                                            mock_get_package_version, mock_get_system_mem, mock_get_system_cpu,
-                                           mock_get_system_disk, mock_get_cpu_cores):
+                                           mock_get_system_disk, mock_get_cpu_cores, mock_orgmigration):
 
         DEV_LOGGER.info('+++++ test_deploy_no_service_connectors')
 

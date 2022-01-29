@@ -238,13 +238,18 @@ class DeployTest(fake_filesystem_unittest.TestCase):
         self._oauth._get_oauth_resp_from_idp.return_value = token
         self._oauth.get_access_token.return_value = token['access_token']
 
+    @mock.patch("managementconnector.cloud.orgmigration.DatabaseHandler.read")
+    @mock.patch("managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors")
+    @mock.patch("managementconnector.cloud.orgmigration.CafeXUtils.get_installed_connectors")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.is_package_installed")
     @mock.patch("managementconnector.platform.system.System.get_cpu_cores")
     @mock.patch("managementconnector.platform.system.System.get_system_disk")
     @mock.patch("managementconnector.platform.system.System.get_system_cpu")
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
-    def test_long_install_and_status_update(self, mock_get_package_version, mock_get_system_mem, mock_get_system_cpu, mock_get_system_disk, mock_get_cpu_cores, mock_is_package_installed):
+    def test_long_install_and_status_update(self, mock_get_package_version, mock_get_system_mem, mock_get_system_cpu,
+                                            mock_get_system_disk, mock_get_cpu_cores, mock_is_package_installed,
+                                            mock_get_installed_connectors, mock_enabled_connectors, mock_db_read):
         http.DEV_LOGGER.info('+++++ test_long_install_and_status_update')
         global number_of_status_updates
         number_of_status_updates = 0
@@ -267,6 +272,9 @@ class DeployTest(fake_filesystem_unittest.TestCase):
         deploy_global._oauth = self._oauth
         deploy_global._mercury_connection = Mercury(config, deploy_global._oauth)
         deploy_global._service_manager._alarms = MockAlarm()
+
+        config.write_blob = mock.MagicMock()
+        config.write_blob.return_value = None
 
         _orig_deploy_get_config = deploy_global._get_config
         deploy_global._get_config = get_wrong_tlp_path_packages
