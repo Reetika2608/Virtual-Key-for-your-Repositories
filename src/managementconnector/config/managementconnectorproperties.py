@@ -424,3 +424,37 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     U2C_IDENTITY = BLOB_CDB_PATH + U2C_IDENTITY_HOST
     U2C_FMS = BLOB_CDB_PATH + "system_fmsUrl"
     U2C_ADMIN_PORTAL = BLOB_CDB_PATH + "system_atlas_portal_u2c"
+
+    # -------------------------------------------------------------------------
+    # FEDERATION 4.0 MIGRATION Paths
+    # -------------------------------------------------------------------------
+
+    MIGRATION = "migration"
+    MIGRATION_BASE = MIGRATION + "_"
+    MIGRATION_ORG_ID = MIGRATION_BASE + "orgId"
+    MIGRATION_ID = MIGRATION_BASE + "migrationId"
+    MIGRATION_IDENTITY_SOURCE = MIGRATION_BASE + "identitySource"
+    MIGRATION_IDENTITY_TARGET = MIGRATION_BASE + "identityTarget"
+    MIGRATION_TEAMS_SOURCE = MIGRATION_BASE + "teamsSource"
+    MIGRATION_TEAMS_TARGET = MIGRATION_BASE + "teamsTarget"
+    MIGRATION_MEETINGS_SOURCE = MIGRATION_BASE + "meetingsSource"
+    MIGRATION_MEETINGS_TARGET = MIGRATION_BASE + "meetingsTarget"
+    MIGRATION_START_AT = MIGRATION_BASE + "startAt"
+    MIGRATION_WORKSTREAM_STARTED_AT = MIGRATION_BASE + "workstreamStartedAt"
+
+    # Migration blocked - True/False, not blocked by default
+    MIGRATION_BLOCKED = MIGRATION_BASE + "blocked"
+
+    # Migration fms-migration-state - COMPLETED/STARTED
+    MIGRATION_FMS_MIGRATION_STATE = MIGRATION_BASE + "fmsMigrationState"
+
+    # Migration Update connector.json - True/False
+    MIGRATION_UPDATE_CONNECTOR_JSON = MIGRATION_BASE + "update_connector_json"
+
+    # Migration stopped connectors - []
+    MIGRATION_STOPPED_CONNECTORS = MIGRATION_BASE + "stopped_connectors"
+
+    # Migration CI polling - time period in seconds
+    CI_POLL_TIMEOUT = 100
+    CI_POLL_BACKOFF = 2
+    CI_POLL_REFRESH_INTERVAL = 30
