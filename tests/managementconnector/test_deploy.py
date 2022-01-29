@@ -75,25 +75,31 @@ stop_install = False
 install_semaphore = threading.Semaphore(1)
 deploy_global = None
 
-def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
+
+def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True, status=False):
     ''' used for mock test intercept'''
     http.DEV_LOGGER.info('***TEST _http_request: url=%s, data=%s, request_type=%s' % (url, data, request_type))
     # urllib2.urlopen(req)
+
+    def process_response(in_response):
+        if status:
+            return {'response': in_response, 'status': 200}
     for i in range(len(h_type)):
         if "/v1/connectors" in url:
             indata = json.loads(data)
             if indata["status"] is not None:
                 global number_of_status_updates
-                number_of_status_updates = number_of_status_updates  + 1
-                return h_response[3]
+                number_of_status_updates = number_of_status_updates + 1
+                return process_response(h_response[3])
             if indata["connector_type"] == "c_mgmt" :
-                return h_response[3]
+                return process_response(h_response[3])
             if indata["connector_type"] == "c_xyz":
-                return h_response[3]
+                return process_response(h_response[3])
         elif url == h_url[i] and data == h_data[i] and request_type == h_type[i]:
             # ignore hreaders and headers == h_headers[i]
             http.DEV_LOGGER.info('***TEST _http_request: h_response[i]=%s***' % (h_response[i]))
-            return h_response[i]
+            return process_response(h_response[i])
+
     http.DEV_LOGGER.info('***TEST Error, could not find url %s in h_urls =%s***' % (url, h_url))
 
 
