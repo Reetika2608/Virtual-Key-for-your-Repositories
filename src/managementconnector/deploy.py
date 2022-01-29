@@ -295,7 +295,7 @@ class Deploy(object):
 
                 # Get the Provisioning Data
                 response_dict = self._atlas.register_connector(self._oauth.get_header(), service, status=True)
-                response, status_code = response_dict['response'], response_dict['status']
+                response, status_code = response_dict['response'], response_dict['status_code']
             else:
 
                 DEV_LOGGER.debug('Detail="Leaving  _do_register_config_status as defuse in progress"')

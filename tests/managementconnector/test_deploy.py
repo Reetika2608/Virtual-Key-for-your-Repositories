@@ -83,7 +83,7 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
 
     def process_response(in_response):
         if status:
-            return {'response': in_response, 'status': 200}
+            return {'response': in_response, 'status_code': 200}
     for i in range(len(h_type)):
         if "/v1/connectors" in url:
             indata = json.loads(data)

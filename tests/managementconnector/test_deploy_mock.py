@@ -1003,7 +1003,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
                                        'provisioning_url': 'https://hercules.hitest.huron-dev.com/v1/management_connectors/3',
                                        'serial': '0974F8FD', 'id': 18, 'provisioning': {'connectors': [
                 {'connector_type': 'c_mgmt', 'version': '8.6-1.0.521', 'display_name': 'Calendar Service',
-                 'packages': [{'tlp_url': 'https://aaa.bbb.ccc'}]}]}}, 'status': 200}
+                 'packages': [{'tlp_url': 'https://aaa.bbb.ccc'}]}]}}, 'status_code': 200}
 
         mc_type = "c_mgmt"
         deploy._do_register_config_status(mc_type)

@@ -344,7 +344,7 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
 
     def _process_response(in_response):
         if status:
-            return {'response': in_response, 'status': status_code}
+            return {'response': in_response, 'status_code': status_code}
         else:
             return response
 
