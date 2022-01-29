@@ -23,6 +23,7 @@ from cafedynamic.cafexutil import CafeXUtils
 from managementconnector.platform.serviceutils import ServiceUtils
 from managementconnector.lifecycle.lifecycleutils import LifecycleUtils
 from managementconnector.service.crashmonitor import CrashMonitor
+from managementconnector.cloud.orgmigration import OrgMigration
 
 from base_platform.expressway.i18n import translate
 
@@ -293,12 +294,28 @@ class Deploy(object):
                                            send_status=send_status_metric)
 
                 # Get the Provisioning Data
-                response = self._atlas.register_connector(self._oauth.get_header(), service)
+                response_dict = self._atlas.register_connector(self._oauth.get_header(), service, status=True)
+                response, status_code = response_dict['response'], response_dict['status']
             else:
 
                 DEV_LOGGER.debug('Detail="Leaving  _do_register_config_status as defuse in progress"')
 
                 return
+
+            # Federation 4.0 migration
+            # check if MIGRATION is BLOCKED - for testing purpose
+            is_migration_blocked = self._config.read(ManagementConnectorProperties.MIGRATION_BLOCKED)
+            DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: is_migration_blocked %s"' % is_migration_blocked)
+            # check if migration is scheduled and is not blocked
+            # 'orgMigration' should be present in response and/or response status code should be 302:
+            if is_migration_blocked != "true":
+                if response.get('orgMigration') is not None or status_code == 302:
+                    DEV_LOGGER.debug(
+                        'Detail="FMC_Utility Org Migration: orgMigration=%s, status_code=%s"' % (
+                            response.get('orgMigration'), status_code))
+                    # call migration workflow
+                    org_migration = OrgMigration(self._config, self._oauth)
+                    org_migration.migrate(response['orgMigration'])
 
             # get connector config and register and post connector status
             connectors_config = self._get_config(response['provisioning'])

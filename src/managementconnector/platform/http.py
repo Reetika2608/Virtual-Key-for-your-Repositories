@@ -106,9 +106,9 @@ class Http(object):
         return Http._http_request_wrapper(url, headers, data, 'PUT', silent=silent, schema=schema)
 
     @staticmethod
-    def post(url, headers, data, silent=False, schema=None):
+    def post(url, headers, data, silent=False, schema=None, status=False):
         """ post """
-        return Http._http_request_wrapper(url, headers, data, 'POST', silent=silent, schema=schema)
+        return Http._http_request_wrapper(url, headers, data, 'POST', silent=silent, schema=schema, status=status)
 
     @staticmethod
     def get(url, headers, silent=False, schema=None):
@@ -132,7 +132,8 @@ class Http(object):
         return "EXP_" + tracking_id
 
     @staticmethod
-    def _http_request_wrapper(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
+    def _http_request_wrapper(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True,
+                              status=False):
         """ wrapper """
         headers['TrackingID'] = Http.create_tracking_id()
 
@@ -143,7 +144,7 @@ class Http(object):
 
         try:
             response = _http_request(url, headers, data, request_type, silent=silent, schema=schema,
-                                     load_validate_json=load_validate_json)
+                                     load_validate_json=load_validate_json, status=status)
 
         except Exception:
             Http.error_url = url
@@ -271,7 +272,7 @@ def _validate_json_response(response, json_schema):
     return response
 
 
-def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
+def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True, status=False):
     """ used for mock test intercept
         throws CertificateExceptionInvalidCert,
         CertificateExceptionFusionCA,
@@ -326,6 +327,8 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
     # post_json might need response.info().dict to supply the delete_url
     # delete_url = headers['location']
 
+    status_code = response.getcode()
+
     if load_validate_json:
         response = _validate_json_response(response, schema)
 
@@ -339,7 +342,13 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
             'response = %s"' %
             (request_type, url, load_validate_json, headers_copy, data, response))
 
-    return response
+    def _process_response(in_response):
+        if status:
+            return {'response': in_response, 'status': status_code}
+        else:
+            return response
+
+    return _process_response(response)
 
 
 class ValidHTTPSConnection(http.client.HTTPConnection):
