@@ -279,7 +279,7 @@ class HTTPTest(unittest.TestCase):
             http.Http.post(url, headers, bad_refresh_access_token_response_raw, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
 
 
-def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
+def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True, status=False):
     ''' used for mock test intercept'''
 
     if schema is not None:
@@ -287,9 +287,11 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
 
     if request_type == 'GET':
         return {'foo': "GET"}
-    elif  request_type == 'POST':
+    elif request_type == 'POST':
+        if status:
+            return {'response': {'foo': "POST"}, 'status': 200}
         return {'foo': "POST"}
-    elif  request_type == 'PUT':
+    elif request_type == 'PUT':
         return {'foo': "PUT"}
     elif  request_type == 'DELETE':
         return {'foo': "DELETE"}

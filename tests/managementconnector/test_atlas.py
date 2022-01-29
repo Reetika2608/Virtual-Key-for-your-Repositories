@@ -30,7 +30,7 @@ def get_version(name):
     return 'test_version'
 
 
-def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
+def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True, status=False):
     """ used for mock test intercept """
     DEV_LOGGER.info("Mocked Post:" )
 
