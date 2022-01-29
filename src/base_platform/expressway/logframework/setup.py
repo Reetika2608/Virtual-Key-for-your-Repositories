@@ -158,8 +158,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
     MAX_MESSAGE_LENGTH = 16000  # we can log upto 32768, allow 16768 bytes for other stuff in log
 
     def __init__(self, facility):
-        logging.handlers.SysLogHandler.__init__(self,
-                                                address='/dev/log', facility=facility)
+        logging.handlers.SysLogHandler.__init__(self, facility=facility)
 
     def format(self, record):
         """Formats "record" as a utf-8 string"""
