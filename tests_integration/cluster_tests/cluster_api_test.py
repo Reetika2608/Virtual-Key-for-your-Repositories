@@ -223,7 +223,7 @@ class ClusterSmokeTest(unittest.TestCase):
         enable_maintenance_mode(self.config.org_id(), serial, self.config.fms_server(), self.access_token)
 
         # 2. Wait for maintenance mode to be passed down to management connector in the heartbeat provisioning
-        self.assertTrue(wait_until_true(is_maintenance_mode_enabled, 45, 1, *(
+        self.assertTrue(wait_until_true(is_maintenance_mode_enabled, 90, 1, *(
             random_expressway,
             self.config.exp_root_user(),
             self.config.exp_root_pass())),
@@ -256,7 +256,7 @@ class ClusterSmokeTest(unittest.TestCase):
         LOG.info("Disabling maintenance mode on %s", random_expressway)
         disable_maintenance_mode(self.config.org_id(), serial, self.config.fms_server(), self.access_token)
         # 5. Wait for the disable be passed down to management connector in the heartbeat provisioning
-        self.assertTrue(wait_until_true(is_maintenance_mode_disabled, 45, 1, *(
+        self.assertTrue(wait_until_true(is_maintenance_mode_disabled, 90, 1, *(
             random_expressway,
             self.config.exp_root_user(),
             self.config.exp_root_pass())),
