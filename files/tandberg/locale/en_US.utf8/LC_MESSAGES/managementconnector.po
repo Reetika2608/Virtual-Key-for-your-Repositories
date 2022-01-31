@@ -1,3 +1,8 @@
+# Specifying charset encoding in Header
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
 msgid "ttl.CLOUD_FUSION"
 msgstr "Hybrid Services"
 
