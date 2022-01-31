@@ -223,8 +223,11 @@ class Atlas(object):
         device_type = self._config.read(ManagementConnectorProperties.TARGET_TYPE)
         full_url = atlas_url_prefix + register_url
 
-        response = Http.post(full_url, header, json.dumps(self._get_post_request_data(service)),
-                             schema=schema.MANAGEMENT_CONNECTOR_REGISTER_RESPONSE, status=status)
+        heartbeat_response = Http.post(full_url, header, json.dumps(self._get_post_request_data(service)),
+                                       schema=schema.MANAGEMENT_CONNECTOR_REGISTER_RESPONSE, status=status)
+        response = heartbeat_response
+        if status:
+            response = heartbeat_response['response']
 
         Atlas._write_heatbeat_to_disk(device_type, service, response)
 
@@ -235,7 +238,7 @@ class Atlas(object):
         except KeyError as error:
             DEV_LOGGER.debug('Detail="register_connector: No heartbeat interval information, missing key: %s"', error)
 
-        return response
+        return heartbeat_response
 
     # -------------------------------------------------------------------------
 
