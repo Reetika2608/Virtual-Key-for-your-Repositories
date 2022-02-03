@@ -105,11 +105,13 @@ class OAuth(object):
 
     # -------------------------------------------------------------------------
 
-    def get_header(self, access_token=None):
+    def get_header(self, access_token=None, no_auth=False):
         """ return header with Access Token """
         headers = dict()
         headers['Content-Type'] = 'application/json'
-        if access_token is not None:
+        if no_auth:
+            return headers
+        elif access_token is not None:
             headers['Authorization'] = "Bearer " + access_token
         else:
             headers['Authorization'] = "Bearer " + self.get_access_token()
@@ -216,9 +218,10 @@ class OAuth(object):
         """
         try:
             if migration:
-                response = self.exponential_backoff_retry(Http.post, ManagementConnectorProperties.CI_POLL_TIMEOUT,
-                                                          ManagementConnectorProperties.CI_POLL_BACKOFF,
-                                                          ManagementConnectorProperties.CI_POLL_REFRESH_INTERVAL,
+                response = self.exponential_backoff_retry(Http.post,
+                                                          ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_TIMEOUT,
+                                                          ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_BACKOFF,
+                                                          ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_BACKOFF_REFRESH_INTERVAL,
                                                           *(idp_url, headers,
                                                             body, True, schema.REFRESH_ACCESS_TOKEN_RESPONSE))
             else:
@@ -235,6 +238,8 @@ class OAuth(object):
         self._update_revive_status()
 
         # Update some the OAuth Fields
+        self.oauth_response["refresh_token"] = response["refresh_token"]
+
         self.oauth_response["access_token"] = response["access_token"]
 
         if "accountExpiration" in response:
@@ -261,10 +266,10 @@ class OAuth(object):
     def exponential_backoff_retry(predicate, timeout, backoff=2, refresh_interval=30, *args):
         """ Calls the predicate function with an increasing delay between successive retries """
         backoff_time = RandomGenerator().random()
-        must_end = time.time() + timeout
-        refresh_time = time.time() + refresh_interval
-        DEV_LOGGER.info('Detail="Org Migration: Polling CI"')
-        while time.time() < must_end:
+        must_end = OAuth.get_current_time() + timeout
+        refresh_time = OAuth.get_current_time() + refresh_interval
+        DEV_LOGGER.info('Detail="Org Migration: exponential_backoff_retry"')
+        while OAuth.get_current_time() < must_end:
             try:
                 response = predicate(*args)
                 return response
@@ -274,10 +279,10 @@ class OAuth(object):
                                  'error: code=%s, url=%s"' % (error.code, error.url))
                 pass
             # refresh the backoff once refresh interval is reached
-            if time.time() >= refresh_time:
+            if OAuth.get_current_time() >= refresh_time:
                 DEV_LOGGER.debug('Detail="Org Migration: Refresh interval reached.."')
                 backoff_time = RandomGenerator().random()
-                refresh_time = time.time() + refresh_interval
+                refresh_time = OAuth.get_current_time() + refresh_interval
             # retry delay increases by a factor of backoff (example: backoff=2seconds) everytime
             backoff_time = (backoff_time + backoff) + RandomGenerator().random()
             DEV_LOGGER.debug(f'Detail="Org Migration: Will call CI after {backoff_time} seconds"')
@@ -288,53 +293,15 @@ class OAuth(object):
     # -------------------------------------------------------------------------
 
     def refresh_u2c(self):
+        """ Refresh u2c """
         # update user catalog - after every token refresh
-        DEV_LOGGER.debug('Detail="FMC_OAuth refresh_u2c: Refresh user catalog"')
-        self._u2c.update_user_catalog(header=self.get_header(access_token=self.oauth_response["access_token"]))
-        DEV_LOGGER.debug('Detail="FMC_OAuth refresh_u2c: User Catalog refresh done"')
-        return
-
-    # -------------------------------------------------------------------------
-
-    def refresh_oauth_resp_with_idp_old(self):
-        """refresh the OAuth Response, by sending a refresh request to the IDP"""
-
-        DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_response_with_idp:"')
-
-        body = 'grant_type=refresh_token&refresh_token=' + self.oauth_response["refresh_token"]
-        headers = self._get_idp_headers()
-
-        idp_info = self._config.read(ManagementConnectorProperties.OAUTH_BASE)
-
-        idp_url = idp_info["idpHost"] + "/" + ManagementConnectorProperties.IDP_URL
-
+        # if u2c refresh fails with auth, retry without auth as fallback
+        DEV_LOGGER.debug('Detail="FMC_OAuth refresh_u2c"')
         try:
-            response = Http.post(idp_url, headers, body, silent=True, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
-        except urllib_error.HTTPError as error:
-            DEV_LOGGER.error('Detail="RAW: FMC_OAuth _refresh_oauth_resp_with_idp: error: code=%s, url=%s"' % (
-                error.code, error.url))
-            if error.code == 400:
-                self._revive_on_http_error(error)
-
-        self._update_revive_status()
-
-        # Update some the OAuth Fields
-        self.oauth_response["access_token"] = response["access_token"]
-
-        if "accountExpiration" in response:
-            self.oauth_response["accountExpiration"] = response["accountExpiration"]
-
-        self.oauth_response["expires_in"] = response["expires_in"]
-
-        self.oauth_response["time_read"] = self.get_current_time()
-
-        # Mark the last time the refresh token was used
-        self.oauth_response["refresh_time_read"] = self.get_current_time()
-
-        DEV_LOGGER.info('Detail="FMC_OAuth _refresh_oauth_resp_with_idp: refresh_time_read %s; expires_in %s "' %
-                        (self.oauth_response["refresh_time_read"], self.oauth_response["expires_in"]))
-
-        return self.oauth_response
+            self._u2c.update_user_catalog(header=self.get_header(access_token=self.oauth_response["access_token"]))
+        except urllib_error.HTTPError:
+            self._u2c.update_user_catalog(header=self.get_header(no_auth=True))
+        return
 
     # -------------------------------------------------------------------------
 

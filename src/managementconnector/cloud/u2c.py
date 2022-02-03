@@ -42,17 +42,22 @@ class U2C(object):
         host = self._config.read(ManagementConnectorProperties.U2C_HOST)
         if isinstance(host, dict):  # Workaround for SPARK-91437: If the u2c url was NOT set, we wrote the wrong value to the DB
             host = host["value"].replace('"', '').replace('\\', '')
-        user_service_url = self._config.read(ManagementConnectorProperties.U2C_USER_SERVICE_URL)
-        if header is not None:
-            service_catalogs = self._http.get(
-                host + user_service_url + SERVICE_PREFIX + self.build_services_list(self.service_map),
-                headers=header,
-                schema=schema.U2C_SERVICES_RESPONSE)
+
+        if header is None:
+            header = self._oauth.get_header()
+
+        if header.get("Authorization") is not None:
+            # fetch complete service catalog
+            user_service_url = self._config.read(ManagementConnectorProperties.U2C_USER_SERVICE_URL)
+            u2c_url = host + user_service_url + SERVICE_PREFIX + self.build_services_list(self.service_map)
         else:
-            service_catalogs = self._http.get(
-                host + user_service_url + SERVICE_PREFIX + self.build_services_list(self.service_map),
-                headers=self._oauth.get_header(),
-                schema=schema.U2C_SERVICES_RESPONSE)
+            # fetch limited service catalog without auth
+            user_service_url = self._config.read(ManagementConnectorProperties.U2C_LIMITED_SERVICE_URL)
+            org_id = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
+            u2c_url = host + user_service_url + org_id
+
+        service_catalogs = self._http.get(u2c_url, headers=header, schema=schema.U2C_SERVICES_RESPONSE)
+
         U2C.process_catalog(self._config, service_catalogs["services"])
 
         if not self._identity_and_u2c_host_check:
