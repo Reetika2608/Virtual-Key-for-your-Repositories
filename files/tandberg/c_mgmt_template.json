@@ -19,6 +19,7 @@
         "u2cHost": $!setvar("u2cHost", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_u2c_u2cHost"]')!$<!--(if len(u2cHost))-->$!u2cHost[0]['value']!$<!--(else)-->"https://u2c-a.wbx2.com/u2c/api/v1"<!--(end)-->,
         "serviceUrl": "/services",
         "userUrl": "/user/catalog?types=TEAM",
+        "limitedCatalog": "/limited/catalog?orgId=",
         "pollTime": "$!setvar("pollTime", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_u2c_pollTime"]')!$<!--(if len(pollTime))-->$!pollTime[0]['value']!$<!--(else)-->86400<!--(end)-->"
     },
 
@@ -174,10 +175,9 @@
     },
     "migration":
     {
-        "blocked": $!setvar("c_mgmt_migration_blocked", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_blocked"]')!$<!--(if len(c_mgmt_migration_blocked))-->$!c_mgmt_migration_blocked[0]['value']!$<!--(else)-->"false"<!--(end)-->
         $!setvar("c_mgmt_migration_fmsMigrationState", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_fmsMigrationState"]')!$
         <!--(if len(c_mgmt_migration_fmsMigrationState))-->
-            ,"fmsMigrationState": $!c_mgmt_migration_fmsMigrationState[0]['value']!$
+            "fmsMigrationState": $!c_mgmt_migration_fmsMigrationState[0]['value']!$
         <!--(end)-->
         $!setvar("c_mgmt_migration_update_connector_json", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_update_connector_json"]')!$
         <!--(if len(c_mgmt_migration_update_connector_json))-->

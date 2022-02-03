@@ -1,15 +1,15 @@
+import unittest
 import mock
 import logging
 import sys
-
-from pyfakefs import fake_filesystem_unittest
-from .productxml import PRODUCT_XML_CONTENTS
-from .constants import SYS_LOG_HANDLER
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
 
+from pyfakefs import fake_filesystem_unittest
+from .productxml import PRODUCT_XML_CONTENTS
+from .constants import SYS_LOG_HANDLER
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.cloud import orgmigration
@@ -36,6 +36,8 @@ ORG_MIGRATION_DATA = {
             "fms-migration-state": "STARTED"
         }
 
+FMS_MIGRATION_STATE = "COMPLETED"  # STARTED/COMPLETED
+
 
 def config_read_side_effect(*args, **kwargs):
     """ Config Side Effect """
@@ -46,6 +48,10 @@ def config_read_side_effect(*args, **kwargs):
 
     if args[0] == ManagementConnectorProperties.OAUTH_BASE:
         return {"idpHost": "idpHost", "clientId": "clientId", "clientSecret": "clientSecret"}
+
+    if args[0] == ManagementConnectorProperties.FMS_MIGRATION_STATE:
+        global FMS_MIGRATION_STATE
+        return FMS_MIGRATION_STATE
 
 
 class OrgMigrationTest(fake_filesystem_unittest.TestCase):
@@ -99,9 +105,9 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_other_connectors.assert_called_once()
 
     @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.stop_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.start_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=[])
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.disable_connectors')
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.enable_connectors')
+    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read')
     @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
     @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
@@ -111,15 +117,18 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
                                mock_orgmigration_other_connectors, mock_dbhandler, mock_start_connectors,
                                mock_stop_connectors, mock_refresh_access_token):
         """ Test migration completed workflow """
-        ORG_MIGRATION_DATA["fms-migration-state"] = "COMPLETED"
+        global FMS_MIGRATION_STATE
+        FMS_MIGRATION_STATE = "COMPLETED"
+        mock_config.read.side_effect = config_read_side_effect
+
         org_migration = orgmigration.OrgMigration(mock_config, mock_oauth)
         mock_config.write_blob.return_value = None
-        org_migration.migrate(ORG_MIGRATION_DATA)
+        org_migration.migrate(status_code=302)
 
         # should have called get_enabled_connectors and start_connectors
         mock_servicemanager_enabled_connectors.assert_called_once()
         mock_orgmigration_other_connectors.assert_called_once()
-        mock_start_connectors.assert_called_once()
+        mock_start_connectors.assert_called()
 
         # should not have called stop_connectors() and refresh_access_token()
         self.assertFalse(mock_stop_connectors.called, 'failed')
@@ -128,8 +137,8 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     # @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
     @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
     @mock.patch('managementconnector.cloud.oauth.Http')
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.stop_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.start_connectors')
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.disable_connectors')
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.enable_connectors')
     @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=[])
     @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
     @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
@@ -137,18 +146,21 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     @mock.patch('managementconnector.cloud.oauth.OAuth.exponential_backoff_retry')
     @mock.patch('managementconnector.config.config.Config')
     def test_migrate_started(self, mock_config, mock_oauth_polling, mock_servicemanager_enabled_connectors,
-                               mock_orgmigration_other_connectors, mock_dbhandler, mock_start_connectors,
-                               mock_stop_connectors, mock_http, mock_u2c):
+                             mock_orgmigration_other_connectors, mock_dbhandler, mock_start_connectors,
+                             mock_stop_connectors, mock_http, mock_u2c):
         """ Test migration started workflow """
         time_in_past = OAuth.get_current_time() - 100
 
-        ORG_MIGRATION_DATA["fms-migration-state"] = "STARTED"
+        # ORG_MIGRATION_DATA["fms-migration-state"] = "STARTED"
+        global FMS_MIGRATION_STATE
+        FMS_MIGRATION_STATE = "STARTED"
 
         test_oauth = OAuth(mock_config)
         mock_config.read.side_effect = config_read_side_effect
 
         test_oauth.http = mock_http
-        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 100}
+        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
+                                       'expires_in': 100, 'accountExpiration': 100}
 
         org_migration = orgmigration.OrgMigration(mock_config, test_oauth)
 
@@ -156,18 +168,107 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
         mock_u2c.update_user_catalog.return_value = None
 
-        org_migration.migrate(ORG_MIGRATION_DATA)
+        org_migration.migrate(status_code=302)
 
         # should have called get_enabled_connectors, stop_connectors, exponential_backoff_retry and start_connectors
         mock_servicemanager_enabled_connectors.assert_called_once()
         mock_orgmigration_other_connectors.assert_called_once()
         mock_stop_connectors.assert_called_once()
         mock_oauth_polling.assert_called()
-        mock_start_connectors.assert_called_once()
+        mock_start_connectors.assert_called()
 
         # assert token refresh
         self.assertTrue(test_oauth.oauth_response['refresh_time_read'] > time_in_past)
         self.assertTrue(test_oauth.oauth_response['access_token'] == REFRESHED_TOKEN)
+
+    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.process_migration_data')
+    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
+    @mock.patch('managementconnector.cloud.oauth.Http')
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.disable_connectors')
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.enable_connectors')
+    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=[])
+    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors',
+                return_value=['c_xyz', 'c_abc'])
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
+                return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
+    @mock.patch('managementconnector.config.config.Config')
+    def test_migrate_status_not_302_with_migration_data(self, mock_config, mock_servicemanager_enabled_connectors,
+                                                        mock_orgmigration_other_connectors, mock_dbhandler,
+                                                        mock_start_connectors,
+                                                        mock_stop_connectors, mock_http, mock_refresh_access_token,
+                                                        mock_process_migration_data):
+        """ Test migration status != 302 workflow with migration data """
+        global FMS_MIGRATION_STATE
+        FMS_MIGRATION_STATE = "STARTED"
+
+        test_oauth = OAuth(mock_config)
+        mock_config.read.side_effect = config_read_side_effect
+
+        test_oauth.http = mock_http
+        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
+                                       'expires_in': 100, 'accountExpiration': 100}
+
+        org_migration = orgmigration.OrgMigration(mock_config, test_oauth)
+
+        mock_config.write_blob.return_value = None
+
+        org_migration.migrate(status_code=200, org_migration_data=ORG_MIGRATION_DATA)
+
+        # should have called process migration to write migration data to db
+        mock_process_migration_data.assert_called()
+
+        # should not have called get_enabled_connectors, stop_connectors
+        # refresh_access_token, enable_connectors, disable_connectors
+        self.assertFalse(mock_orgmigration_other_connectors.called, 'failed')
+        self.assertFalse(mock_servicemanager_enabled_connectors.called, 'failed')
+        self.assertFalse(mock_dbhandler.called, 'failed')
+        self.assertFalse(mock_stop_connectors.called, 'failed')
+        self.assertFalse(mock_refresh_access_token.called, 'failed')
+        self.assertFalse(mock_start_connectors.called, 'failed')
+
+    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.process_migration_data')
+    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
+    @mock.patch('managementconnector.cloud.oauth.Http')
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.disable_connectors')
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.enable_connectors')
+    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=[])
+    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors',
+                return_value=['c_xyz', 'c_abc'])
+    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
+                return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
+    @mock.patch('managementconnector.config.config.Config')
+    def test_migrate_status_not_302_without_migration_data(self, mock_config, mock_servicemanager_enabled_connectors,
+                                                           mock_orgmigration_other_connectors, mock_dbhandler,
+                                                           mock_start_connectors,
+                                                           mock_stop_connectors, mock_http, mock_refresh_access_token,
+                                                           mock_process_migration_data):
+        """ Test migration status != 302 workflow without migration data """
+
+        test_oauth = OAuth(mock_config)
+        mock_config.read.side_effect = config_read_side_effect
+
+        test_oauth.http = mock_http
+        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
+                                       'expires_in': 100, 'accountExpiration': 100}
+
+        org_migration = orgmigration.OrgMigration(mock_config, test_oauth)
+
+        mock_config.write_blob.return_value = None
+
+        mock_process_migration_data.return_value = None
+
+        org_migration.migrate(status_code=200)
+
+        # should not have called get_enabled_connectors, stop_connectors
+        # refresh_access_token, enable_connectors, disable_connectors
+        self.assertFalse(mock_orgmigration_other_connectors.called, 'failed')
+        self.assertFalse(mock_servicemanager_enabled_connectors.called, 'failed')
+        self.assertFalse(mock_dbhandler.called, 'failed')
+        self.assertFalse(mock_stop_connectors.called, 'failed')
+        self.assertFalse(mock_refresh_access_token.called, 'failed')
+        self.assertFalse(mock_start_connectors.called, 'failed')
+        # should not have called process migration
+        self.assertFalse(mock_process_migration_data.called, 'failed')
 
     @mock.patch('managementconnector.cloud.oauth.OAuth')
     @mock.patch('managementconnector.config.config.Config')
@@ -177,3 +278,8 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_config.write_blob.return_value = None
         org_migration.process_migration_data(ORG_MIGRATION_DATA)
         mock_config.write_blob.assert_called()
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    unittest.main()

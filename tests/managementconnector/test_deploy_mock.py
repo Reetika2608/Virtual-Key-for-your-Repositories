@@ -992,7 +992,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
 
         mock_oauth.get_access_token.return_value = "access_token"
 
-        mock_http.post.return_value = {'response': {'status': None, 'display_name': 'Fusion Management',
+        mock_http.post.return_value = {'status': None, 'display_name': 'Fusion Management',
                                        'registered_by': '14a2a40a-8f38-4866-8f1a-e6226baf42c3',
                                        'created_at': '2014-11-14T09:43:49.744Z',
                                        'updated_at': '2014-11-14T09:43:49.744Z',
@@ -1003,7 +1003,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
                                        'provisioning_url': 'https://hercules.hitest.huron-dev.com/v1/management_connectors/3',
                                        'serial': '0974F8FD', 'id': 18, 'provisioning': {'connectors': [
                 {'connector_type': 'c_mgmt', 'version': '8.6-1.0.521', 'display_name': 'Calendar Service',
-                 'packages': [{'tlp_url': 'https://aaa.bbb.ccc'}]}]}}, 'status_code': 200}
+                 'packages': [{'tlp_url': 'https://aaa.bbb.ccc'}]}]}}
 
         mc_type = "c_mgmt"
         deploy._do_register_config_status(mc_type)
@@ -1088,27 +1088,63 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
             'Could not download xyz_display_name because the certificate from http://www.bad_address.com was not validated. You may be configured for manual certificate management.\n']
         mock_alarm.raise_alarm.assert_called_with('142f9bb1-74a5-460a-b609-7f33f8acdcaf', mock.ANY)
 
-    @mock.patch("managementconnector.cloud.orgmigration.DatabaseHandler.read")
-    @mock.patch("managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors")
-    @mock.patch("managementconnector.cloud.orgmigration.CafeXUtils.get_installed_connectors")
-    @mock.patch("managementconnector.platform.system.System.get_system_cpu")
-    @mock.patch("managementconnector.platform.system.System.get_system_mem")
-    @mock.patch('managementconnector.deploy.CrashMonitor')
-    @mock.patch('managementconnector.cloud.atlas.jsonhandler.write_json_file')
-    @mock.patch('managementconnector.deploy.Metrics')
-    @mock.patch('managementconnector.deploy.MCAlarm')
-    @mock.patch('managementconnector.deploy.ServiceManager')
-    @mock.patch('managementconnector.deploy.ServiceUtils')
-    @mock.patch('managementconnector.cloud.atlas.Http')
-    @mock.patch('managementconnector.config.config')
-    @mock.patch('managementconnector.deploy.OAuth')
-    def test_orgmigration(self, mock_oauth, mock_config, mock_http, mock_utils, mock_mgr, mock_alarm, mock_metrics,
-                          mock_json_write, mock_monitor, mock_get_system_mem,
-                          mock_get_system_cpu, mock_get_installed_connectors, mock_enabled_connectors, mock_db_read):
+
+FMS_MIGRATION_STATE = "COMPLETED"  # STARTED/COMPLETED
+
+
+def org_migration_config_read_side_effect(*args, **kwargs):
+    """ Org Migration Config Side Effect """
+    if args[0] == ManagementConnectorProperties.FMS_MIGRATION_STATE:
+        global FMS_MIGRATION_STATE
+        return FMS_MIGRATION_STATE
+    else:
+        return 'false'
+
+
+@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.process_migration_data')
+@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
+@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.stop_connectors')
+@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.start_connectors')
+@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_enabled_connectors')
+@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors')
+@mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler')
+@mock.patch("managementconnector.platform.system.System.get_system_cpu")
+@mock.patch("managementconnector.platform.system.System.get_system_mem")
+@mock.patch('managementconnector.deploy.CrashMonitor')
+@mock.patch('managementconnector.cloud.atlas.jsonhandler.write_json_file')
+@mock.patch('managementconnector.deploy.Metrics')
+@mock.patch('managementconnector.deploy.MCAlarm')
+@mock.patch('managementconnector.deploy.ServiceManager')
+@mock.patch('managementconnector.deploy.ServiceUtils')
+@mock.patch('managementconnector.cloud.atlas.Http')
+@mock.patch('managementconnector.config.config')
+@mock.patch('managementconnector.deploy.OAuth')
+class DeployOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
+    """ Class to Test OrgMigration from Deploy """
+
+    def setUp(self):
+        """ Deploy Mock Test Setup """
+        DEV_LOGGER.info('***TEST Setup***')
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
+
+    def test_deploy_process_orgmigration_status_not_302_with_migration_data(self, mock_oauth, mock_config, mock_http,
+                                                                            mock_utils, mock_mgr, mock_alarm,
+                                                                            mock_metrics,
+                                                                            mock_json_write, mock_monitor,
+                                                                            mock_get_system_mem,
+                                                                            mock_get_system_cpu,
+                                                                            mock_dbhandler,
+                                                                            mock_other_connectors,
+                                                                            mock_enabled_connectors,
+                                                                            mock_start_connectors,
+                                                                            mock_stop_connectors,
+                                                                            mock_refresh_access_token,
+                                                                            mock_process_migration_data):
         """ FMS sends orgMigration data in heartbeat response. FMC should process the data if present and enter CI
                 polling to refresh token and update new service URLs """
 
-        DEV_LOGGER.info("***TEST*** test_orgmigration")
+        DEV_LOGGER.info("***TEST*** test_deploy_process_orgmigration_status_not_302_with_migration_data")
 
         # Setup Mock Objects
 
@@ -1117,53 +1153,26 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
         atlas._get_post_request_data.return_value = {}
         atlas._write_heatbeat_to_disk = mock.MagicMock(name='method', return_value=None)
         atlas._configure_heartbeat = 30
-        mock_config.read.return_value = "dummy_url"
+        mock_config.read.return_value = "dummy_fms_url"
 
         mock_mgr.get.return_value = "Mock Service"
         mock_mgr.get_name.return_value = 'c_mgmt'
+        mock_http.post.return_value = {"provisioning": {"connectors": [
+            {"connector_type": "c_mgmt", "version": "8.6-1.0.521", "display_name": "Calendar Service",
+             "packages": [{"tlp_url": "https://aaa.bbb.ccc"}]}]},
+            "orgMigration": {"org-id": "5b1b4724-e796-4d59-bd2e-02d81af05b43",
+                             "migration-id": "248d09ef-bc33-4c91-b1db-7fd8acfd1b6c",
+                             "identity-source": "urn:IDENTITY:PF84",
+                             "identity-target": "urn:IDENTITY:PE93",
+                             "teams-source": "urn:TEAM:us-east-1_int13",
+                             "teams-target": "urn:TEAM:us-west-2_int24",
+                             "meetings-source": "urn:MEETING:prod-dwwd",
+                             "meetings-target": "urn:MEETING:prod-vvwd",
+                             "start-at": "2021-12-16T21:10:00.000Z",
+                             "workstream-startedAt": "2022-01-12T15:49:23.139327Z",
+                             "fms-migration-state": "STARTED"}}
 
-        mock_http.post.return_value = {
-            "response": {"id": "c_mgmt@0974F8FD", "cluster_id": "42542a3d-2e18-1234-b981-gwydlvm1186",
-                         "display_name": "Management Connector", "host_name": "gwydlvm1186",
-                         "cluster_name": "gwydlvm1186", "connector_type": "c_mgmt",
-                         "version": "8.11-999.0.12345", "serial": "0974F8FD",
-                         "status": {"state": "running", "alarms": [],
-                                    "connectorStatus": {"operational": True, "initialized": True,
-                                                        "services": {"cloud": [], "onprem": []},
-                                                        "maintenanceMode": "off", "state": "operational",
-                                                        "clusterSerials": ["0974F8FD"]},
-                                    "startTimestamp": "2022-01-28T21: 53: 43Z"},
-                         "registered_by": "1567893s-b036-488b-b8f3-gwydlvm1186", "provisioning": {
-                    "connectors": [
-                        {"connector_type": "c_abc", "display_name": "Serviceability Connector",
-                         "version": "8.11-1.1605",
-                         "packages": [{"tlp_url": "https://aaa.bbb.ccc"}]},
-                        {"connector_type": "c_mgmt", "display_name": "Management Connector", "version": "8.11-1.0.277",
-                         "packages": [{"tlp_url": "https://aaa.bbb.ccc"}]},
-                        {"connector_type": "c_cal", "display_name": "Calendar Connector", "version": "8.11-1.0.8167",
-                         "packages": [{"tlp_url": "https://aaa.bbb.ccc"}]}], "dependencies": [
-                        {"version": "8.8-1.0-1.8.0u152", "dependencyType": "d_openj", "tlpUrl": "https://aaa.bbb.ccc"}],
-                    "heartbeatInterval": 30, "maintenanceMode": "off"}, "platform": "expressway",
-                         "platform_version": "X14.1Release1 (Test SW)",
-                         "properties": {"fms.releaseChannel": "beta", "_.resourceGroup": "",
-                                        "_.createdAt": "2022-01-28T16: 54: 34.066231Z",
-                                        "_.targetType": "c_mgmt"},
-                         "hostHardware": {"cpus": 2, "totalMemory": "4133916672",
-                                          "totalDisk": "128811008", "hostType": "virtual"},
-                         "orgMigration": {"org-id": "5b1b4724-e796-4d59-bd2e-02d81af05b43",
-                                          "migration-id": "248d09ef-bc33-4c91-b1db-7fd8acfd1b6c",
-                                          "identity-source": "urn:IDENTITY:PF84",
-                                          "identity-target": "urn:IDENTITY:PE93",
-                                          "teams-source": "urn:TEAM:us-east-1_int13",
-                                          "teams-target": "urn:TEAM:us-west-2_int24",
-                                          "meetings-source": "urn:MEETING:prod-dwwd",
-                                          "meetings-target": "urn:MEETING:prod-vvwd",
-                                          "start-at": "2021-12-16T21:10:00.000Z",
-                                          "workstream-startedAt": "2022-01-12T15:49:23.139327Z",
-                                          "fms-migration-state": "STARTED"}}, "status": 302}
-        # mock_url = "cafe-test.cisco.com"
-        # Http.error_url = mock_url
-        # mock_config.read = "false"
+        mock_config.write_blob.return_value = None
 
         # Run Test
         deploy = Deploy(mock_config)
@@ -1172,17 +1181,208 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
         mock_config.read.return_value = 'false'
 
         deploy._oauth_init = True
+        deploy._get_config = mock.MagicMock
+        deploy._do_register_config_status("c_mgmt")
+        mock_http.post.side_effect = None
 
-        mock_get_installed_connectors.return_value = ['c_mgmt', 'c_cal', 'c_imp']
-        mock_db_read.return_value = []
+        # should have called process migration to write migration data to db
+        mock_process_migration_data.assert_called()
+        # should not have called get_enabled_connectors, db.read()
+        # refresh_access_token, stop_connectors, start_connectors
+        self.assertFalse(mock_other_connectors.called, 'failed')
+        self.assertFalse(mock_enabled_connectors.called, 'failed')
+        self.assertFalse(mock_dbhandler.read.called, 'failed')
+        self.assertFalse(mock_refresh_access_token.called, 'failed')
+        self.assertFalse(mock_stop_connectors.called, 'failed')
+        self.assertFalse(mock_start_connectors.called, 'failed')
+
+    def test_deploy_process_orgmigration_status_not_302_without_migration_data(self, mock_oauth, mock_config, mock_http,
+                                                                            mock_utils, mock_mgr, mock_alarm,
+                                                                            mock_metrics,
+                                                                            mock_json_write, mock_monitor,
+                                                                            mock_get_system_mem,
+                                                                            mock_get_system_cpu,
+                                                                            mock_dbhandler,
+                                                                            mock_other_connectors,
+                                                                            mock_enabled_connectors,
+                                                                            mock_start_connectors,
+                                                                            mock_stop_connectors,
+                                                                            mock_refresh_access_token,
+                                                                            mock_process_migration_data):
+        """ FMS sends orgMigration data in heartbeat response.
+            FMC should not process the data if not present and
+            should not enter CI polling to refresh token and
+            also should not update service URLs """
+
+        DEV_LOGGER.info("***TEST*** test_deploy_process_orgmigration_status_not_302_without_migration_data")
+
+        # Setup Mock Objects
+
+        atlas = Atlas(mock_config)
+        atlas._get_post_request_data = mock.MagicMock(name='method')
+        atlas._get_post_request_data.return_value = {}
+        atlas._write_heatbeat_to_disk = mock.MagicMock(name='method', return_value=None)
+        atlas._configure_heartbeat = 30
+        mock_config.read.return_value = "dummy_fms_url"
+
+        mock_mgr.get.return_value = "Mock Service"
+        mock_mgr.get_name.return_value = 'c_mgmt'
+        mock_http.post.return_value = {"provisioning": {"connectors": [
+            {"connector_type": "c_mgmt", "version": "8.6-1.0.521", "display_name": "Calendar Service",
+             "packages": [{"tlp_url": "https://aaa.bbb.ccc"}]}]}}  # without orgmigration data
+
+        mock_config.write_blob.return_value = None
+
+        # Run Test
+        deploy = Deploy(mock_config)
+        deploy._atlas = atlas
+        deploy._alarms = mock_alarm
+        mock_config.read.return_value = 'false'
+
+        deploy._oauth_init = True
+        deploy._get_config = mock.MagicMock
+        deploy._do_register_config_status("c_mgmt")
+        mock_http.post.side_effect = None
+
+        # should not have called get_enabled_connectors, db.read()
+        # refresh_access_token, stop_connectors, start_connectors and process_migration_data
+        self.assertFalse(mock_other_connectors.called, 'failed')
+        self.assertFalse(mock_enabled_connectors.called, 'failed')
+        self.assertFalse(mock_dbhandler.read.called, 'failed')
+        self.assertFalse(mock_refresh_access_token.called, 'failed')
+        self.assertFalse(mock_stop_connectors.called, 'failed')
+        self.assertFalse(mock_start_connectors.called, 'failed')
+        self.assertFalse(mock_process_migration_data.called, 'failed')
+
+    def test_deploy_process_orgmigration_status_302_completed(self, mock_oauth, mock_config, mock_http,
+                                                              mock_utils, mock_mgr, mock_alarm,
+                                                              mock_metrics,
+                                                              mock_json_write, mock_monitor,
+                                                              mock_get_system_mem,
+                                                              mock_get_system_cpu,
+                                                              mock_dbhandler,
+                                                              mock_other_connectors,
+                                                              mock_enabled_connectors,
+                                                              mock_start_connectors,
+                                                              mock_stop_connectors,
+                                                              mock_refresh_access_token,
+                                                              mock_process_migration_data):
+        """ FMS sends 302 response code and fmsMigrationState is COMPLETED.
+        Then,
+            FMC should not process the data
+            should not enter CI polling to refresh token and
+            also should not update service URLs """
+
+        DEV_LOGGER.info("***TEST*** test_deploy_process_orgmigration_status_302_completed")
+
+        # Setup Mock Objects
+
+        atlas = Atlas(mock_config)
+        atlas._get_post_request_data = mock.MagicMock(name='method')
+        atlas._get_post_request_data.return_value = {}
+        atlas._write_heatbeat_to_disk = mock.MagicMock(name='method', return_value=None)
+        atlas._configure_heartbeat = 30
+        mock_config.read.return_value = "dummy_fms_url"
+
+        mock_mgr.get.return_value = "Mock Service"
+        mock_mgr.get_name.return_value = 'c_mgmt'
+
+        stream = io.TextIOWrapper(io.BytesIO(b''))
+        mock_http.post.side_effect = urllib_error.HTTPError(
+            'https://hercules.hitest.huron-dev.com/v1/connector_statuses/18', "302", "", "hdrs", stream)
+
+        mock_config.write_blob.return_value = None
+
+        # Run Test
+        deploy = Deploy(mock_config)
+        deploy._atlas = atlas
+        deploy._alarms = mock_alarm
+        # mock_config.read.return_value = 'false'
+
+        deploy._oauth_init = True
         deploy._get_config = mock.MagicMock
 
+        global FMS_MIGRATION_STATE
+        FMS_MIGRATION_STATE = "COMPLETED"
+        mock_config.read.side_effect = org_migration_config_read_side_effect
+
         deploy._do_register_config_status("c_mgmt")
-
-        # mock_alarm.raise_alarm.assert_called_with('ba883968-4b5a-4f83-9e71-50c7d7621b44', [mock_url])
-        # mock_alarm.reset_mock()
-
         mock_http.post.side_effect = None
+        mock_config.read.side_effect = None
+
+        # should have called get_enabled_connectors, and start_connectors
+        mock_enabled_connectors.assert_called()
+        mock_start_connectors.assert_called()
+        # should not have called refresh_access_token, stop_connectors and process_migration_data
+        self.assertFalse(mock_refresh_access_token.called, 'failed')
+        self.assertFalse(mock_stop_connectors.called, 'failed')
+        self.assertFalse(mock_process_migration_data.called, 'failed')
+
+    def test_deploy_process_orgmigration_status_302_started(self, mock_oauth, mock_config, mock_http,
+                                                            mock_utils, mock_mgr, mock_alarm,
+                                                            mock_metrics,
+                                                            mock_json_write, mock_monitor,
+                                                            mock_get_system_mem,
+                                                            mock_get_system_cpu,
+                                                            mock_dbhandler,
+                                                            mock_other_connectors,
+                                                            mock_enabled_connectors,
+                                                            mock_start_connectors,
+                                                            mock_stop_connectors,
+                                                            mock_refresh_access_token,
+                                                            mock_process_migration_data):
+        """ FMS sends 302 response code and fmsMigrationState is STARTED.
+        Then,
+            FMC should not process the data
+            should stop enabled connectors
+            should enter CI polling to refresh token
+            also should update service URLs and
+            start stopped connectors"""
+
+        DEV_LOGGER.info("***TEST*** test_deploy_process_orgmigration_status_302_started")
+
+        # Setup Mock Objects
+
+        atlas = Atlas(mock_config)
+        atlas._get_post_request_data = mock.MagicMock(name='method')
+        atlas._get_post_request_data.return_value = {}
+        atlas._write_heatbeat_to_disk = mock.MagicMock(name='method', return_value=None)
+        atlas._configure_heartbeat = 30
+        mock_config.read.return_value = "dummy_fms_url"
+
+        mock_mgr.get.return_value = "Mock Service"
+        mock_mgr.get_name.return_value = 'c_mgmt'
+
+        stream = io.TextIOWrapper(io.BytesIO(b''))
+        mock_http.post.side_effect = urllib_error.HTTPError(
+            'https://hercules.hitest.huron-dev.com/v1/connector_statuses/18', "302", "", "hdrs", stream)
+
+        mock_config.write_blob.return_value = None
+
+        # Run Test
+        deploy = Deploy(mock_config)
+        deploy._atlas = atlas
+        deploy._alarms = mock_alarm
+
+        deploy._oauth_init = True
+        deploy._get_config = mock.MagicMock
+
+        global FMS_MIGRATION_STATE
+        FMS_MIGRATION_STATE = "STARTED"
+        mock_config.read.side_effect = org_migration_config_read_side_effect
+
+        deploy._do_register_config_status("c_mgmt")
+        mock_http.post.side_effect = None
+        mock_config.read.side_effect = None
+
+        # should have called get_enabled_connectors,
+        # stop_connectors, refresh_access_token, start_connectors
+        mock_enabled_connectors.assert_called()
+        mock_stop_connectors.assert_called()
+        mock_refresh_access_token.assert_called()
+        mock_start_connectors.assert_called()
+        # should not have called process_migration_data
+        self.assertFalse(mock_process_migration_data.called, 'failed')
 
 
 if __name__ == "__main__":

@@ -17,11 +17,17 @@ from managementconnector.config.managementconnectorproperties import ManagementC
 from managementconnector.cloud.oauth import OAuth
 from managementconnector.config.config import Config
 
+from managementconnector.cloud.oauth import urllib_error
+
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
 ACCESS_TOKEN = "Access Token"
 REFRESH_TOKEN = "Refresh Token"
 REFRESHED_TOKEN = "Refreshed Access Token"
+
+MAX_POLL_TEST_TIMEOUT = 150
+CURRENT_TIME = OAuth.get_current_time()
+MUST_END_POLL = CURRENT_TIME + MAX_POLL_TEST_TIMEOUT
 
 
 def config_read_side_effect(*args, **kwargs):
@@ -65,6 +71,19 @@ def post(url, headers, data, silent=False, schema=None):
 
     return oauth_response
 
+
+def poll_side_effect(url, headers, data, silent=False, schema=None):
+    """ CI Polling Side Effect """
+    global MUST_END_POLL
+    if OAuth.get_current_time() < MUST_END_POLL:
+        headers = {'Content-Type': 'application/json', 'TrackingID': ''}
+        stream = io.TextIOWrapper(io.BytesIO(b''))
+        url = "https://idbroker.webex.com/idb/oauth2/v1/access_token"
+
+        raise urllib.error.HTTPError(url, 401, "invalid", headers, stream)
+    else:
+        return {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
+                                 'expires_in': 100, 'accountExpiration': 100}
 
 class OAuthTest(unittest.TestCase):
     """ Management Connector OAuth Test Class """
@@ -224,7 +243,8 @@ class OAuthTest(unittest.TestCase):
 
         test_oauth.http = mock_http
 
-        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 100}
+        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
+                                       'expires_in': 100, 'accountExpiration': 100}
 
         mock_u2c.update_user_catalog.return_value = None
 
@@ -251,13 +271,13 @@ class OAuthTest(unittest.TestCase):
 
         test_oauth.http = mock_http
 
-        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 100}
+        mock_http.post.side_effect = poll_side_effect
 
         mock_u2c.update_user_catalog.return_value = None
 
         oauth_info = test_oauth.refresh_oauth_resp_with_idp(migration=True)
 
-        mock_logger_info.assert_any_call('Detail="Org Migration: Polling CI"')
+        mock_logger_info.assert_any_call('Detail="Org Migration: exponential_backoff_retry"')
 
         # assert token refresh
         self.assertTrue(oauth_info['refresh_time_read'] > time_in_past)
@@ -280,7 +300,8 @@ class OAuthTest(unittest.TestCase):
 
         self.oauth.http = mock_http
 
-        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 100}
+        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
+                                       'expires_in': 100, 'accountExpiration': 100}
 
         mock_u2c.update_user_catalog.return_value = None
 
@@ -377,7 +398,8 @@ class OAuthTest(unittest.TestCase):
 
         # REREGISTER, 'false'
         mock_http.post.side_effect = None
-        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'expires_in': 100, 'accountExpiration': 100}
+        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
+                                       'expires_in': 100, 'accountExpiration': 100}
         test_oauth.refresh_oauth_resp_with_idp()
         test_oauth._config.write_blob.assert_called_with(ManagementConnectorProperties.REREGISTER, 'false')
 

@@ -76,29 +76,25 @@ install_semaphore = threading.Semaphore(1)
 deploy_global = None
 
 
-def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True, status=False):
+def _http_request(url, headers, data, request_type, silent=False, schema=None, load_validate_json=True):
     ''' used for mock test intercept'''
     http.DEV_LOGGER.info('***TEST _http_request: url=%s, data=%s, request_type=%s' % (url, data, request_type))
     # urllib2.urlopen(req)
-
-    def process_response(in_response):
-        if status:
-            return {'response': in_response, 'status_code': 200}
     for i in range(len(h_type)):
         if "/v1/connectors" in url:
             indata = json.loads(data)
             if indata["status"] is not None:
                 global number_of_status_updates
                 number_of_status_updates = number_of_status_updates + 1
-                return process_response(h_response[3])
+                return h_response[3]
             if indata["connector_type"] == "c_mgmt" :
-                return process_response(h_response[3])
+                return h_response[3]
             if indata["connector_type"] == "c_xyz":
-                return process_response(h_response[3])
+                return h_response[3]
         elif url == h_url[i] and data == h_data[i] and request_type == h_type[i]:
             # ignore hreaders and headers == h_headers[i]
             http.DEV_LOGGER.info('***TEST _http_request: h_response[i]=%s***' % (h_response[i]))
-            return process_response(h_response[i])
+            return h_response[i]
 
     http.DEV_LOGGER.info('***TEST Error, could not find url %s in h_urls =%s***' % (url, h_url))
 
@@ -238,9 +234,7 @@ class DeployTest(fake_filesystem_unittest.TestCase):
         self._oauth._get_oauth_resp_from_idp.return_value = token
         self._oauth.get_access_token.return_value = token['access_token']
 
-    @mock.patch("managementconnector.cloud.orgmigration.DatabaseHandler.read")
-    @mock.patch("managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors")
-    @mock.patch("managementconnector.cloud.orgmigration.CafeXUtils.get_installed_connectors")
+    @mock.patch("managementconnector.deploy.OrgMigration")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.is_package_installed")
     @mock.patch("managementconnector.platform.system.System.get_cpu_cores")
     @mock.patch("managementconnector.platform.system.System.get_system_disk")
@@ -249,7 +243,7 @@ class DeployTest(fake_filesystem_unittest.TestCase):
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
     def test_long_install_and_status_update(self, mock_get_package_version, mock_get_system_mem, mock_get_system_cpu,
                                             mock_get_system_disk, mock_get_cpu_cores, mock_is_package_installed,
-                                            mock_get_installed_connectors, mock_enabled_connectors, mock_db_read):
+                                            mock_org_migration):
         http.DEV_LOGGER.info('+++++ test_long_install_and_status_update')
         global number_of_status_updates
         number_of_status_updates = 0
@@ -293,6 +287,9 @@ class DeployTest(fake_filesystem_unittest.TestCase):
         # The test sets up two connectors (c_mgmt & c_xyz) and loops to EXPECTED_NUMBER_OF_UPDATES(5)
         # each time posting a status update for each connector.
         self.assertEqual(number_of_status_updates, EXPECTED_NUMBER_OF_UPDATES * 2)
+
+        # org migration workflow should not be called
+        self.assertFalse(mock_org_migration.migrate.called, 'failed')
 
         global stop_install
         stop_install = True
