@@ -405,6 +405,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     U2C_HOST = U2C_BASE + "u2cHost"
     U2C_SERVICE_URL = U2C_BASE + "serviceUrl"
     U2C_USER_SERVICE_URL = U2C_BASE + "userUrl"
+    U2C_LIMITED_SERVICE_URL = U2C_BASE + "limitedCatalog"
     U2C_HEARTBEAT_POLL_TIME = U2C_BASE + "pollTime"
     U2C_CLIENT_LOGS = BLOB_CDB_PATH + LOGGING_HOST + "_u2c"
     U2C_WDM = BLOB_CDB_PATH + WDM_HOST + "_u2c"
@@ -442,11 +443,11 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     MIGRATION_START_AT = MIGRATION_BASE + "startAt"
     MIGRATION_WORKSTREAM_STARTED_AT = MIGRATION_BASE + "workstreamStartedAt"
 
-    # Migration blocked - True/False, not blocked by default
-    MIGRATION_BLOCKED = MIGRATION_BASE + "blocked"
-
-    # Migration fms-migration-state - COMPLETED/STARTED
-    MIGRATION_FMS_MIGRATION_STATE = MIGRATION_BASE + "fmsMigrationState"
+    # fms-migration-state - COMPLETED/STARTED
+    FMS_MIGRATION_STATE = MIGRATION_BASE + "fmsMigrationState"
+    # fms-migration-state - constants
+    FMS_MIGRATION_COMPLETED = "COMPLETED"
+    FMS_MIGRATION_STARTED = "STARTED"
 
     # Migration Update connector.json - True/False
     MIGRATION_UPDATE_CONNECTOR_JSON = MIGRATION_BASE + "update_connector_json"
@@ -455,6 +456,6 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     MIGRATION_STOPPED_CONNECTORS = MIGRATION_BASE + "stopped_connectors"
 
     # Migration CI polling - time period in seconds
-    CI_POLL_TIMEOUT = 100
-    CI_POLL_BACKOFF = 2
-    CI_POLL_REFRESH_INTERVAL = 30
+    ORG_MIGRATION_CI_POLL_TIMEOUT = 28800  # 8 hours
+    ORG_MIGRATION_CI_POLL_BACKOFF = 5
+    ORG_MIGRATION_CI_POLL_BACKOFF_REFRESH_INTERVAL = 120
