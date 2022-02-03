@@ -1,6 +1,7 @@
 """ Federation 4.0 - Org Migration """
 
 from urllib import error as urllib_error
+from http import HTTPStatus
 
 from managementconnector.config.databasehandler import DatabaseHandler
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
@@ -24,7 +25,7 @@ class OrgMigration(object):
         "meetings-target": ManagementConnectorProperties.MIGRATION_MEETINGS_TARGET,
         "start-at": ManagementConnectorProperties.MIGRATION_START_AT,
         "workstream-startedAt": ManagementConnectorProperties.MIGRATION_WORKSTREAM_STARTED_AT,
-        "fms-migration-state": ManagementConnectorProperties.MIGRATION_FMS_MIGRATION_STATE
+        "fms-migration-state": ManagementConnectorProperties.FMS_MIGRATION_STATE
     }
 
     # -------------------------------------------------------------------------
@@ -45,8 +46,9 @@ class OrgMigration(object):
         """ Get installed connectors except mgmt """
         connector_type = ManagementConnectorProperties.CONNECTOR_PREFIX
         connectors = CafeXUtils.get_installed_connectors(connector_type)
-        if connector_type + 'mgmt' in connectors:
-            connectors.remove(connector_type + 'mgmt')
+        c_mgmt = ManagementConnectorProperties.SERVICE_NAME
+        if c_mgmt in connectors:
+            connectors.remove(c_mgmt)
         return connectors
 
     # -------------------------------------------------------------------------
@@ -68,7 +70,7 @@ class OrgMigration(object):
     # -------------------------------------------------------------------------
 
     def update_stopped_connectors(self, stopped_connectors):
-        # Update MIGRATION_STOPPED_CONNECTORS in CDB
+        """ Update MIGRATION_STOPPED_CONNECTORS in CDB """
         DEV_LOGGER.debug(
             'Detail="FMC_Utility Org Migration: Update MIGRATION_STOPPED_CONNECTORS %s"' % stopped_connectors)
         self._config.write_blob(ManagementConnectorProperties.MIGRATION_STOPPED_CONNECTORS, stopped_connectors)
@@ -77,7 +79,7 @@ class OrgMigration(object):
 
     def stop_connectors(self, connectors):
         # self.get_enabled_connectors()
-        DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Stop connectors"')
+        DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Stopping %s connectors"' % connectors)
         self._servicemanager.disable_connectors(connectors["services"])
         self.update_stopped_connectors(connectors["names"])
 
@@ -85,7 +87,7 @@ class OrgMigration(object):
 
     def start_connectors(self, connectors):
         # self.get_enabled_connectors()
-        DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Start connectors"')
+        DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Starting %s connectors"' % connectors)
         self._servicemanager.enable_connectors(connectors["services"])
         self.update_stopped_connectors(connectors["names"])
 
@@ -95,7 +97,7 @@ class OrgMigration(object):
         try:
             _oauth_response = self._oauth.refresh_oauth_resp_with_idp(migration=migration)
         except urllib_error.HTTPError as error:
-            if error.code == 400:
+            if error.code == HTTPStatus.BAD_REQUEST.value:
                 # revive
                 _oauth_response = self._oauth.refresh_oauth_resp_with_idp(migration=migration)
 
@@ -108,7 +110,6 @@ class OrgMigration(object):
         self._config.write_blob(ManagementConnectorProperties.MIGRATION_UPDATE_CONNECTOR_JSON, "true")
 
         # start stopped connectors - enable
-        DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Start connectors"')
         enabled_connectors["names"] = []
         self.start_connectors(enabled_connectors)
 
@@ -116,42 +117,44 @@ class OrgMigration(object):
 
     # -------------------------------------------------------------------------
 
-    def migrate(self, org_migration_data):
-        """  """
-        DEV_LOGGER.info('Detail="FMC_Utility Org Migration: migrate started"')
-        # update CDB
-        DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Save migration info to DB"')
-        self.process_migration_data(org_migration_data)
+    def migrate(self, status_code, org_migration_data={}):
+        """ On-Prem Org Migration Workflow """
+        if status_code == HTTPStatus.FOUND.value:
+            enabled_connectors = self.get_enabled_connectors()
 
-        enabled_connectors = self.get_enabled_connectors()
+            fms_migration_state = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
+            DEV_LOGGER.info('Detail="FMC_Utility Org Migration: migration state=%s"' % fms_migration_state)
 
-        # if migration is completed do not process further
-        if org_migration_data["fms-migration-state"] == "COMPLETED":
-            self.end_migration(enabled_connectors)
-            # exit
-            return
-        elif org_migration_data["fms-migration-state"] == "STARTED":  # enter FMC migration workflow
-            # stop other enabled connectors - disable
-            DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Stop connectors"')
-            self.stop_connectors(enabled_connectors)
+            # if migration is completed do not process further
+            if fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_COMPLETED:
+                self.end_migration(enabled_connectors)
+            elif fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_STARTED:
+                # enter FMC migration workflow
+                # stop other enabled connectors - disable
+                self.stop_connectors(enabled_connectors)
 
-            # Poll CI
-            DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Poll CI at source for token refresh"')
-            self.refresh_access_token(migration=True)
-            DEV_LOGGER.info('Detail="FMC_Utility Org Migration: Token refreshed"')
+                # Poll CI
+                DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Poll CI at source for token refresh"')
+                self.refresh_access_token(migration=True)
 
-            DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Refresh access token at target CI"')
-            self.refresh_access_token()
+                DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Refresh access token at target CI"')
+                self.refresh_access_token()
 
-            self.end_migration(enabled_connectors)
+                self.end_migration(enabled_connectors)
+        elif len(org_migration_data):
+            # update CDB
+            DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: Save migration info to DB"')
+            self.process_migration_data(org_migration_data)
 
-            return
+        # exit
+        return
 
     # -------------------------------------------------------------------------
 
     def process_migration_data(self, migration_data_blob):
         """ Process the migration data returned and update the config with the value"""
-        DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: process_migration_data: processing response from FMS"')
+        DEV_LOGGER.debug(
+            'Detail="FMC_Utility Org Migration: process_migration_data: processing migration data blob from FMS"')
 
         for migration_path, migration_data in list(migration_data_blob.items()):
             if migration_path in list(self.migration_data_map.keys()):

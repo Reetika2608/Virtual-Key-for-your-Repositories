@@ -7,6 +7,7 @@ import ssl
 import http.client
 import os
 import jsonschema
+from http import HTTPStatus
 
 from managementconnector.cloud.atlas import Atlas
 from managementconnector.cloud.metrics import Metrics
@@ -71,6 +72,9 @@ class Deploy(object):
         self._system = System()
 
         self._registration_time_out_counter = 0
+
+        # OrgMigration
+        self._org_migration = OrgMigration(self._config, self._oauth)
 
     # -------------------------------------------------------------------------
 
@@ -294,28 +298,15 @@ class Deploy(object):
                                            send_status=send_status_metric)
 
                 # Get the Provisioning Data
-                response_dict = self._atlas.register_connector(self._oauth.get_header(), service, status=True)
-                response, status_code = response_dict['response'], response_dict['status_code']
+                response = self._atlas.register_connector(self._oauth.get_header(), service)
             else:
 
                 DEV_LOGGER.debug('Detail="Leaving  _do_register_config_status as defuse in progress"')
 
                 return
 
-            # Federation 4.0 migration
-            # check if MIGRATION is BLOCKED - for testing purpose
-            is_migration_blocked = self._config.read(ManagementConnectorProperties.MIGRATION_BLOCKED)
-            DEV_LOGGER.debug('Detail="FMC_Utility Org Migration: is_migration_blocked %s"' % is_migration_blocked)
-            # check if migration is scheduled and is not blocked
-            # 'orgMigration' should be present in response and/or response status code should be 302:
-            if is_migration_blocked != "true":
-                if response.get('orgMigration') is not None or status_code == 302:
-                    DEV_LOGGER.debug(
-                        'Detail="FMC_Utility Org Migration: orgMigration=%s, status_code=%s"' % (
-                            response.get('orgMigration'), status_code))
-                    # call migration workflow
-                    org_migration = OrgMigration(self._config, self._oauth)
-                    org_migration.migrate(response['orgMigration'])
+            # proceed with migration workflow if migration is scheduled else resume normal workflow
+            self._process_org_migration(response)
 
             # get connector config and register and post connector status
             connectors_config = self._get_config(response['provisioning'])
@@ -399,8 +390,11 @@ class Deploy(object):
             self._alarms.raise_alarm('dc463c51-d111-4cc5-9eba-9e09292183b0')
 
         except urllib_error.HTTPError as http_error:
-            DEV_LOGGER.debug('Detail="FMC_Lifecycle HTTP ERROR Triggered%s"', http_error)
-            self._handle_http_exception(http_error, service)
+            DEV_LOGGER.debug('Detail="FMC_Lifecycle HTTP ERROR Triggered %s"' % http_error)
+            if hasattr(http_error, 'code') and int(http_error.code) == HTTPStatus.FOUND.value:
+                self._handle_fms_302_response(int(http_error.code))
+            else:
+                self._handle_http_exception(http_error, service)
 
         except urllib_error.URLError as url_error:
             DEV_LOGGER.error('Detail="URLError error:%s, %s"' % (url_error, url_error.reason))
@@ -440,6 +434,25 @@ class Deploy(object):
 
         finally:
             ServiceUtils.set_operational_state(op_status, True)
+
+    # -------------------------------------------------------------------------
+
+    def _handle_fms_302_response(self, status_code):
+        """ Handle 302 from FMS """
+        self._process_org_migration(status_code=status_code)
+
+    # -------------------------------------------------------------------------
+
+    def _process_org_migration(self, response={}, status_code=HTTPStatus.OK.value):
+        # Federation 4.0 migration
+        # 'orgMigration' should be present in response or response status code should be 302:
+        if response.get('orgMigration') is not None or status_code == HTTPStatus.FOUND.value:
+            org_migration_data = response.get('orgMigration') or {}  # assign empty dict if not found
+            DEV_LOGGER.debug(
+                'Detail="FMC_Utility Org Migration: orgMigration data blob=%s, status_code=%s"' % (
+                    org_migration_data, status_code))
+            # call migration workflow
+            self._org_migration.migrate(status_code=status_code, org_migration_data=org_migration_data)
 
     # -------------------------------------------------------------------------
 
