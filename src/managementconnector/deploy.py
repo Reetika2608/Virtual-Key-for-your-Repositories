@@ -443,17 +443,22 @@ class Deploy(object):
 
     # -------------------------------------------------------------------------
 
-    def _process_org_migration(self, response={}, status_code=HTTPStatus.OK.value):
+    def _process_org_migration(self, response=None, status_code=HTTPStatus.OK.value):
         # Federation 4.0 migration
         # 'orgMigration' should be present in response or response status code should be 302:
-        if response.get('orgMigration') is not None or status_code == HTTPStatus.FOUND.value:
-            org_migration_data = response.get('orgMigration') or {}  # assign empty dict if not found
-            DEV_LOGGER.debug(
-                'Detail="FMC_Utility Org Migration: orgMigration data blob=%s, status_code=%s"' % (
-                    org_migration_data, status_code))
-            # call migration workflow
-            self._org_migration.migrate(status_code=status_code, org_migration_data=org_migration_data)
-
+        if response is None:
+            response = {}
+        try:
+            if response.get('orgMigration') is not None or status_code == HTTPStatus.FOUND.value:
+                org_migration_data = response.get('orgMigration') or {}  # assign empty dict if not found
+                DEV_LOGGER.debug(
+                    'Detail="FMC_Utility Org Migration: orgMigration data blob=%s, status_code=%s"' % (
+                        org_migration_data, status_code))
+                # call migration workflow
+                self._org_migration.migrate(status_code=status_code, org_migration_data=org_migration_data)
+        except Exception as unhandled_exception:
+            DEV_LOGGER.error(
+                'Detail="FMC_Utility Org Migration: _process_org_migration UnhandledException error=%s' % unhandled_exception)
     # -------------------------------------------------------------------------
 
     def _process_stopped_alarm(self, stopped_connectors, alarm_id, msg):

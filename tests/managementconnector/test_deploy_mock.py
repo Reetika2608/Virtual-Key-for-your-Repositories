@@ -1187,10 +1187,10 @@ class DeployOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
 
         # should have called process migration to write migration data to db
         mock_process_migration_data.assert_called()
+        mock_enabled_connectors.assert_called()
         # should not have called get_enabled_connectors, db.read()
         # refresh_access_token, stop_connectors, start_connectors
         self.assertFalse(mock_other_connectors.called, 'failed')
-        self.assertFalse(mock_enabled_connectors.called, 'failed')
         self.assertFalse(mock_dbhandler.read.called, 'failed')
         self.assertFalse(mock_refresh_access_token.called, 'failed')
         self.assertFalse(mock_stop_connectors.called, 'failed')
