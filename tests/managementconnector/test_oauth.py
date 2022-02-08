@@ -17,8 +17,6 @@ from managementconnector.config.managementconnectorproperties import ManagementC
 from managementconnector.cloud.oauth import OAuth
 from managementconnector.config.config import Config
 
-from managementconnector.cloud.oauth import urllib_error
-
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
 ACCESS_TOKEN = "Access Token"
@@ -275,9 +273,9 @@ class OAuthTest(unittest.TestCase):
 
         mock_u2c.update_user_catalog.return_value = None
 
-        oauth_info = test_oauth.refresh_oauth_resp_with_idp(migration=True)
+        oauth_info = test_oauth.refresh_oauth_resp_with_idp(federation_org_migration=True)
 
-        mock_logger_info.assert_any_call('Detail="Org Migration: exponential_backoff_retry"')
+        mock_logger_info.assert_any_call('Detail="Federation Org Migration: exponential_backoff_retry"')
 
         # assert token refresh
         self.assertTrue(oauth_info['refresh_time_read'] > time_in_past)

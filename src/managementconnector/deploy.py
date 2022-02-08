@@ -24,7 +24,7 @@ from cafedynamic.cafexutil import CafeXUtils
 from managementconnector.platform.serviceutils import ServiceUtils
 from managementconnector.lifecycle.lifecycleutils import LifecycleUtils
 from managementconnector.service.crashmonitor import CrashMonitor
-from managementconnector.cloud.orgmigration import OrgMigration
+from managementconnector.cloud.federationorgmigration import FederationOrgMigration
 
 from base_platform.expressway.i18n import translate
 
@@ -73,8 +73,8 @@ class Deploy(object):
 
         self._registration_time_out_counter = 0
 
-        # OrgMigration
-        self._org_migration = OrgMigration(self._config, self._oauth)
+        # FederationOrgMigration
+        self._federation_org_migration = FederationOrgMigration(self._config, self._oauth)
 
     # -------------------------------------------------------------------------
 
@@ -306,7 +306,7 @@ class Deploy(object):
                 return
 
             # proceed with migration workflow if migration is scheduled else resume normal workflow
-            self._process_org_migration(response)
+            self._process_federation_org_migration(response)
 
             # get connector config and register and post connector status
             connectors_config = self._get_config(response['provisioning'])
@@ -392,7 +392,7 @@ class Deploy(object):
         except urllib_error.HTTPError as http_error:
             DEV_LOGGER.debug('Detail="FMC_Lifecycle HTTP ERROR Triggered %s"' % http_error)
             if hasattr(http_error, 'code') and int(http_error.code) == HTTPStatus.FOUND.value:
-                self._handle_fms_302_response(int(http_error.code))
+                self._handle_fms_federation_org_migration_response(int(http_error.code))
             else:
                 self._handle_http_exception(http_error, service)
 
@@ -437,28 +437,30 @@ class Deploy(object):
 
     # -------------------------------------------------------------------------
 
-    def _handle_fms_302_response(self, status_code):
+    def _handle_fms_federation_org_migration_response(self, status_code):
         """ Handle 302 from FMS """
-        self._process_org_migration(status_code=status_code)
+        self._process_federation_org_migration(status_code=status_code)
 
     # -------------------------------------------------------------------------
 
-    def _process_org_migration(self, response=None, status_code=HTTPStatus.OK.value):
-        # Federation 4.0 migration
+    def _process_federation_org_migration(self, response=None, status_code=HTTPStatus.OK.value):
+        """ Federation 4.0 Org Migration """
         # 'orgMigration' should be present in response or response status code should be 302:
         if response is None:
             response = {}
         try:
             if response.get('orgMigration') is not None or status_code == HTTPStatus.FOUND.value:
-                org_migration_data = response.get('orgMigration') or {}  # assign empty dict if not found
+                federation_org_migration_data = response.get('orgMigration') or {}  # assign empty dict if not found
                 DEV_LOGGER.debug(
                     'Detail="FMC_Utility Org Migration: orgMigration data blob=%s, status_code=%s"' % (
-                        org_migration_data, status_code))
+                        federation_org_migration_data, status_code))
                 # call migration workflow
-                self._org_migration.migrate(status_code=status_code, org_migration_data=org_migration_data)
+                self._federation_org_migration.migrate(status_code=status_code,
+                                                       federation_org_migration_data=federation_org_migration_data)
         except Exception as unhandled_exception:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Org Migration: _process_org_migration UnhandledException error=%s' % unhandled_exception)
+                'Detail="FMC_Utility Federation Org Migration: _process_federation_org_migration UnhandledException error=%s' % unhandled_exception)
+
     # -------------------------------------------------------------------------
 
     def _process_stopped_alarm(self, stopped_connectors, alarm_id, msg):

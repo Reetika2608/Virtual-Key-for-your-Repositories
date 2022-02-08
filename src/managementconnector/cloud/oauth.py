@@ -194,7 +194,7 @@ class OAuth(object):
 
     # -------------------------------------------------------------------------
 
-    def refresh_oauth_resp_with_idp(self, migration=False):
+    def refresh_oauth_resp_with_idp(self, federation_org_migration=False):
         """refresh the OAuth Response, by sending a refresh request to the IDP"""
 
         DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_response_with_idp:"')
@@ -207,7 +207,7 @@ class OAuth(object):
         idp_url = idp_info["idpHost"] + "/" + ManagementConnectorProperties.IDP_URL
 
         """
-        if migration is in progress
+        if federation org migration is in progress
             Enter into polling CI for new token with exponential backoff retry algorithm
             if response received
                 resume operations
@@ -217,7 +217,7 @@ class OAuth(object):
             normal refresh token call
         """
         try:
-            if migration:
+            if federation_org_migration:
                 response = self.exponential_backoff_retry(Http.post,
                                                           ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_TIMEOUT,
                                                           ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_BACKOFF,
@@ -268,26 +268,26 @@ class OAuth(object):
         backoff_time = RandomGenerator().random()
         must_end = OAuth.get_current_time() + timeout
         refresh_time = OAuth.get_current_time() + refresh_interval
-        DEV_LOGGER.info('Detail="Org Migration: exponential_backoff_retry"')
+        DEV_LOGGER.info('Detail="Federation Org Migration: exponential_backoff_retry"')
         while OAuth.get_current_time() < must_end:
             try:
                 response = predicate(*args)
                 return response
             except urllib_error.HTTPError as error:
-                DEV_LOGGER.error('Detail="Org Migration: RAW: FMC_OAuth  exponential_backoff_retry('
+                DEV_LOGGER.error('Detail="Federation Org Migration: RAW: FMC_OAuth  exponential_backoff_retry('
                                  'refresh_oauth_resp_with_idp): '
                                  'error: code=%s, url=%s"' % (error.code, error.url))
                 pass
             # refresh the backoff once refresh interval is reached
             if OAuth.get_current_time() >= refresh_time:
-                DEV_LOGGER.debug('Detail="Org Migration: Refresh interval reached.."')
+                DEV_LOGGER.debug('Detail="Federation Org Migration: Refresh interval reached.."')
                 backoff_time = RandomGenerator().random()
                 refresh_time = OAuth.get_current_time() + refresh_interval
             # retry delay increases by a factor of backoff (example: backoff=2seconds) everytime
             backoff_time = (backoff_time + backoff) + RandomGenerator().random()
-            DEV_LOGGER.debug(f'Detail="Org Migration: Will call CI after {backoff_time} seconds"')
+            DEV_LOGGER.debug(f'Detail="Federation Org Migration: Will call CI after {backoff_time} seconds"')
             time.sleep(backoff_time)  # sleep
-        DEV_LOGGER.debug(f'Detail="Org Migration: Failed to fetch response even after {timeout} seconds"')
+        DEV_LOGGER.debug(f'Detail="Federation Org Migration: Failed to fetch response even after {timeout} seconds"')
         raise Exception('Unable to reach CI')
 
     # -------------------------------------------------------------------------

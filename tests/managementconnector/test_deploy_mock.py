@@ -666,7 +666,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
                                                        "err.VERSION_MISMATCH_%s_%s_%s")
         mock_alarm.clear_alarm.assert_called_with('52299415-2719-45d5-bcf7-720b48929ae3')
 
-    @mock.patch('managementconnector.deploy.OrgMigration')
+    @mock.patch('managementconnector.deploy.FederationOrgMigration')
     @mock.patch("managementconnector.platform.system.System.get_system_cpu")
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
     @mock.patch('managementconnector.deploy.CrashMonitor')
@@ -767,7 +767,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
 
         mock_http.post.side_effect = None
 
-    @mock.patch('managementconnector.deploy.OrgMigration')
+    @mock.patch('managementconnector.deploy.FederationOrgMigration')
     @mock.patch("managementconnector.platform.system.System.get_system_cpu")
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
     @mock.patch('managementconnector.cloud.atlas.jsonhandler.write_json_file')
@@ -817,7 +817,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('ba883968-4b5a-4f83-9e71-50c7d7621b44')
 
-    @mock.patch('managementconnector.deploy.OrgMigration')
+    @mock.patch('managementconnector.deploy.FederationOrgMigration')
     @mock.patch("managementconnector.platform.system.System.am_i_master")
     @mock.patch("managementconnector.platform.system.System.get_system_cpu")
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
@@ -870,7 +870,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('cbbf0813-09cb-4e23-9182-f3996d24cc9e')
 
-    @mock.patch('managementconnector.deploy.OrgMigration')
+    @mock.patch('managementconnector.deploy.FederationOrgMigration')
     @mock.patch("managementconnector.platform.system.System.get_system_cpu")
     @mock.patch("managementconnector.platform.system.System.get_system_mem")
     @mock.patch('managementconnector.cloud.atlas.jsonhandler.write_json_file')
@@ -949,7 +949,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
 
         mock_alarm.clear_alarm.assert_any_call('3e544328-598e-11e6-8b77-86f30ca893d3')
 
-    @mock.patch("managementconnector.deploy.OrgMigration")
+    @mock.patch("managementconnector.deploy.FederationOrgMigration")
     @mock.patch("managementconnector.platform.system.System.get_cpu_cores")
     @mock.patch("managementconnector.platform.system.System.get_system_disk")
     @mock.patch("managementconnector.platform.system.System.get_system_cpu")
@@ -1101,13 +1101,13 @@ def org_migration_config_read_side_effect(*args, **kwargs):
         return 'false'
 
 
-@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.process_migration_data')
-@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
-@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.stop_connectors')
-@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.start_connectors')
-@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_enabled_connectors')
-@mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors')
-@mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler')
+@mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.process_migration_data')
+@mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.refresh_access_token')
+@mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.stop_connectors')
+@mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.start_connectors')
+@mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_enabled_connectors')
+@mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors')
+@mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler')
 @mock.patch("managementconnector.platform.system.System.get_system_cpu")
 @mock.patch("managementconnector.platform.system.System.get_system_mem")
 @mock.patch('managementconnector.deploy.CrashMonitor')
@@ -1120,7 +1120,7 @@ def org_migration_config_read_side_effect(*args, **kwargs):
 @mock.patch('managementconnector.config.config')
 @mock.patch('managementconnector.deploy.OAuth')
 class DeployOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
-    """ Class to Test OrgMigration from Deploy """
+    """ Class to Test FederationOrgMigration from Deploy """
 
     def setUp(self):
         """ Deploy Mock Test Setup """
@@ -1229,7 +1229,7 @@ class DeployOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
         mock_mgr.get_name.return_value = 'c_mgmt'
         mock_http.post.return_value = {"provisioning": {"connectors": [
             {"connector_type": "c_mgmt", "version": "8.6-1.0.521", "display_name": "Calendar Service",
-             "packages": [{"tlp_url": "https://aaa.bbb.ccc"}]}]}}  # without orgmigration data
+             "packages": [{"tlp_url": "https://aaa.bbb.ccc"}]}]}}  # without orgMigration data
 
         mock_config.write_blob.return_value = None
 

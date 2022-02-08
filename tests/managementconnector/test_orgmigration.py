@@ -12,7 +12,7 @@ from .productxml import PRODUCT_XML_CONTENTS
 from .constants import SYS_LOG_HANDLER
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-from managementconnector.cloud import orgmigration
+from managementconnector.cloud import federationorgmigration
 from managementconnector.cloud.oauth import OAuth
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
@@ -55,7 +55,7 @@ def config_read_side_effect(*args, **kwargs):
 
 
 class OrgMigrationTest(fake_filesystem_unittest.TestCase):
-    """ Management Connector OrgMigration Test Class """
+    """ Management Connector FederationOrgMigration Test Class """
 
     def setUp(self):
         """ Test Setup"""
@@ -65,26 +65,26 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     def tearDown(self):
         """ Test tearDown """
 
-    @mock.patch('managementconnector.cloud.orgmigration.CafeXUtils.get_installed_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.CafeXUtils.get_installed_connectors',
                 return_value=['c_xyz', 'c_abc', 'c_mgmt'])
     @mock.patch('managementconnector.cloud.oauth.OAuth')
     @mock.patch('managementconnector.config.config.Config')
     def test_get_other_connectors(self, mock_config, mock_oauth, mock_get_installed_connectors):
         """ Test get other connectors except c_mgmt """
-        org_migration = orgmigration.OrgMigration(mock_config, mock_oauth)
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
         self.assertListEqual(org_migration.get_other_connectors(), ['c_xyz', 'c_abc'])
         mock_get_installed_connectors.assert_called()
 
-    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=[])
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=[])
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
     @mock.patch('managementconnector.cloud.oauth.OAuth')
     @mock.patch('managementconnector.config.config.Config')
     def test_get_enabled_connectors_no_prev_stopped(self, mock_config, mock_oauth, mock_servicemanager_enabled_connectors,
                                     mock_other_connectors, mock_dbhandler):
         """ Test get enabled connectors without previously stopped connectors """
-        org_migration = orgmigration.OrgMigration(mock_config, mock_oauth)
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
         self.assertListEqual(sorted(org_migration.get_enabled_connectors()["names"]), sorted(['c_xyz']))
         mock_servicemanager_enabled_connectors.assert_called_once()
         mock_other_connectors.assert_called_once()
@@ -94,9 +94,9 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         self.assertListEqual(sorted(org_migration.get_enabled_connectors()["names"]), sorted([]))
 
 
-    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=['c_def'])
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=['c_def'])
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock(), mock.MagicMock()], "names": ['c_xyz', 'c_def']})
     @mock.patch('managementconnector.cloud.oauth.OAuth')
     @mock.patch('managementconnector.config.config.Config')
@@ -104,17 +104,17 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
                                                       mock_servicemanager_enabled_connectors,
                                                       mock_other_connectors, mock_dbhandler):
         """ Test get enabled connectors with previously stopped connectors """
-        org_migration = orgmigration.OrgMigration(mock_config, mock_oauth)
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
         self.assertTrue(sorted(org_migration.get_enabled_connectors()["names"]), sorted(['c_xyz', 'c_def']))
         mock_servicemanager_enabled_connectors.assert_called_once()
         mock_other_connectors.assert_called_once()
 
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.disable_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.enable_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read')
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.refresh_access_token')
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.disable_connectors')
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.enable_connectors')
+    @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read')
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
     @mock.patch('managementconnector.cloud.oauth.OAuth')
     @mock.patch('managementconnector.config.config.Config')
@@ -126,7 +126,7 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         FMS_MIGRATION_STATE = "COMPLETED"
         mock_config.read.side_effect = config_read_side_effect
 
-        org_migration = orgmigration.OrgMigration(mock_config, mock_oauth)
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
         mock_config.write_blob.return_value = None
         org_migration.migrate(status_code=302)
 
@@ -142,11 +142,11 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
 
     @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
     @mock.patch('managementconnector.cloud.oauth.Http')
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.disable_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.enable_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=[])
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.disable_connectors')
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.enable_connectors')
+    @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=[])
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
     @mock.patch('managementconnector.cloud.oauth.OAuth.exponential_backoff_retry')
     @mock.patch('managementconnector.config.config.Config')
@@ -167,7 +167,7 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
                                        'expires_in': 100, 'accountExpiration': 100}
 
-        org_migration = orgmigration.OrgMigration(mock_config, test_oauth)
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, test_oauth)
 
         mock_config.write_blob.return_value = None
         test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
@@ -202,15 +202,15 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         self.assertEqual(mock_oauth_polling.call_count, 2)
         self.assertEqual(mock_start_connectors.call_count, 2)
 
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.process_migration_data')
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.process_migration_data')
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.refresh_access_token')
     @mock.patch('managementconnector.cloud.oauth.Http')
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.disable_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.enable_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=[])
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.disable_connectors')
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.enable_connectors')
+    @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=[])
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors',
                 return_value=['c_xyz', 'c_abc'])
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
     @mock.patch('managementconnector.config.config.Config')
     def test_migrate_status_not_302_with_migration_data(self, mock_config, mock_servicemanager_enabled_connectors,
@@ -229,11 +229,11 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
                                        'expires_in': 100, 'accountExpiration': 100}
 
-        org_migration = orgmigration.OrgMigration(mock_config, test_oauth)
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, test_oauth)
 
         mock_config.write_blob.return_value = None
 
-        org_migration.migrate(status_code=200, org_migration_data=ORG_MIGRATION_DATA)
+        org_migration.migrate(status_code=200, federation_org_migration_data=ORG_MIGRATION_DATA)
 
         # should have called process migration to write migration data to db
         mock_process_migration_data.assert_called()
@@ -247,15 +247,15 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         self.assertFalse(mock_refresh_access_token.called, 'failed')
         self.assertFalse(mock_start_connectors.called, 'failed')
 
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.process_migration_data')
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.refresh_access_token')
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.process_migration_data')
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.refresh_access_token')
     @mock.patch('managementconnector.cloud.oauth.Http')
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.disable_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.enable_connectors')
-    @mock.patch('managementconnector.cloud.orgmigration.DatabaseHandler.read', return_value=[])
-    @mock.patch('managementconnector.cloud.orgmigration.OrgMigration.get_other_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.disable_connectors')
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.enable_connectors')
+    @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=[])
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors',
                 return_value=['c_xyz', 'c_abc'])
-    @mock.patch('managementconnector.cloud.orgmigration.ServiceManager.get_enabled_connectors',
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
     @mock.patch('managementconnector.config.config.Config')
     def test_migrate_status_not_302_without_migration_data(self, mock_config, mock_servicemanager_enabled_connectors,
@@ -272,7 +272,7 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
                                        'expires_in': 100, 'accountExpiration': 100}
 
-        org_migration = orgmigration.OrgMigration(mock_config, test_oauth)
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, test_oauth)
 
         mock_config.write_blob.return_value = None
 
@@ -297,7 +297,7 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     @mock.patch('managementconnector.config.config.Config')
     def test_process_migration_data(self, mock_config, mock_oauth):
         """ Test process migration data from FMS """
-        org_migration = orgmigration.OrgMigration(mock_config, mock_oauth)
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
         mock_config.write_blob.return_value = None
         org_migration.process_migration_data(ORG_MIGRATION_DATA)
         mock_config.write_blob.assert_called()

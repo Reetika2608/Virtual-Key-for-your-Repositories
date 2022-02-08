@@ -234,7 +234,7 @@ class DeployTest(fake_filesystem_unittest.TestCase):
         self._oauth._get_oauth_resp_from_idp.return_value = token
         self._oauth.get_access_token.return_value = token['access_token']
 
-    @mock.patch("managementconnector.deploy.OrgMigration")
+    @mock.patch("managementconnector.deploy.FederationOrgMigration")
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.is_package_installed")
     @mock.patch("managementconnector.platform.system.System.get_cpu_cores")
     @mock.patch("managementconnector.platform.system.System.get_system_disk")
