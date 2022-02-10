@@ -156,7 +156,6 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         """ Test migration started workflow """
         time_in_past = OAuth.get_current_time() - 100
 
-        # ORG_MIGRATION_DATA["fms-migration-state"] = "STARTED"
         global FMS_MIGRATION_STATE
         FMS_MIGRATION_STATE = "STARTED"
 
@@ -187,11 +186,11 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         self.assertTrue(test_oauth.oauth_response['access_token'] == REFRESHED_TOKEN)
 
         # check generic exception - exception should not disturb process flow
-        mock_oauth_polling.side_effect = Exception
+        mock_stop_connectors.side_effect = Exception
+        mock_start_connectors.side_effect = Exception
+        mock_oauth_polling.side_effect = None
         mock_servicemanager_enabled_connectors.return_value = {"services": [mock.MagicMock()], "names": ['c_xyz']}
         mock_orgmigration_other_connectors.return_value = ['c_xyz', 'c_abc']
-        mock_stop_connectors.return_value = None
-        mock_start_connectors.return_value = None
 
         org_migration.migrate(status_code=302)
 

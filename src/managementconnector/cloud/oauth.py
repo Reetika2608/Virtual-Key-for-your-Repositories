@@ -277,7 +277,9 @@ class OAuth(object):
                 DEV_LOGGER.error('Detail="Federation Org Migration: RAW: FMC_OAuth  exponential_backoff_retry('
                                  'refresh_oauth_resp_with_idp): '
                                  'error: code=%s, url=%s"' % (error.code, error.url))
-                pass
+            except Exception as unhandled_exception:  # catch unseen exceptions
+                DEV_LOGGER.error('Detail="Federation Org Migration: RAW: FMC_OAuth  exponential_backoff_retry('
+                                 'refresh_oauth_resp_with_idp) error=%s"' % unhandled_exception)
             # refresh the backoff once refresh interval is reached
             if OAuth.get_current_time() >= refresh_time:
                 DEV_LOGGER.debug('Detail="Federation Org Migration: Refresh interval reached.."')
@@ -296,7 +298,7 @@ class OAuth(object):
         """ Refresh u2c """
         # update user catalog - after every token refresh
         # if u2c refresh fails with auth, retry without auth as fallback
-        DEV_LOGGER.debug('Detail="FMC_OAuth refresh_u2c"')
+        DEV_LOGGER.info('Detail="FMC_OAuth refresh_u2c"')
         try:
             self._u2c.update_user_catalog(header=self.get_header(access_token=self.oauth_response["access_token"]))
         except urllib_error.HTTPError:

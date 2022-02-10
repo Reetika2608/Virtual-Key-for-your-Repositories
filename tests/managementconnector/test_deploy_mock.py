@@ -1119,7 +1119,7 @@ def org_migration_config_read_side_effect(*args, **kwargs):
 @mock.patch('managementconnector.cloud.atlas.Http')
 @mock.patch('managementconnector.config.config')
 @mock.patch('managementconnector.deploy.OAuth')
-class DeployOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
+class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
     """ Class to Test FederationOrgMigration from Deploy """
 
     def setUp(self):
