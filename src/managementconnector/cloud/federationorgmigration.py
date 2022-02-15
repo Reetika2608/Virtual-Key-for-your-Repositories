@@ -86,7 +86,6 @@ class FederationOrgMigration(object):
     # -------------------------------------------------------------------------
 
     def stop_connectors(self, connectors):
-        # self.get_enabled_connectors()
         DEV_LOGGER.info('Detail="FMC_Utility Org Migration: Stopping %s connectors"' % connectors)
         try:
             self._servicemanager.disable_connectors(connectors["services"])
@@ -100,7 +99,6 @@ class FederationOrgMigration(object):
     # -------------------------------------------------------------------------
 
     def start_connectors(self, connectors):
-        # self.get_enabled_connectors()
         DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: Starting %s connectors"' % connectors)
         try:
             self._servicemanager.enable_connectors(connectors["services"])

@@ -73,7 +73,6 @@ class Deploy(object):
 
         self._registration_time_out_counter = 0
 
-        # FederationOrgMigration
         self._federation_org_migration = FederationOrgMigration(self._config, self._oauth)
 
     # -------------------------------------------------------------------------
