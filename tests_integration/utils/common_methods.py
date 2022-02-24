@@ -11,7 +11,8 @@ from tests_integration.utils.integration_test_logger import get_logger
 from tests_integration.utils.predicates import has_connector_pid_changed, has_connector_heartbeat_start_time_changed, \
     has_mercury_device_route_changed, has_remote_dispatcher_device_id_changed, is_connector_installed, \
     is_node_clean_after_defuse
-from tests_integration.utils.ssh_methods import get_and_log_management_connector_run_data, restart_connector
+from tests_integration.utils.ssh_methods import get_and_log_management_connector_run_data, restart_connector, \
+    request_restart_connector
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -71,6 +72,29 @@ def run_full_management_connector_restart(hostname, root_user, root_pass):
         LOG.warn("Warning: RD device id did not change in time")
     LOG.info("Restart of management connector is complete")
     get_and_log_management_connector_run_data(hostname, root_user, root_pass)
+
+
+def request_full_management_connector_restart(hostname, root_user, root_pass):
+    starting_pid, starting_heartbeat_start_time, starting_mercury_route, starting_rd_device = \
+        get_and_log_management_connector_run_data(hostname, root_user, root_pass)
+
+    LOG.info("Restarting management connector...")
+    request_restart_connector(hostname, root_user, root_pass, "c_mgmt")
+    if not wait_until_true(has_connector_pid_changed, 10, 1,
+                    *(hostname, root_user, root_pass, "c_mgmt", starting_pid)):
+        LOG.warn("Warning: c_mgmt did not change connector PID in time")
+    if not wait_until_true(has_connector_heartbeat_start_time_changed, 20, 1,
+                    *(hostname, root_user, root_pass, "c_mgmt", starting_heartbeat_start_time)):
+        LOG.warn("Warning: c_mgmt did not change heartbeat start timein time")
+    if not wait_until_true(has_mercury_device_route_changed, 10, 1,
+                           *(hostname, root_user, root_pass, starting_mercury_route)):
+        LOG.warn("Warning: mercury device route did not change in time")
+    if not wait_until_true(has_remote_dispatcher_device_id_changed, 10, 1,
+                           *(hostname, root_user, root_pass, starting_rd_device)):
+        LOG.warn("Warning: RD device id did not change in time")
+    LOG.info("Restart of management connector is complete")
+    current_pid, _, _, _ = get_and_log_management_connector_run_data(hostname, root_user, root_pass)
+    return starting_pid, current_pid
 
 
 def get_log_data_from_atlas(atlas_url, log_uuid, token):

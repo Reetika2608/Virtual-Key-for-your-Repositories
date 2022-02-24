@@ -6,12 +6,15 @@ REQUESTUPDATE="/tmp/request/requestservicestart"
 
 if [ -f ${REQUESTUPDATE} ] ; then
 
-    # Get Contents from the file whitespace delimeter usage: 'start|stop|restart service1 service2 etc'
-    contents=( `cat ${REQUESTUPDATE}`)
-    rm $REQUESTUPDATE
-    for connector in ${contents[@]:1}
-    do
-        dev_log_debug "c_mgmt:request-servicestart running: /etc/init.d/${connector} ${contents[0]}"
-        /etc/init.d/${connector} ${contents[0]}
-    done
+    REQUESTUSER="$(stat --format '%U' $REQUESTUPDATE)"
+    if [ "${REQUESTUSER}" = "root"  ] || [ "${REQUESTUSER}" = "_c_mgmt"  ] ; then
+        # Get Contents from the file whitespace delimeter usage: 'start|stop|restart service1 service2 etc'
+        contents=( `cat ${REQUESTUPDATE}`)
+        rm $REQUESTUPDATE
+        for connector in ${contents[@]:1}
+        do
+            dev_log_debug "c_mgmt:request-servicestart running: /etc/init.d/${connector} ${contents[0]}"
+            /etc/init.d/${connector} ${contents[0]}
+        done
+    fi
 fi

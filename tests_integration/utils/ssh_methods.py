@@ -180,6 +180,13 @@ def restart_connector(hostname, root_user, root_pass, connector_name):
     run_ssh_command(hostname, root_user, root_pass, command)
 
 
+def request_restart_connector(hostname, root_user, root_pass, connector_name):
+    """ Request Restart the supplied connector """
+    command = "sudo -H -u _nobody bash -c \"echo 'restart {}' > /tmp/request/requestservicestart\"".format(
+        connector_name)
+    run_ssh_command(hostname, root_user, root_pass, command)
+
+
 def stop_connector(hostname, root_user, root_pass, connector_name):
     """ Stop the supplied connector """
     command = "/etc/init.d/{} stop".format(connector_name)

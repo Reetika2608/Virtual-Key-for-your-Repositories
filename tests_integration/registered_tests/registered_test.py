@@ -1,5 +1,6 @@
 import datetime
 import re
+import time
 import unittest
 import uuid
 
@@ -12,7 +13,7 @@ from tests_integration.utils.cdb_methods import get_serialno, get_logging_host_u
     get_machine_account_url, enable_expressway_connector, disable_expressway_connector, disable_fmc_upgrades, \
     set_poll_time
 from tests_integration.utils.common_methods import wait_until_true, get_log_data_from_atlas, \
-    run_full_management_connector_restart, wait_until_false
+    run_full_management_connector_restart, wait_until_false, request_full_management_connector_restart
 from tests_integration.utils.config import Config
 from tests_integration.utils.fms import get_connector
 from tests_integration.utils.integration_test_logger import get_logger
@@ -21,7 +22,7 @@ from tests_integration.utils.predicates import is_alarm_raised, \
     is_connector_in_composed_status, is_connector_in_fms_state
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
 from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists, restart_connector, \
-    stop_connector, start_connector, run_xcommand
+    stop_connector, start_connector, run_xcommand, get_connector_pid
 
 LOG = get_logger()
 
@@ -62,6 +63,28 @@ class RegisteredTest(unittest.TestCase):
             ci.delete_ci_access_token(cls.access_token)
         if cls.refresh_token:
             ci.delete_ci_refresh_token(cls.refresh_token)
+
+    def test_request_service_start_permission(self):
+        """
+        Purpose: Verify un-privileged users not able to stop/start management connector
+        Steps:
+                1. Write service restart command to /tmp/request/requestservicestart
+                2. Assert c_mgmt is not restarted
+        """
+        LOG.info("Running test: %s", self._testMethodName)
+        LOG.info(self.test_request_service_start_permission.__doc__)
+
+        LOG.info("test_request_service_start_permission: "
+                 "Dispatch restart c_mgmt command as un-privileged user and assert it's not restarted ")
+        starting_pid, current_pid = request_full_management_connector_restart(self.config.exp_hostname_primary(),
+                                                                              self.config.exp_root_user(),
+                                                                              self.config.exp_root_pass())
+        LOG.info("c_mgmt PID before restart %s" % starting_pid)
+        self.assertIsNotNone(starting_pid)
+        LOG.info("c_mgmt PID after restart %s" % current_pid)
+        self.assertIsNotNone(current_pid)
+
+        self.assertTrue(starting_pid == current_pid)
 
     def test_alarm_post(self):
         """
