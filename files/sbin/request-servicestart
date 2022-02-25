@@ -3,18 +3,30 @@
 [ -f "/etc/service_template" ] && . "/etc/service_template"
 
 REQUESTUPDATE="/tmp/request/requestservicestart"
+PRIVILEGEDUSERS=("root" "_c_mgmt")
+PRIVILEGED=false
 
 if [ -f ${REQUESTUPDATE} ] ; then
 
     REQUESTUSER="$(stat --format '%U' $REQUESTUPDATE)"
-    if [ "${REQUESTUSER}" = "root"  ] || [ "${REQUESTUSER}" = "_c_mgmt"  ] ; then
+
+    for user in "${PRIVILEGEDUSERS[@]}"; do
+        if [ "${REQUESTUSER}" = "$user"  ] ; then
+            PRIVILEGED=true
+        fi
+    done
+
+    contents=( `cat ${REQUESTUPDATE}` )
+    rm $REQUESTUPDATE
+
+    if $PRIVILEGED ; then
         # Get Contents from the file whitespace delimeter usage: 'start|stop|restart service1 service2 etc'
-        contents=( `cat ${REQUESTUPDATE}`)
-        rm $REQUESTUPDATE
         for connector in ${contents[@]:1}
         do
-            dev_log_debug "c_mgmt:request-servicestart running: /etc/init.d/${connector} ${contents[0]}"
+            dev_log_debug "c_mgmt::request-servicestart running: /etc/init.d/${connector} ${contents[0]}"
             /etc/init.d/${connector} ${contents[0]}
         done
+    else
+        dev_log_debug "c_mgmt::request-servicestart running - Permission denied for user ${REQUESTUSER}."
     fi
 fi
