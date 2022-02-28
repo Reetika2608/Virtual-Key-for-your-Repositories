@@ -3,6 +3,7 @@
 import json
 import traceback
 import jsonschema
+from urllib.parse import urlparse as urllib_parse
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.cloud import schema
@@ -84,7 +85,9 @@ class Features(object):
         user_id = self.get_user_id()
 
         if host and url and user_id:
-            full_url = host + url + user_id
+            parsed_hostname = urllib_parse(host)
+            hostname = f"{parsed_hostname.scheme}://{parsed_hostname.hostname}/"
+            full_url = hostname + url + user_id
 
         DEV_LOGGER.debug('Detail="FMC_Features url: %s"', full_url)
 
