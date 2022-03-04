@@ -86,7 +86,7 @@ class Features(object):
 
         if host and url and user_id:
             parsed_host = urllib_parse(host)
-            full_url = f"{parsed_host.scheme}://{parsed_host.hostname}/" + url + user_id
+            full_url = "{0}://{1}/{2}{3}".format(parsed_host.scheme, parsed_host.hostname, url, user_id)
 
         DEV_LOGGER.debug('Detail="FMC_Features url: %s"', full_url)
 
