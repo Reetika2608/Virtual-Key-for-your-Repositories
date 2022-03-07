@@ -101,8 +101,6 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(10)
-    web_driver.find_element_by_xpath("//span[contains(text(),'Hybrid')]").click()
-    time.sleep(2)
     web_driver.get('https://' + control_hub + '/hybrid-services/clusters')
     time.sleep(10)
     web_driver.find_element_by_css_selector('button[ng-click="$ctrl.addResource()"]').click()
