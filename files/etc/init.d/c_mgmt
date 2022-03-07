@@ -520,6 +520,12 @@ with open("$1", 'w') as f:
 END
 }
 
+is_box_type_set() {
+    local box_type_str="$1"
+    wget -o /dev/null -q -O - http://localhost:4370/configuration/serviceselect | grep -q "\"box_type\":\"${box_type_str}\""
+    return $?
+}
+
 case $1 in
     addfusioncerts)
         addfusioncerts
