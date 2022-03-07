@@ -3,7 +3,7 @@
 [ -f "/etc/service_template" ] && . "/etc/service_template"
 
 REQUESTUPDATE="/tmp/request/requestservicestart"
-PRIVILEGEDUSERS=("root" "_c_mgmt")
+PRIVILEGEDUSERS=("root" "admin" "_c_mgmt")
 PRIVILEGED=false
 
 if [ -f ${REQUESTUPDATE} ] ; then
