@@ -112,9 +112,9 @@ class FederationOrgMigration(object):
 
     # -------------------------------------------------------------------------
 
-    def refresh_access_token(self, federation_org_migration=False):
+    def refresh_access_token(self):
         """ calling oauth Token refresh """
-        _oauth_response = self._oauth.refresh_oauth_resp_with_idp(federation_org_migration=federation_org_migration)
+        _oauth_response = self._oauth.refresh_oauth_resp_with_idp()
 
     # -------------------------------------------------------------------------
 
@@ -174,7 +174,7 @@ class FederationOrgMigration(object):
                     # Poll CI
                     DEV_LOGGER.info(
                         'Detail="FMC_Utility Federation Org Migration: Poll CI at source for token refresh"')
-                    self.refresh_access_token(federation_org_migration=True)
+                    self.refresh_access_token()
 
                     DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: Refresh access token at target CI"')
                     self.refresh_access_token()

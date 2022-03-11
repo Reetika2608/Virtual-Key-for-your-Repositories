@@ -2,11 +2,13 @@ import unittest
 import mock
 import logging
 import sys
+import io
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
 
+from urllib import error as urllib_error
 from pyfakefs import fake_filesystem_unittest
 from .productxml import PRODUCT_XML_CONTENTS
 from .constants import SYS_LOG_HANDLER
@@ -162,9 +164,16 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         test_oauth = OAuth(mock_config)
         mock_config.read.side_effect = config_read_side_effect
 
+        refresh_token_response = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN, 'expires_in': 100,
+                                  'accountExpiration': 100}
+        headers = {'Content-Type': 'application/json', 'TrackingID': ''}
+        stream = io.TextIOWrapper(io.BytesIO(b''))
+        url = "https://idbroker.webex.com/idb/oauth2/v1/access_token"
+        refresh_token_exception = urllib_error.HTTPError(url, 401, "invalid", headers, stream)
+        mock_http.post.side_effect = [refresh_token_exception, refresh_token_response, refresh_token_exception,
+                                      refresh_token_response]
+
         test_oauth.http = mock_http
-        mock_http.post.return_value = {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
-                                       'expires_in': 100, 'accountExpiration': 100}
 
         org_migration = federationorgmigration.FederationOrgMigration(mock_config, test_oauth)
 

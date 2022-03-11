@@ -83,6 +83,7 @@ def poll_side_effect(url, headers, data, silent=False, schema=None):
         return {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
                                  'expires_in': 100, 'accountExpiration': 100}
 
+
 class OAuthTest(unittest.TestCase):
     """ Management Connector OAuth Test Class """
 
@@ -273,7 +274,7 @@ class OAuthTest(unittest.TestCase):
 
         mock_u2c.update_user_catalog.return_value = None
 
-        oauth_info = test_oauth.refresh_oauth_resp_with_idp(federation_org_migration=True)
+        oauth_info = test_oauth.refresh_oauth_resp_with_idp()
 
         mock_logger_info.assert_any_call('Detail="Federation Org Migration: exponential_backoff_retry"')
 

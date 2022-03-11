@@ -20,6 +20,11 @@ DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 
 
+class UnableToReachCIException(Exception):
+    """ Raised when Unable to reach CI """
+    pass
+
+
 class OAuth(object):
     """Class for OAuth functionality"""
 
@@ -194,7 +199,7 @@ class OAuth(object):
 
     # -------------------------------------------------------------------------
 
-    def refresh_oauth_resp_with_idp(self, federation_org_migration=False):
+    def refresh_oauth_resp_with_idp(self):
         """refresh the OAuth Response, by sending a refresh request to the IDP"""
 
         DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_response_with_idp:"')
@@ -206,34 +211,24 @@ class OAuth(object):
 
         idp_url = idp_info["idpHost"] + "/" + ManagementConnectorProperties.IDP_URL
 
-        """
-        if federation org migration is in progress
-            Enter into polling CI for new token with exponential backoff retry algorithm
-            if response received
-                resume operations
-            else
-                retry till timeout
-        else
-            normal refresh token call
-        """
         try:
-            if federation_org_migration:
-                response = self.exponential_backoff_retry(Http.post,
-                                                          ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_TIMEOUT,
-                                                          ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_BACKOFF,
-                                                          ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_BACKOFF_REFRESH_INTERVAL,
-                                                          *(idp_url, headers,
-                                                            body, True, schema.REFRESH_ACCESS_TOKEN_RESPONSE))
-            else:
-                response = Http.post(idp_url, headers, body, silent=True, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
+            response = Http.post(idp_url, headers, body, silent=True, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
         except urllib_error.HTTPError as error:
             DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: code=%s, url=%s"' % (
                 error.code, error.url))
             if error.code == 400:
                 self._revive_on_http_error(error)
-        except Exception as e:
-            DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: msg=%s, url=%s"' % (
-                e, idp_url))
+            else:
+                try:
+                    response = self.exponential_backoff_retry(
+                        Http.post,
+                        ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_TIMEOUT,
+                        ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_BACKOFF,
+                        ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_BACKOFF_REFRESH_INTERVAL,
+                        *(idp_url, headers, body, True, schema.REFRESH_ACCESS_TOKEN_RESPONSE))
+                except UnableToReachCIException as e:
+                    DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: msg=%s, url=%s"' % (
+                        e, idp_url))
 
         self._update_revive_status()
 
@@ -290,7 +285,7 @@ class OAuth(object):
             DEV_LOGGER.debug(f'Detail="Federation Org Migration: Will call CI after {backoff_time} seconds"')
             time.sleep(backoff_time)  # sleep
         DEV_LOGGER.debug(f'Detail="Federation Org Migration: Failed to fetch response even after {timeout} seconds"')
-        raise Exception('Unable to reach CI')
+        raise UnableToReachCIException('Unable to reach CI')
 
     # -------------------------------------------------------------------------
 
