@@ -27,7 +27,9 @@ class U2C(object):
                    "ucmgmt-migration": ManagementConnectorProperties.U2C_UCMGMT_MIGRATION_HOST,
                    "ucmgmt-telemetry-mgmt": ManagementConnectorProperties.U2C_UCMGMT_TELEMETRY_MGMT_HOST,
                    "ucmgmt-upgrade": ManagementConnectorProperties.U2C_UCMGMT_UPGRADE_HOST,
-                   "ucmgmt-web": ManagementConnectorProperties.U2C_UCMGMT_WEB_HOST}
+                   "ucmgmt-web": ManagementConnectorProperties.U2C_UCMGMT_WEB_HOST,
+                   "idbroker": ManagementConnectorProperties.U2C_IDBROKER,
+                   "identity": ManagementConnectorProperties.U2C_IDENTITY}
 
     def __init__(self, config, oauth, http, database):
         self._http = http

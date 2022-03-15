@@ -30,7 +30,7 @@ def config_read(path):
     if path == ManagementConnectorProperties.U2C_HOST:
         return "https://u2c-a.wbx2.com/u2c/api/v1"
     elif path == ManagementConnectorProperties.U2C_USER_SERVICE_URL:
-        return "/user/catalog?types=TEAM"
+        return "/user/catalog?types=TEAM,IDENTITY"
 
     return "config_value"
 
@@ -138,7 +138,7 @@ class U2CTest(unittest.TestCase):
         test_u2c.update_user_catalog()
 
         self.http.get.assert_called_with(
-            "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM&services=atlasFusionAdminPortal,clientLogs,feature,fms,metrics,remoteDispatcher,ucmgmt-controller,ucmgmt-gateway,ucmgmt-licensing,ucmgmt-migration,ucmgmt-telemetry-mgmt,ucmgmt-upgrade,ucmgmt-web,wdm",
+            "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM,IDENTITY&services=atlasFusionAdminPortal,clientLogs,feature,fms,idbroker,identity,metrics,remoteDispatcher,ucmgmt-controller,ucmgmt-gateway,ucmgmt-licensing,ucmgmt-migration,ucmgmt-telemetry-mgmt,ucmgmt-upgrade,ucmgmt-web,wdm",
             headers=mock.ANY,
             schema=mock.ANY)
 
@@ -150,7 +150,7 @@ class U2CTest(unittest.TestCase):
 
         services_list = test_u2c.build_services_list(U2C.service_map)
 
-        self.assertEqual(services_list, "atlasFusionAdminPortal,clientLogs,feature,fms,metrics,remoteDispatcher,ucmgmt-controller,ucmgmt-gateway,ucmgmt-licensing,ucmgmt-migration,ucmgmt-telemetry-mgmt,ucmgmt-upgrade,ucmgmt-web,wdm",
+        self.assertEqual(services_list, "atlasFusionAdminPortal,clientLogs,feature,fms,idbroker,identity,metrics,remoteDispatcher,ucmgmt-controller,ucmgmt-gateway,ucmgmt-licensing,ucmgmt-migration,ucmgmt-telemetry-mgmt,ucmgmt-upgrade,ucmgmt-web,wdm",
                          "services list is not correct")
 
     def test_write_u2c_host_to_cdb_if_u2c_is_none(self):
@@ -174,7 +174,7 @@ class U2CTest(unittest.TestCase):
         test_u2c.update_user_catalog()
 
         # TODO: Make this prettier, shouldn't reach into the object under test like this
-        self.assertEqual(self.http.get.call_args[0][0], "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM&services=" + test_u2c.build_services_list(U2C.service_map))
+        self.assertEqual(self.http.get.call_args[0][0], "https://u2c-a.wbx2.com/u2c/api/v1/user/catalog?types=TEAM,IDENTITY&services=" + test_u2c.build_services_list(U2C.service_map))
         self.config_mock.write_blob.assert_called_with('u2c_u2cHost', 'https://u2c-a.wbx2.com/u2c/api/v1')
 
 
