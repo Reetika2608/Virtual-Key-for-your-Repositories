@@ -96,6 +96,7 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     LOG.info("Logging in to control hub, %s, adding the Expressway, %s and activating all services.",
              control_hub, exp_hostname)
     web_driver.get('https://' + control_hub)
+    time.sleep(5)
     web_driver.find_element_by_name('email').send_keys(org_admin_user)
     web_driver.find_element_by_xpath('//button').click()
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
@@ -138,7 +139,9 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
         web_driver.find_element_by_name('formbutton').click()
         web_driver.find_element_by_name('formbutton').click()
         web_driver.find_element_by_id('checkbox1').send_keys(' ')
-        web_driver.find_element_by_css_selector('button[ng-click="vm.confirm()"]').click()
+        time.sleep(5)
+        web_driver.find_element_by_xpath(
+            '/html/body/app-root/div/app-fuse-redirect/div/div/div/div[2]/form/div[2]/button').click()
         if not wait_until_true(is_in_page_source, 120, 5, *(web_driver, " is registered with the Cisco Webex Cloud")):
             raise WaitTimeoutException("Timed out waiting for registration confirmation message")
     finally:
