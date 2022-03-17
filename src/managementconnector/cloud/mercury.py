@@ -298,7 +298,8 @@ class Mercury(threading.Thread):
             # Extract required info from RD command
             command_log = {"commandId": message['data']['command']['commandId'],
                            "action": message['data']['command']['action'],
-                           "parameters": message['data']['command']['parameters'],
+                           "parameters": message['data']['command'].get('parameters', None),
+                           # optional field, can be None
                            "dispatcher": message['data']['command']['dispatcher'],
                            "trackingId": message['trackingId']}
 
