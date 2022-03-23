@@ -22,6 +22,17 @@ from managementconnector.config.managementconnectorproperties import ManagementC
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
+MACHINE_ACCOUNT_DETAILS = {
+                            "cluster_id": "c123sdf4-5629-4b57-8e27-734hd2",
+                            "id": "fawe435-7902-4154-a991-vef32s",
+                            "location": "https://identitybts.webex.com/organization/"
+                                        "c123sdf4-5629-4b57-8e27-734hd2/v1/Machines/fawe435-7902-4154-a991-vef32s",
+                            "organization_id": "c8ab02a4-5629-4b57-8e27-7d6df2e7f370",
+                            "password": "{cipher}$50a11311-e1c8-4ae0-acee-casd234@$1$yRlydyOeLNWomssBOwx+"
+                                        "7teAaZl2YS2gyvfDoCpr3EnvG5ja5gYBff2ADurGCcs1+XWTJjH9EOq4zsaDOjWg8A==",
+                            "username": "fusion-mgmnt-6qwe213-6875-4738-b070-050aaced2a3b"
+                        }
+
 
 def config_read(path):
     """ config class mock """
@@ -31,6 +42,8 @@ def config_read(path):
         return "https://u2c-a.wbx2.com/u2c/api/v1"
     elif path == ManagementConnectorProperties.U2C_USER_SERVICE_URL:
         return "/user/catalog?types=TEAM,IDENTITY"
+    elif path == ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS:
+        return MACHINE_ACCOUNT_DETAILS
 
     return "config_value"
 
@@ -129,6 +142,36 @@ class U2CTest(unittest.TestCase):
         test_u2c.update_user_catalog()
 
         self.config_mock.write.assert_not_called()
+
+    def test_update_oauth_identity_url(self):
+        """ Test Update Oauth Machine Account Identity URL """
+        self.config_mock.read.side_effect = config_read
+        self.http.get.return_value = {"services": [{
+                "serviceName": "identity",
+                "logicalNames": [
+                    "https://identitybts-test.webex.com"
+                ],
+                "serviceUrls": [
+                    {
+                        "baseUrl": "https://identitybts-test.webex.com",
+                        "priority": 5
+                    }
+                ],
+                "internalServiceUrls": [],
+                "ttl": -1,
+                "id": "urn:IDENTITY:A52D:identity",
+                "preferred": "true"
+            }]
+        }
+        test_u2c = U2C(self.config_mock, self.oauth, self.http, self.database)
+
+        test_u2c.update_user_catalog()
+
+        MACHINE_ACCOUNT_DETAILS['location'] = "https://identitybts-test.webex.com/organization/" \
+                                              "c123sdf4-5629-4b57-8e27-734hd2/v1/Machines/fawe435-7902-4154-a991-vef32s"
+
+        self.config_mock.write_blob.assert_called_with(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS,
+                                                       MACHINE_ACCOUNT_DETAILS)
 
     def test_correct_u2c_url_is_called(self):
         """ Test that we use the right U2C Url, with correct params"""
