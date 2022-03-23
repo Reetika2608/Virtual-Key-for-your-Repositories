@@ -120,13 +120,13 @@ class U2C(object):
         parsed_identity_url = urlsplit(identity_url)
         parsed_oauth_identity_url = urlsplit(machine_response_copy["location"])
         if parsed_identity_url.scheme and parsed_identity_url.hostname:
-        machine_response_copy["location"] = "{0}://{1}{2}".format(parsed_identity_url.scheme,
-                                                                  parsed_identity_url.hostname,
-                                                                  parsed_oauth_identity_url.path)
-        self._config.write_blob(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS,
-                                machine_response_copy)
-        DEV_LOGGER.debug(
-            'Detail="FMC_U2C _update_oauth_identity_url: URL = %s."' % machine_response_copy["location"])
+            machine_response_copy["location"] = "{0}://{1}{2}".format(parsed_identity_url.scheme,
+                                                                      parsed_identity_url.hostname,
+                                                                      parsed_oauth_identity_url.path)
+            self._config.write_blob(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS,
+                                    machine_response_copy)
+            DEV_LOGGER.debug(
+                'Detail="FMC_U2C _update_oauth_identity_url: URL = %s."' % machine_response_copy["location"])
         else:
             DEV_LOGGER.error(
                 'Detail="FMC_U2C _update_oauth_identity_url: Cannot Parse Identity URL = %s."' % identity_url)
