@@ -60,21 +60,18 @@ class U2C(object):
 
         service_catalogs = self._http.get(u2c_url, headers=header, schema=schema.U2C_SERVICES_RESPONSE)
 
-        U2C.process_catalog(self._config, service_catalogs["services"])
-
-        # update machine account identity url
-        self._update_oauth_identity_url(service_catalogs["services"])
+        self.process_catalog(self._config, service_catalogs["services"])
 
         if not self._identity_and_u2c_host_check:
             self._check_identity_url(service_catalogs["services"])
             self._check_u2c_host_url(host)
             self._identity_and_u2c_host_check = True
 
-    def build_services_list(self, map):
+    @staticmethod
+    def build_services_list(map):
         return ",".join(sorted(map.keys()))
 
-    @staticmethod
-    def process_catalog(config, catalog):
+    def process_catalog(self, config, catalog):
         """ Process the catalog returned and update the config with the value"""
         DEV_LOGGER.debug('Detail="FMC_U2C process_catalog: processing response from U2C"')
 
@@ -86,6 +83,10 @@ class U2C(object):
                 if service_entry["serviceName"] == "fms":
                     parsed_url = urlsplit(url)
                     url = parsed_url.scheme + "://" + parsed_url.netloc
+
+                # if the url is identity then update machine account identity url
+                if service_entry["serviceName"] == "identity":
+                    self._update_oauth_identity_url(identity_url=url)
 
                 config.write(U2C.service_map[service_entry["serviceName"]], {"value": json.dumps(url)})
 
@@ -107,26 +108,25 @@ class U2C(object):
                 'Detail="FMC_U2C populate U2C host URL: Setting U2C host to default value from template: %s"' % host)
             self._config.write_blob(ManagementConnectorProperties.U2C_HOST, host)
 
-    def _update_oauth_identity_url(self, catalog):
+    def _update_oauth_identity_url(self, identity_url):
         """ Update Oauth Machine Account Identity URL """
         DEV_LOGGER.info('Detail="FMC_U2C _update_oauth_identity_url: Updating Oauth Machine Account Identity URL"')
-        for service_entry in catalog:
-            if service_entry["serviceName"] == "identity":
-                # Get Identity URL from service catalog
-                identity_url = service_entry["logicalNames"][0]
 
-                # Fetch Oauth Machine Account Details from DB
-                machine_response = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)
-                machine_response_copy = machine_response.copy()
+        # Fetch Oauth Machine Account Details from DB
+        machine_response = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)
+        machine_response_copy = machine_response.copy()
 
-                # Parse and update the identity url
-                parsed_identity_url = urlsplit(identity_url)
-                parsed_oauth_identity_url = urlsplit(machine_response_copy["location"])
-                machine_response_copy["location"] = "{0}://{1}{2}".format(parsed_identity_url.scheme,
-                                                                          parsed_identity_url.hostname,
-                                                                          parsed_oauth_identity_url.path)
-                self._config.write_blob(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS,
-                                        machine_response_copy)
-                DEV_LOGGER.debug(
-                    'Detail="FMC_U2C _update_oauth_identity_url: URL = %s."' % machine_response_copy["location"])
-                break
+        # Parse and update the identity url
+        parsed_identity_url = urlsplit(identity_url)
+        parsed_oauth_identity_url = urlsplit(machine_response_copy["location"])
+        if parsed_identity_url.scheme and parsed_identity_url.hostname:
+        machine_response_copy["location"] = "{0}://{1}{2}".format(parsed_identity_url.scheme,
+                                                                  parsed_identity_url.hostname,
+                                                                  parsed_oauth_identity_url.path)
+        self._config.write_blob(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS,
+                                machine_response_copy)
+        DEV_LOGGER.debug(
+            'Detail="FMC_U2C _update_oauth_identity_url: URL = %s."' % machine_response_copy["location"])
+        else:
+            DEV_LOGGER.error(
+                'Detail="FMC_U2C _update_oauth_identity_url: Cannot Parse Identity URL = %s."' % identity_url)
