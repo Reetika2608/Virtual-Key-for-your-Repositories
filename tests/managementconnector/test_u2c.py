@@ -24,14 +24,13 @@ DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
 # Mock Machine Account Details to test "_update_oauth_identity_url()"
 MACHINE_ACCOUNT_DETAILS = {
-                            "cluster_id": "c123sdf4-5629-4b57-8e27-734hd2",
-                            "id": "fawe435-7902-4154-a991-vef32s",
+                            "cluster_id": "some_cluster_id",
+                            "id": "some_id",
                             "location": "https://identitybts.webex.com/organization/"
-                                        "c123sdf4-5629-4b57-8e27-734hd2/v1/Machines/fawe435-7902-4154-a991-vef32s",
-                            "organization_id": "c8ab02a4-5629-4b57-8e27-7d6df2e7f370",
-                            "password": "{cipher}$50a11311-e1c8-4ae0-acee-casd234@$1$yRlydyOeLNWomssBOwx+"
-                                        "7teAaZl2YS2gyvfDoCpr3EnvG5ja5gYBff2ADurGCcs1+XWTJjH9EOq4zsaDOjWg8A==",
-                            "username": "fusion-mgmnt-6qwe213-6875-4738-b070-050aaced2a3b"
+                                        "<some_cluster_id>/v1/Machines/<some_id>",
+                            "organization_id": "organization_id",
+                            "password": "random_encrypted_password",
+                            "username": "random_username"
                         }
 
 
@@ -169,7 +168,7 @@ class U2CTest(unittest.TestCase):
         test_u2c.update_user_catalog()
 
         MACHINE_ACCOUNT_DETAILS['location'] = "https://identitybts-test.webex.com/organization/" \
-                                              "c123sdf4-5629-4b57-8e27-734hd2/v1/Machines/fawe435-7902-4154-a991-vef32s"
+                                              "<some_cluster_id>/v1/Machines/<some_id>"
 
         self.config_mock.write_blob.assert_called_with(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS,
                                                        MACHINE_ACCOUNT_DETAILS)
