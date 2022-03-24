@@ -22,6 +22,7 @@ from managementconnector.config.managementconnectorproperties import ManagementC
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
+# Mock Machine Account Details to test "_update_oauth_identity_url()"
 MACHINE_ACCOUNT_DETAILS = {
                             "cluster_id": "c123sdf4-5629-4b57-8e27-734hd2",
                             "id": "fawe435-7902-4154-a991-vef32s",

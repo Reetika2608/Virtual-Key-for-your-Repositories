@@ -125,7 +125,7 @@ class U2C(object):
                                                                       parsed_oauth_identity_url.path)
             self._config.write_blob(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS,
                                     machine_response_copy)
-            DEV_LOGGER.debug(
+            DEV_LOGGER.info(
                 'Detail="FMC_U2C _update_oauth_identity_url: URL = %s."' % machine_response_copy["location"])
         else:
             DEV_LOGGER.error(
