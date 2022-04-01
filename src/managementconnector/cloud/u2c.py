@@ -67,9 +67,6 @@ class U2C(object):
             self._check_u2c_host_url(host)
             self._identity_and_u2c_host_check = True
 
-        # post u2c refresh, clear config read cache to avoid using stale data
-        self._config.clear_cache()
-
     @staticmethod
     def build_services_list(map):
         return ",".join(sorted(map.keys()))

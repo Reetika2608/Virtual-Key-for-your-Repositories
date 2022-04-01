@@ -1,6 +1,6 @@
 """ Federation 4.0 - Org Migration """
 
-from urllib import error as urllib_error
+import time
 from http import HTTPStatus
 
 from managementconnector.config.databasehandler import DatabaseHandler
@@ -175,6 +175,9 @@ class FederationOrgMigration(object):
                     DEV_LOGGER.info(
                         'Detail="FMC_Utility Federation Org Migration: Poll CI at source for token refresh"')
                     self.refresh_access_token()
+
+                    self._config.clear_cache()  # ensure cache clearance
+                    time.sleep(5)  # wait for config read cache to be cleared
 
                     DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: Refresh access token at target CI"')
                     self.refresh_access_token()

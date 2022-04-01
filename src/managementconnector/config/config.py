@@ -36,6 +36,7 @@ class Config(object):
     def change_callback(self):
         """ Notify observer when change occurs """
         DEV_LOGGER.debug('Detail="change_callback: Invoke callbacks on change notification"')
+        self.clear_cache()  # clear config read cache to avoid stale data
         for callback in self._registered_callbacks:
             callback()
 
