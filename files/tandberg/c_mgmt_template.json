@@ -178,23 +178,23 @@
         $!setvar("c_mgmt_migration_fmsMigrationState", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_fmsMigrationState"]')!$
         <!--(if len(c_mgmt_migration_fmsMigrationState))-->
             "fmsMigrationState": $!c_mgmt_migration_fmsMigrationState[0]['value']!$
-        <!--(end)-->
-        $!setvar("c_mgmt_migration_update_connector_json", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_update_connector_json"]')!$
-        <!--(if len(c_mgmt_migration_update_connector_json))-->
-            <!--(if c_mgmt_migration_update_connector_json[0]['value'] == "\"true\"")-->
-                ,"orgMigration":
+            $!setvar("c_mgmt_migration_update_connector_json", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_update_connector_json"]')!$
+            <!--(if len(c_mgmt_migration_update_connector_json))-->
+                <!--(if c_mgmt_migration_update_connector_json[0]['value'] == "\"true\"")-->
+                    ,"orgMigration":
                     {
-                    "orgId": $!setvar("orgId", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_orgId"]')!$<!--(if len(orgId))-->$!orgId[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "migrationId": $!setvar("migrationId", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_migrationId"]')!$<!--(if len(migrationId))-->$!migrationId[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "identitySource": $!setvar("identitySource", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_identitySource"]')!$<!--(if len(identitySource))-->$!identitySource[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "identityTarget": $!setvar("identityTarget", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_identityTarget"]')!$<!--(if len(identityTarget))-->$!identityTarget[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "teamsSource": $!setvar("teamsSource", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_teamsSource"]')!$<!--(if len(teamsSource))-->$!teamsSource[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "teamsTarget": $!setvar("teamsTarget", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_teamsTarget"]')!$<!--(if len(teamsTarget))-->$!teamsTarget[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "meetingsSource": $!setvar("meetingsSource", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_meetingsSource"]')!$<!--(if len(meetingsSource))-->$!meetingsSource[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "meetingsTarget": $!setvar("meetingsTarget", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_meetingsTarget"]')!$<!--(if len(meetingsTarget))-->$!meetingsTarget[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "startAt": $!setvar("startAt", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_startAt"]')!$<!--(if len(startAt))-->$!startAt[0]['value']!$<!--(else)-->''<!--(end)-->,
-                    "workstreamStartedAt": $!setvar("workstreamStartedAt", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_workstreamStartedAt"]')!$<!--(if len(workstreamStartedAt))-->$!workstreamStartedAt[0]['value']!$<!--(else)-->''<!--(end)-->
-                }
+                        "orgId": $!setvar("orgId", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_orgId"]')!$<!--(if len(orgId))-->$!orgId[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "migrationId": $!setvar("migrationId", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_migrationId"]')!$<!--(if len(migrationId))-->$!migrationId[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "identitySource": $!setvar("identitySource", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_identitySource"]')!$<!--(if len(identitySource))-->$!identitySource[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "identityTarget": $!setvar("identityTarget", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_identityTarget"]')!$<!--(if len(identityTarget))-->$!identityTarget[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "teamsSource": $!setvar("teamsSource", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_teamsSource"]')!$<!--(if len(teamsSource))-->$!teamsSource[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "teamsTarget": $!setvar("teamsTarget", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_teamsTarget"]')!$<!--(if len(teamsTarget))-->$!teamsTarget[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "meetingsSource": $!setvar("meetingsSource", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_meetingsSource"]')!$<!--(if len(meetingsSource))-->$!meetingsSource[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "meetingsTarget": $!setvar("meetingsTarget", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_meetingsTarget"]')!$<!--(if len(meetingsTarget))-->$!meetingsTarget[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "startAt": $!setvar("startAt", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_startAt"]')!$<!--(if len(startAt))-->$!startAt[0]['value']!$<!--(else)-->''<!--(end)-->,
+                        "workstreamStartedAt": $!setvar("workstreamStartedAt", 'CDB["/configuration/cafe/cafeblobconfiguration", "name/c_mgmt_migration_workstreamStartedAt"]')!$<!--(if len(workstreamStartedAt))-->$!workstreamStartedAt[0]['value']!$<!--(else)-->''<!--(end)-->
+                    }
+                <!--(end)-->
             <!--(end)-->
         <!--(end)-->
     }
