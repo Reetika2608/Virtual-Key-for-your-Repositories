@@ -130,3 +130,14 @@ class Config(object):
 
         self._cache = {}
     # -------------------------------------------------------------------------
+
+    def is_cache_cleared(self):
+        """ Ensure Cache is Cleared """
+        cache_cleared = False
+        if len(self._cache) == 0:
+            cache_cleared = True
+
+        DEV_LOGGER.debug('Detail="___Config: is cache cleared = %s"' % cache_cleared)
+
+        return cache_cleared
+    # -------------------------------------------------------------------------

@@ -176,8 +176,12 @@ class FederationOrgMigration(object):
                         'Detail="FMC_Utility Federation Org Migration: Poll CI at source for token refresh"')
                     self.refresh_access_token()
 
-                    self._config.clear_cache()  # ensure cache clearance
-                    time.sleep(5)  # wait for config read cache to be cleared
+                    # ensure config cache clearance
+                    if not self._config.is_cache_cleared():
+                        DEV_LOGGER.warn(
+                            'Detail="FMC_Utility Federation Org Migration: '
+                            'Config cache was not cleared, clearing it now"')
+                        self._config.clear_cache()
 
                     DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: Refresh access token at target CI"')
                     self.refresh_access_token()

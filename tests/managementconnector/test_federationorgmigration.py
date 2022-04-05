@@ -181,6 +181,9 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
         mock_u2c.update_user_catalog.return_value = None
 
+        # if cache is not cleared, the workflow should clear the cache
+        mock_config.is_cache_cleared.return_value = False
+
         org_migration.migrate(status_code=302)
 
         # should have called get_enabled_connectors, stop_connectors, exponential_backoff_retry and start_connectors
@@ -189,6 +192,10 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_stop_connectors.assert_called_once()
         mock_oauth_polling.assert_called()
         mock_start_connectors.assert_called()
+
+        # ensure cache clear and check calls are made
+        mock_config.is_cache_cleared.assert_called()
+        mock_config.clear_cache.assert_called()
 
         # assert token refresh
         self.assertTrue(test_oauth.oauth_response['refresh_time_read'] > time_in_past)
