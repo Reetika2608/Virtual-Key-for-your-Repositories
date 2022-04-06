@@ -68,7 +68,13 @@ class FederationOrgMigration(object):
                 'Detail="FMC_Utility Federation Org Migration: already stopped_connectors %s"' % stopped_connectors)
             if stopped_connectors is not None:
                 # return union of current and previously enabled connectors
-                enabled_connectors["names"] = list(set(enabled_connectors["names"] + stopped_connectors))
+                previously_enabled_connectors = enabled_connectors["names"].copy()
+                for connector in stopped_connectors:
+                    if connector not in previously_enabled_connectors:
+                        enabled_connectors["services"].append(self._servicemanager.get(connector))
+                        enabled_connectors["names"].append(connector)
+            DEV_LOGGER.info(
+                'Detail="FMC_Utility Federation Org Migration: get_enabled_connectors %s"' % enabled_connectors)
         except Exception as unhandled_exception:
             DEV_LOGGER.error(
                 'Detail="FMC_Utility Federation Org Migration: UnhandledException get_enabled_connectors error=%s' %
