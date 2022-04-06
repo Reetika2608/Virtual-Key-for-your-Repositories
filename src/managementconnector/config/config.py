@@ -1,10 +1,14 @@
 """ Config Class """
 
+import time
+
 from managementconnector.config.databasehandler import DatabaseHandler
 from managementconnector.config.jsonhandler import JsonHandler
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
+
+CONFIG_UPDATE_RETRIES = 20
 
 
 class Config(object):
@@ -140,4 +144,19 @@ class Config(object):
         DEV_LOGGER.debug('Detail="___Config: is cache cleared = %s"' % cache_cleared)
 
         return cache_cleared
+
+    # -------------------------------------------------------------------------
+
+    def check_config_update(self, config_path, database_path):
+        """ Ensure config file is updated """
+        database_value = self._database_handler.read(database_path)
+        for i in range(CONFIG_UPDATE_RETRIES):
+            config_value = self.read(config_path)
+            if config_value == database_value:
+                DEV_LOGGER.info('Detail="FMC_U2C check_config_update: config file is updated"')
+                break
+
+            time.sleep(1)
+            DEV_LOGGER.info('Detail="FMC_U2C check_config_update: config file is not updated after %s seconds"' % i)
+
     # -------------------------------------------------------------------------

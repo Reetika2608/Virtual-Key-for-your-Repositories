@@ -67,6 +67,10 @@ class U2C(object):
             self._check_u2c_host_url(host)
             self._identity_and_u2c_host_check = True
 
+        # post u2c refresh, ensure config file is updated to avoid stale data
+        self._config.check_config_update(ManagementConnectorProperties.IDP_HOST,
+                                         ManagementConnectorProperties.U2C_IDB_HOST)
+
     @staticmethod
     def build_services_list(map):
         return ",".join(sorted(map.keys()))
