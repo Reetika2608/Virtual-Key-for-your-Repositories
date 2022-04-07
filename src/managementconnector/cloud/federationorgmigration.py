@@ -1,6 +1,5 @@
 """ Federation 4.0 - Org Migration """
 
-import time
 from http import HTTPStatus
 
 from managementconnector.config.databasehandler import DatabaseHandler
@@ -35,7 +34,7 @@ class FederationOrgMigration(object):
 
     def __init__(self, config, oauth):
         """ Federation Org Migration __init__ """
-        DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: __init__ called"')
+        DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: __init__ called"')
 
         self._config = config
         self._oauth = oauth
@@ -65,7 +64,8 @@ class FederationOrgMigration(object):
             # check if enabled connectors weren't started in previous cycle
             stopped_connectors = self.read_cdb(ManagementConnectorProperties.MIGRATION_STOPPED_CONNECTORS)
             DEV_LOGGER.info(
-                'Detail="FMC_Utility Federation Org Migration: already stopped_connectors %s"' % stopped_connectors)
+                'Detail="FMC_FederationOrgMigration: '
+                'get_enabled_connectors: already stopped_connectors %s"' % stopped_connectors)
             if stopped_connectors is not None:
                 # return union of current and previously enabled connectors
                 previously_enabled_connectors = enabled_connectors["names"].copy()
@@ -74,11 +74,12 @@ class FederationOrgMigration(object):
                         enabled_connectors["services"].append(self._servicemanager.get(connector))
                         enabled_connectors["names"].append(connector)
             DEV_LOGGER.info(
-                'Detail="FMC_Utility Federation Org Migration: get_enabled_connectors %s"' % enabled_connectors)
+                'Detail="FMC_FederationOrgMigration: '
+                'get_enabled_connectors: enabled_connectors %s"' % enabled_connectors)
         except Exception as unhandled_exception:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Federation Org Migration: UnhandledException get_enabled_connectors error=%s' %
-                unhandled_exception)
+                'Detail="FMC_FederationOrgMigration: '
+                'get_enabled_connectors: UnhandledException, error=%s' % unhandled_exception)
         return enabled_connectors
 
     # -------------------------------------------------------------------------
@@ -86,41 +87,50 @@ class FederationOrgMigration(object):
     def update_stopped_connectors(self, stopped_connectors):
         """ Update MIGRATION_STOPPED_CONNECTORS in CDB """
         DEV_LOGGER.info(
-            'Detail="FMC_Utility Federation Org Migration: Update MIGRATION_STOPPED_CONNECTORS %s"' % stopped_connectors)
+            'Detail="FMC_FederationOrgMigration: '
+            'update_stopped_connectors: Update MIGRATION_STOPPED_CONNECTORS=%s"' % stopped_connectors)
         self.update_cdb(ManagementConnectorProperties.MIGRATION_STOPPED_CONNECTORS, stopped_connectors)
 
     # -------------------------------------------------------------------------
 
     def stop_connectors(self, connectors):
-        DEV_LOGGER.info('Detail="FMC_Utility Org Migration: Stopping %s connectors"' % connectors)
+        DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: Stopping %s connectors"' % connectors)
         try:
             self._servicemanager.disable_connectors(connectors["services"])
             self.update_stopped_connectors(connectors["names"])
         except DisableException as stop_error:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Federation Org Migration: Exception stopping connectors error=%s' % stop_error)
+                'Detail="FMC_FederationOrgMigration: '
+                'stop_connectors: Exception stopping connectors, error=%s' % stop_error)
         except Exception as unhandled_exception:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Org Migration: UnhandledException stop connectors error=%s' % unhandled_exception)
+                'Detail="FMC_FederationOrgMigration: '
+                'stop_connectors: UnhandledException, error=%s' % unhandled_exception)
     # -------------------------------------------------------------------------
 
     def start_connectors(self, connectors):
-        DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: Starting %s connectors"' % connectors)
+        DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: '
+                        'start_connectors: Starting %s connectors"' % connectors)
         try:
             self._servicemanager.enable_connectors(connectors["services"])
             self.update_stopped_connectors(connectors["names"])
         except EnableException as start_error:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Federation Org Migration: Exception starting connectors error=%s' % start_error)
+                'Detail="FMC_FederationOrgMigration: '
+                'start_connectors: Exception starting connectors, error=%s' % start_error)
         except Exception as unhandled_exception:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Federation Org Migration: UnhandledException start connectors error=%s' % unhandled_exception)
+                'Detail="FMC_FederationOrgMigration: '
+                'start_connectors: UnhandledException start connectors, error=%s' % unhandled_exception)
 
     # -------------------------------------------------------------------------
 
     def refresh_access_token(self):
         """ calling oauth Token refresh """
-        _oauth_response = self._oauth.refresh_oauth_resp_with_idp()
+        try:
+            _oauth_response = self._oauth.refresh_oauth_resp_with_idp()
+        except Exception:
+            raise
 
     # -------------------------------------------------------------------------
 
@@ -130,7 +140,7 @@ class FederationOrgMigration(object):
             self._config.write_blob(data_field, value)
         except CDBDownException as cdb_exception:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Federation Org Migration: CDBDownException update_cdb error=%s' % cdb_exception)
+                'Detail="FMC_FederationOrgMigration: update_cdb: CDBDownException, error=%s' % cdb_exception)
 
     # -------------------------------------------------------------------------
 
@@ -141,7 +151,7 @@ class FederationOrgMigration(object):
             cdb_data = self._database_handler.read(data_field)
         except CDBDownException as cdb_exception:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Federation Org Migration: CDBDownException read_cdb error=%s' % cdb_exception)
+                'Detail="FMC_FederationOrgMigration: read_cdb: CDBDownException, error=%s' % cdb_exception)
         return cdb_data
 
     # -------------------------------------------------------------------------
@@ -150,14 +160,14 @@ class FederationOrgMigration(object):
         """ End Migration workflow by updating migration data to connector.json & starting stopped connectors """
         # Set MIGRATION_UPDATE_CONNECTOR_JSON=True in CDB, migration info will be updated in connector.json
         DEV_LOGGER.info(
-            'Detail="FMC_Utility Federation Org Migration: Update connector.json / Notify other Connectors"')
+            'Detail="FMC_FederationOrgMigration: end_migration: Update connector.json / Notify other Connectors"')
         self.update_cdb(ManagementConnectorProperties.MIGRATION_UPDATE_CONNECTOR_JSON, "true")
 
         # start stopped connectors - enable
         enabled_connectors["names"] = []
         self.start_connectors(enabled_connectors)
 
-        DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: Resume normal connector operation"')
+        DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: end_migration: Resume normal connector operation"')
 
     # -------------------------------------------------------------------------
 
@@ -169,7 +179,8 @@ class FederationOrgMigration(object):
         enabled_connectors = self.get_enabled_connectors()
 
         fms_migration_state = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
-        DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: migration state=%s"' % fms_migration_state)
+        # fms_migration_state = 'STARTED'
+        DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: migration state=%s"' % fms_migration_state)
         try:
             if status_code == HTTPStatus.FOUND.value:
                 # if migration is started continue
@@ -179,23 +190,23 @@ class FederationOrgMigration(object):
 
                     # Poll CI
                     DEV_LOGGER.info(
-                        'Detail="FMC_Utility Federation Org Migration: Poll CI at source for token refresh"')
+                        'Detail="FMC_FederationOrgMigration: migrate: Poll CI at source for token refresh"')
                     self.refresh_access_token()
 
                     # ensure config cache clearance
                     if not self._config.is_cache_cleared():
                         DEV_LOGGER.warn(
-                            'Detail="FMC_Utility Federation Org Migration: '
-                            'Config cache was not cleared, clearing it now"')
+                            'Detail="FMC_FederationOrgMigration: '
+                            'migrate: Config cache was not cleared, clearing it now"')
                         self._config.clear_cache()
 
-                    DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: Refresh access token at target CI"')
+                    DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: Refresh access token at target CI"')
                     self.refresh_access_token()
 
                     self.end_migration(enabled_connectors)
             elif len(federation_org_migration_data):
                 # update CDB
-                DEV_LOGGER.info('Detail="FMC_Utility Federation Org Migration: Save migration info to DB"')
+                DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: Save migration info to DB"')
                 self.process_migration_data(federation_org_migration_data)
         finally:
             # if migration is completed do not process further
@@ -209,7 +220,7 @@ class FederationOrgMigration(object):
     def process_migration_data(self, migration_data_blob):
         """ Process the migration data returned and update the config with the value"""
         DEV_LOGGER.info(
-            'Detail="FMC_Utility Federation Org Migration: process_migration_data: processing migration data from FMS"')
+            'Detail="FMC_FederationOrgMigration: process_migration_data: processing migration data from FMS"')
 
         for migration_path, migration_data in list(migration_data_blob.items()):
             if migration_path in list(self.migration_data_map.keys()):
@@ -224,7 +235,7 @@ class FederationOrgMigration(object):
         self.update_cdb(ManagementConnectorProperties.MIGRATION_UPDATE_CONNECTOR_JSON, "false")
 
         DEV_LOGGER.info(
-            'Detail="FMC_Utility Federation Org Migration: clear_migration_data: Clearing migration data from CDB"')
+            'Detail="FMC_FederationOrgMigration: clear_migration_data: Clearing migration data from CDB"')
         for migration_path, _ in list(FederationOrgMigration.migration_data_map.items()):
             if migration_path in list(self.migration_data_map.keys()):
                 # clear federation org migration data from CDB

@@ -25,6 +25,11 @@ class UnableToReachCIException(Exception):
     pass
 
 
+class ConfigFileUpdateFailedException(Exception):
+    """ Raised when 'c_mgmt.json' Config file is not updated """
+    pass
+
+
 class OAuth(object):
     """Class for OAuth functionality"""
 
@@ -141,11 +146,14 @@ class OAuth(object):
         bearer_url = '{}/idb/token/{}/v1/actions/GetBearerToken/invoke'.format(idp_info["idpHost"],
                                                                                machine_response["organization_id"])
 
+        bearer_response = {}
+
         try:
             bearer_response = Http.post(bearer_url, headers, body, silent=True, schema=schema.BEARER_TOKEN_RESPONSE)
         except urllib_error.HTTPError as error:
-            DEV_LOGGER.error('Detail="RAW: FMC_OAuth _get_token_for_machine_account: error: code=%s, url=%s"' % (
-            error.code, error.url))
+            DEV_LOGGER.error(
+                'Detail="RAW: FMC_OAuth _get_token_for_machine_account: '
+                'error: code=%s, url=%s"' % (error.code, error.url))
             if error.code == 401:
                 self._revive_on_http_error(error)
 
@@ -161,7 +169,8 @@ class OAuth(object):
         DEV_LOGGER.info('Detail="FMC_OAuth _get_oauth_resp_from_idp:"')
 
         body = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type:saml2-bearer&assertion=" + \
-               bearer_token + "&scope=Identity%3ASCIM%20Identity%3AOrganization%20squared-fusion-mgmt%3Amanagement%20spark%3Alogs_write"
+               bearer_token + \
+            "&scope=Identity%3ASCIM%20Identity%3AOrganization%20squared-fusion-mgmt%3Amanagement%20spark%3Alogs_write"
 
         headers = self._get_idp_headers()
 
@@ -211,6 +220,7 @@ class OAuth(object):
 
         idp_url = idp_info["idpHost"] + "/" + ManagementConnectorProperties.IDP_URL
 
+        response = {}
         try:
             response = Http.post(idp_url, headers, body, silent=True, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
         except urllib_error.HTTPError as error:
@@ -229,6 +239,7 @@ class OAuth(object):
                 except UnableToReachCIException as e:
                     DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: msg=%s, url=%s"' % (
                         e, idp_url))
+                    raise
 
         self._update_revive_status()
 
@@ -251,7 +262,9 @@ class OAuth(object):
                         (self.oauth_response["refresh_time_read"], self.oauth_response["expires_in"]))
 
         # user catalog refresh
-        self.refresh_u2c()
+        u2c_status = self.refresh_u2c(check_config=True)
+        if not u2c_status:
+            raise ConfigFileUpdateFailedException({"message": "Config File did not update after U2C refresh"})
 
         return self.oauth_response
 
@@ -263,42 +276,52 @@ class OAuth(object):
         backoff_time = RandomGenerator().random()
         must_end = OAuth.get_current_time() + timeout
         refresh_time = OAuth.get_current_time() + refresh_interval
-        DEV_LOGGER.info('Detail="Federation Org Migration: exponential_backoff_retry"')
+        DEV_LOGGER.info('Detail="FMC_OAuth: exponential_backoff_retry"')
         while OAuth.get_current_time() < must_end:
             try:
                 response = predicate(*args)
                 return response
             except urllib_error.HTTPError as error:
-                DEV_LOGGER.error('Detail="Federation Org Migration: RAW: FMC_OAuth  exponential_backoff_retry('
-                                 'refresh_oauth_resp_with_idp): '
-                                 'error: code=%s, url=%s"' % (error.code, error.url))
+                DEV_LOGGER.error(
+                    'Detail="FMC_OAuth: exponential_backoff_retry: RAW: FMC_OAuth  exponential_backoff_retry('
+                    'refresh_oauth_resp_with_idp): '
+                    'error: code=%s, url=%s"' % (error.code, error.url))
             except Exception as unhandled_exception:  # catch unseen exceptions
-                DEV_LOGGER.error('Detail="Federation Org Migration: RAW: FMC_OAuth  exponential_backoff_retry('
-                                 'refresh_oauth_resp_with_idp) error=%s"' % unhandled_exception)
+                DEV_LOGGER.error(
+                    'Detail="FMC_OAuth: exponential_backoff_retry: RAW: FMC_OAuth  exponential_backoff_retry('
+                    'refresh_oauth_resp_with_idp): '
+                    'error=%s"' % unhandled_exception)
             # refresh the backoff once refresh interval is reached
             if OAuth.get_current_time() >= refresh_time:
-                DEV_LOGGER.debug('Detail="Federation Org Migration: Refresh interval reached.."')
+                DEV_LOGGER.debug('Detail="FMC_OAuth: exponential_backoff_retry: Refresh interval reached.."')
                 backoff_time = RandomGenerator().random()
                 refresh_time = OAuth.get_current_time() + refresh_interval
             # retry delay increases by a factor of backoff (example: backoff=2seconds) everytime
             backoff_time = (backoff_time + backoff) + RandomGenerator().random()
-            DEV_LOGGER.debug(f'Detail="Federation Org Migration: Will call CI after {backoff_time} seconds"')
+            DEV_LOGGER.debug(
+                'Detail="FMC_OAuth: exponential_backoff_retry: Will call CI after %s seconds"' % backoff_time)
             time.sleep(backoff_time)  # sleep
-        DEV_LOGGER.debug(f'Detail="Federation Org Migration: Failed to fetch response even after {timeout} seconds"')
+        DEV_LOGGER.debug(
+            'Detail="FMC_OAuth: exponential_backoff_retry: Failed to fetch response even after %s seconds"' % timeout)
         raise UnableToReachCIException('Unable to reach CI')
 
     # -------------------------------------------------------------------------
 
-    def refresh_u2c(self):
+    def refresh_u2c(self, check_config):
         """ Refresh u2c """
         # update user catalog - after every token refresh
         # if u2c refresh fails with auth, retry without auth as fallback
         DEV_LOGGER.info('Detail="FMC_OAuth refresh_u2c"')
         try:
-            self._u2c.update_user_catalog(header=self.get_header(access_token=self.oauth_response["access_token"]))
+            u2c_status = self._u2c.update_user_catalog(
+                header=self.get_header(access_token=self.oauth_response["access_token"]),
+                check_config=check_config)
         except urllib_error.HTTPError:
-            self._u2c.update_user_catalog(header=self.get_header(no_auth=True))
-        return
+            u2c_status = self._u2c.update_user_catalog(
+                header=self.get_header(no_auth=True),
+                check_config=check_config)
+
+        return u2c_status
 
     # -------------------------------------------------------------------------
 

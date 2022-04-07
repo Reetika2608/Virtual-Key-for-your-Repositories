@@ -38,7 +38,7 @@ class U2C(object):
         self._database_handler = database
         self._identity_and_u2c_host_check = False
 
-    def update_user_catalog(self, header=None):
+    def update_user_catalog(self, header=None, check_config=False):
         """ Update any service in the U2C User URL List"""
         DEV_LOGGER.debug('Detail="FMC_U2C update_user_catalog: updating user catalog"')
         host = self._config.read(ManagementConnectorProperties.U2C_HOST)
@@ -68,8 +68,10 @@ class U2C(object):
             self._identity_and_u2c_host_check = True
 
         # post u2c refresh, ensure config file is updated to avoid stale data
-        self._config.check_config_update(ManagementConnectorProperties.IDP_HOST,
-                                         ManagementConnectorProperties.U2C_IDB_HOST)
+        is_config_updated = self._config.check_config_update(ManagementConnectorProperties.IDP_HOST,
+                                                             ManagementConnectorProperties.U2C_IDB_HOST)
+        if check_config:
+            return is_config_updated
 
     @staticmethod
     def build_services_list(map):

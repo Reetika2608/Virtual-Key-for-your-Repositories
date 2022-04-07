@@ -149,14 +149,17 @@ class Config(object):
 
     def check_config_update(self, config_path, database_path):
         """ Ensure config file is updated """
+        is_config_updated = False
         database_value = self._database_handler.read(database_path)
         for i in range(CONFIG_UPDATE_RETRIES):
             config_value = self.read(config_path)
             if config_value == database_value:
-                DEV_LOGGER.info('Detail="FMC_U2C check_config_update: config file is updated"')
+                DEV_LOGGER.info('Detail="___Config: check_config_update: config file is updated"')
+                is_config_updated = True
                 break
 
             time.sleep(1)
-            DEV_LOGGER.info('Detail="FMC_U2C check_config_update: config file is not updated after %s seconds"' % i)
+            DEV_LOGGER.info('Detail="___Config: check_config_update: config file is not updated after %s seconds"' % i)
+        return is_config_updated
 
     # -------------------------------------------------------------------------

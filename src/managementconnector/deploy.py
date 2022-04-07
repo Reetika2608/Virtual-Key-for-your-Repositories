@@ -14,7 +14,7 @@ from managementconnector.cloud.metrics import Metrics
 from managementconnector.platform.http import Http, CertificateExceptionFusionCA, CertificateExceptionNameMatch, \
     CertificateExceptionInvalidCert
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-from managementconnector.cloud.oauth import OAuth
+from managementconnector.cloud.oauth import OAuth, ConfigFileUpdateFailedException
 from managementconnector.service.service import ServiceException
 from managementconnector.service.servicedependency import ServiceDependency
 from managementconnector.service.servicemanager import ServiceManager
@@ -451,14 +451,22 @@ class Deploy(object):
             if response.get('orgMigration') is not None or status_code == HTTPStatus.FOUND.value:
                 federation_org_migration_data = response.get('orgMigration') or {}  # assign empty dict if not found
                 DEV_LOGGER.info(
-                    'Detail="FMC_Utility Org Migration: orgMigration data blob=%s, status_code=%s"' % (
-                        federation_org_migration_data, status_code))
+                    'Detail="FMC_FederationOrgMigration: '
+                    '_process_federation_org_migration: '
+                    'orgMigration data blob=%s, status_code=%s"' % (federation_org_migration_data, status_code))
                 # call migration workflow
                 self._federation_org_migration.migrate(status_code=status_code,
                                                        federation_org_migration_data=federation_org_migration_data)
+        except ConfigFileUpdateFailedException as config_update_exception:
+            DEV_LOGGER.error(
+                'Detail="FMC_FederationOrgMigration: '
+                '_process_federation_org_migration: ConfigFileUpdateFailedException error=%s"' %
+                config_update_exception)
         except Exception as unhandled_exception:
             DEV_LOGGER.error(
-                'Detail="FMC_Utility Federation Org Migration: _process_federation_org_migration UnhandledException error=%s' % unhandled_exception)
+                'Detail="FMC_FederationOrgMigration: '
+                '_process_federation_org_migration: UnhandledException error=%s"' %
+                unhandled_exception)
 
     # -------------------------------------------------------------------------
 
