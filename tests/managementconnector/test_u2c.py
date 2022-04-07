@@ -34,6 +34,9 @@ MACHINE_ACCOUNT_DETAILS = {
                         }
 
 
+CONFIG_JSON = {}
+
+
 def config_read(path):
     """ config class mock """
     DEV_LOGGER.debug("ConfigMock: read path %s" % path)
@@ -44,6 +47,9 @@ def config_read(path):
         return "/user/catalog?types=TEAM,IDENTITY"
     elif path == ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS:
         return MACHINE_ACCOUNT_DETAILS
+    elif path == ManagementConnectorProperties.IDP_HOST:
+        DEV_LOGGER.info("CONFIG_JSON %s" % CONFIG_JSON)
+        return CONFIG_JSON[ManagementConnectorProperties.U2C_IDBROKER]["value"]
 
     return "config_value"
 
@@ -65,6 +71,8 @@ def database_read(path):
         return "some_identity_host"
     elif path == ManagementConnectorProperties.U2C_HOST:
         return "some_u2c_host"
+    elif path == ManagementConnectorProperties.U2C_IDB_HOST:
+        return "\"https://idbrokerbts-test.webex.com\""
 
     return None
 
@@ -90,6 +98,22 @@ def database_read_with_wrong_u2c_host_value(path):
         return "{\"value\": \"\\\"https://u2c-a.wbx2.com/u2c/api/v1\\\"\"}"
 
     return None
+
+
+def config_write(config_path, value):
+    DEV_LOGGER.info('Detail="___Config: config_write: %s %s"' % (config_path, value))
+    CONFIG_JSON[config_path] = value
+
+
+def check_config_update(config_path, database_path):
+    """ Mock to Ensure config file is updated """
+    is_config_updated = False
+    database_value = database_read(database_path)
+    config_value = config_read(config_path)
+    if config_value == database_value:
+        DEV_LOGGER.info('Detail="___Config: check_config_update: config file is updated"')
+        is_config_updated = True
+    return is_config_updated
 
 
 class U2CTest(unittest.TestCase):
@@ -123,6 +147,42 @@ class U2CTest(unittest.TestCase):
         self.config_mock.write.assert_called_with(
             '/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_host_u2c',
             {'value': '"https://client-logs-a.wbx2.com/api/v1"'})
+
+    def test_update_user_catalog_config_check(self):
+        """ Test FMC config is updated post U2C User Catalog Refresh """
+
+        self.config_mock.read.side_effect = config_read
+        self.config_mock.write.side_effect = config_write
+        self.config_mock.check_config_update.side_effect = check_config_update
+
+        self.http.get.return_value = {"services": [{
+            "serviceName": "idbroker",
+            "logicalNames": [
+                "https://idbrokerbts-test.webex.com"
+            ],
+            "serviceUrls": [
+                {
+                    "baseUrl": "https://idbrokerbts-test.webex.com",
+                    "priority": 5
+                }
+            ],
+            "internalServiceUrls": [],
+            "ttl": -1,
+            "id": "urn:IDBROKER:A52D:idbroker",
+            "preferred": "true"
+        }]
+        }
+
+        test_u2c = U2C(self.config_mock, self.oauth, self.http, self.database)
+
+        update_status = test_u2c.update_user_catalog(check_config=True)
+
+        # assert config is updated if update_user_catalog() response is True
+        self.assertTrue(update_status)
+
+        # should return None if check_config is not True
+        update_status = test_u2c.update_user_catalog()
+        self.assertIsNone(update_status)
 
     def test_update_user_catalog_service_missing(self):
         """ Test U2C User Catalog Processed Correctly with missing value"""

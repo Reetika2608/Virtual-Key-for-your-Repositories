@@ -31,6 +31,7 @@ from managementconnector.cloud.mercury import Mercury
 from managementconnector.config.config import Config
 from managementconnector.service.service import Service, DownloadTLPAccessException, DownloadServerUnavailableException, \
     EnableException, DisableException, InstallException, ServiceCertificateExceptionInvalidCert
+from managementconnector.cloud.oauth import ConfigFileUpdateFailedException
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
@@ -1383,6 +1384,86 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
         mock_start_connectors.assert_called()
         # should not have called process_migration_data
         self.assertFalse(mock_process_migration_data.called, 'failed')
+
+    @mock.patch('managementconnector.deploy.DEV_LOGGER.error')
+    def test_deploy_process_orgmigration_exceptions(self, mock_error_logger, mock_oauth, mock_config, mock_http,
+                                                            mock_utils, mock_mgr, mock_alarm,
+                                                            mock_metrics,
+                                                            mock_json_write, mock_monitor,
+                                                            mock_get_system_mem,
+                                                            mock_get_system_cpu,
+                                                            mock_dbhandler,
+                                                            mock_other_connectors,
+                                                            mock_enabled_connectors,
+                                                            mock_start_connectors,
+                                                            mock_stop_connectors,
+                                                            mock_refresh_access_token,
+                                                            mock_process_migration_data):
+        """ FMS sends 302 response code and fmsMigrationState is STARTED.
+        Then,
+            FMC should not process the data
+            should stop enabled connectors
+            should enter CI polling to refresh token
+            should update service URLs and
+            should raise Exception incase of generic exception and
+            should raise ConfigFileUpdateFailedException incase of config file update failure and
+            should not start stopped connectors"""
+
+        DEV_LOGGER.info("***TEST*** test_deploy_process_orgmigration_status_302_started")
+
+        # Setup Mock Objects
+
+        atlas = Atlas(mock_config)
+        atlas._get_post_request_data = mock.MagicMock(name='method')
+        atlas._get_post_request_data.return_value = {}
+        atlas._write_heatbeat_to_disk = mock.MagicMock(name='method', return_value=None)
+        atlas._configure_heartbeat = 30
+        mock_config.read.return_value = "dummy_fms_url"
+
+        mock_mgr.get.return_value = "Mock Service"
+        mock_mgr.get_name.return_value = 'c_mgmt'
+
+        stream = io.TextIOWrapper(io.BytesIO(b''))
+        mock_http.post.side_effect = urllib_error.HTTPError(
+            'https://hercules.hitest.huron-dev.com/v1/connector_statuses/18', "302", "", "hdrs", stream)
+
+        mock_config.write_blob.return_value = None
+
+        # Run Test
+        deploy = Deploy(mock_config)
+        deploy._atlas = atlas
+        deploy._alarms = mock_alarm
+
+        deploy._oauth_init = True
+        deploy._get_config = mock.MagicMock
+
+        global FMS_MIGRATION_STATE
+        FMS_MIGRATION_STATE = "STARTED"
+        mock_config.read.side_effect = org_migration_config_read_side_effect
+
+        # check generic_exception
+        generic_exception = "Org Migration Failed"
+        mock_refresh_access_token.side_effect = Exception(generic_exception)
+        deploy._do_register_config_status("c_mgmt")
+
+        # should have raised generic exception
+        self.assertRaises(Exception)
+        mock_error_logger.assert_any_call(
+                'Detail="FMC_FederationOrgMigration: '
+                '_process_federation_org_migration: UnhandledException error=%s"' %
+                generic_exception)
+
+        # check ConfigFileUpdateFailedException
+        config_update_exception = {"message": "Config File did not update after U2C refresh"}
+        mock_refresh_access_token.side_effect = ConfigFileUpdateFailedException(config_update_exception)
+        deploy._do_register_config_status("c_mgmt")
+        # should have raised ConfigFileUpdateFailedException exception
+        self.assertRaises(ConfigFileUpdateFailedException)
+        mock_error_logger.assert_any_call(
+                'Detail="FMC_FederationOrgMigration: '
+                '_process_federation_org_migration: ConfigFileUpdateFailedException error=%s"' %
+                config_update_exception)
+        self.assertFalse(mock_start_connectors.called, 'failed')
 
 
 if __name__ == "__main__":

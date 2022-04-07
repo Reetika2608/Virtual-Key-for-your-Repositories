@@ -14,7 +14,7 @@ sys.modules['pyinotify'] = mock.MagicMock()
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
-from managementconnector.cloud.oauth import OAuth
+from managementconnector.cloud.oauth import OAuth, ConfigFileUpdateFailedException
 from managementconnector.config.config import Config
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
@@ -258,7 +258,7 @@ class OAuthTest(unittest.TestCase):
     def test_migration_polling(self, mock_http, mock_config, mock_u2c, mock_logger_info):
         """ Test Get Refresh Token with CI Polling """
 
-        DEV_LOGGER.info("****** test_refresh_oauth_resp_with_idp ******")
+        DEV_LOGGER.info("****** test_migration_polling ******")
 
         time_in_past = OAuth.get_current_time() - 100
 
@@ -276,11 +276,40 @@ class OAuthTest(unittest.TestCase):
 
         oauth_info = test_oauth.refresh_oauth_resp_with_idp()
 
-        mock_logger_info.assert_any_call('Detail="Federation Org Migration: exponential_backoff_retry"')
+        mock_logger_info.assert_any_call('Detail="FMC_OAuth: exponential_backoff_retry"')
 
         # assert token refresh
         self.assertTrue(oauth_info['refresh_time_read'] > time_in_past)
         self.assertTrue(oauth_info['access_token'] == REFRESHED_TOKEN)
+
+    @mock.patch('managementconnector.cloud.oauth.DEV_LOGGER.info')
+    @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
+    @mock.patch('managementconnector.config.config.Config')
+    @mock.patch('managementconnector.cloud.oauth.Http')
+    def test_config_update_failure_exception(self, mock_http, mock_config, mock_u2c, mock_logger_info):
+        """ Test ConfigFileUpdateFailedException """
+
+        DEV_LOGGER.info("****** test_config_update_failure_exception ******")
+
+        time_in_past = OAuth.get_current_time() - 100
+
+        test_oauth = OAuth(mock_config)
+        mock_config.read.side_effect = config_read_side_effect
+
+        test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
+        test_oauth.machine_response = {'location': "location", 'password': "password"}
+
+        test_oauth.http = mock_http
+
+        mock_http.post.side_effect = None
+
+        # return False to simulate ConfigFileUpdateFailedException
+        mock_u2c.update_user_catalog.return_value = False
+
+        oauth_info = test_oauth.refresh_oauth_resp_with_idp()
+
+        # assert ConfigFileUpdateFailedException is raised
+        self.assertRaises(ConfigFileUpdateFailedException)
 
     @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
     @mock.patch('managementconnector.config.config.Config.read')
