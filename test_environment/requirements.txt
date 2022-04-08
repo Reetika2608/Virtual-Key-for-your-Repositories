@@ -11,5 +11,5 @@ pytest==6.2.5
 cryptography==3.4.8
 selenium==4.0.0
 requests==2.21.0
-paramiko==2.8.0
+paramiko==2.10.3
 defusedxml==0.7.1
