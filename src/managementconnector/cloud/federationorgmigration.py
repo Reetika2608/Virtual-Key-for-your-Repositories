@@ -129,7 +129,10 @@ class FederationOrgMigration(object):
         """ calling oauth Token refresh """
         try:
             _oauth_response = self._oauth.refresh_oauth_resp_with_idp()
-        except Exception:
+        except Exception as e:
+            DEV_LOGGER.error(
+                'Detail="FMC_FederationOrgMigration: '
+                'refresh_access_token: Error refreshing access token, error=%s' % e)
             raise
 
     # -------------------------------------------------------------------------
@@ -179,7 +182,6 @@ class FederationOrgMigration(object):
         enabled_connectors = self.get_enabled_connectors()
 
         fms_migration_state = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
-        # fms_migration_state = 'STARTED'
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: migration state=%s"' % fms_migration_state)
         try:
             if status_code == HTTPStatus.FOUND.value:
