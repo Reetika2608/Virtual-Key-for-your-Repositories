@@ -1462,7 +1462,7 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
         mock_error_logger.assert_any_call(
                 'Detail="FMC_FederationOrgMigration: '
                 '_process_federation_org_migration: ConfigFileUpdateFailedException error=%s"' %
-                config_update_exception)
+                config_update_exception['message'])
         self.assertFalse(mock_start_connectors.called, 'failed')
 
 

@@ -5,6 +5,7 @@ import base64
 import json
 import traceback
 from urllib import error as urllib_error
+from urllib.parse import quote as urllib_quote
 import taacrypto
 from random import SystemRandom as RandomGenerator
 
@@ -22,12 +23,21 @@ ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
 
 class UnableToReachCIException(Exception):
     """ Raised when Unable to reach CI """
-    pass
+    def __init__(self, message):
+        super().__init__(message)
+
+        # custom object to access error message
+        self.error = message
 
 
 class ConfigFileUpdateFailedException(Exception):
     """ Raised when 'c_mgmt.json' Config file is not updated """
-    pass
+
+    def __init__(self, message):
+        super().__init__(message)
+
+        # custom object to access error message
+        self.error = message
 
 
 class OAuth(object):
@@ -168,9 +178,11 @@ class OAuth(object):
 
         DEV_LOGGER.info('Detail="FMC_OAuth _get_oauth_resp_from_idp:"')
 
-        body = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type:saml2-bearer&assertion=" + \
-               bearer_token + \
-            "&scope=Identity%3ASCIM%20Identity%3AOrganization%20squared-fusion-mgmt%3Amanagement%20spark%3Alogs_write"
+        grant_type = 'urn:ietf:params:oauth:grant-type:saml2-bearer'
+        encoded_grant_type = urllib_quote(grant_type)
+        scopes = 'Identity:SCIM Identity:Organization squared-fusion-mgmt:management spark:logs_write'
+        encoded_scopes = urllib_quote(scopes)
+        body = "grant_type={}&assertion={}&scope={}".format(encoded_grant_type, bearer_token, encoded_scopes)
 
         headers = self._get_idp_headers()
 
@@ -238,7 +250,7 @@ class OAuth(object):
                         *(idp_url, headers, body, True, schema.REFRESH_ACCESS_TOKEN_RESPONSE))
                 except UnableToReachCIException as e:
                     DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: msg=%s, url=%s"' % (
-                        e, idp_url))
+                        e.error, idp_url))
                     raise
 
         self._update_revive_status()
@@ -303,7 +315,7 @@ class OAuth(object):
             time.sleep(backoff_time)  # sleep
         DEV_LOGGER.debug(
             'Detail="FMC_OAuth: exponential_backoff_retry: Failed to fetch response even after %s seconds"' % timeout)
-        raise UnableToReachCIException('Unable to reach CI')
+        raise UnableToReachCIException('Timed Out, Unable to reach CI.')
 
     # -------------------------------------------------------------------------
 
