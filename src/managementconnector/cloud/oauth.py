@@ -220,7 +220,7 @@ class OAuth(object):
 
     # -------------------------------------------------------------------------
 
-    def refresh_oauth_resp_with_idp(self):
+    def refresh_oauth_resp_with_idp(self, wait_before_polling=False):
         """refresh the OAuth Response, by sending a refresh request to the IDP"""
 
         DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_response_with_idp:"')
@@ -234,6 +234,13 @@ class OAuth(object):
 
         response = {}
         try:
+            if wait_before_polling:
+                wait_time_before_poll = ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_PRE_WAIT_TIME
+                DEV_LOGGER.info('Detail="FMC_Utility refresh_oauth_resp_with_idp: waiting %s seconds"' %
+                                wait_time_before_poll)
+                time.sleep(wait_time_before_poll)
+            DEV_LOGGER.info('Detail="FMC_Utility refresh_oauth_resp_with_idp: Config Cache before: %s "' %
+                            self._config.read_cache())
             response = Http.post(idp_url, headers, body, silent=True, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
         except urllib_error.HTTPError as error:
             DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: code=%s, url=%s"' % (
@@ -311,7 +318,7 @@ class OAuth(object):
             # retry delay increases by a factor of backoff (example: backoff=2seconds) everytime
             backoff_time = (backoff_time + backoff) + RandomGenerator().random()
             DEV_LOGGER.debug(
-                'Detail="FMC_OAuth: exponential_backoff_retry: Will call CI after %s seconds"' % backoff_time)
+                'Detail="FMC_OAuth: exponential_backoff_retry: Will call CI after %0.2f seconds"' % backoff_time)
             time.sleep(backoff_time)  # sleep
         DEV_LOGGER.debug(
             'Detail="FMC_OAuth: exponential_backoff_retry: Failed to fetch response even after %s seconds"' % timeout)

@@ -416,13 +416,28 @@ class ServiceManager():
     # =============================================================================
 
     @staticmethod
-    def enable_connectors(connectors=None):
+    def enable_connectors(connectors=None, operational_status_wait=None):
         """ Enable all connectors from list """
         if connectors is None:
             connectors = []
+        if operational_status_wait is None:
+            operational_status_wait = 0
         for connector_service in connectors:
             connector_service.enable()
-            DEV_LOGGER.info('Detail="FMC_Lifecycle ServiceManager: enable: connector=%s"' % connector_service.get_name())
+            connector_name = connector_service.get_name()
+            DEV_LOGGER.info('Detail="FMC_Lifecycle ServiceManager: enable: connector=%s"' % connector_name)
+            for i in range(operational_status_wait):
+                time.sleep(1)  # wait before status check
+                op_status = CafeXUtils.get_operation_status(connector_name, DEV_LOGGER)
+                if op_status in ManagementConnectorProperties.CONNECTOR_PERMITTED_OPERATIONAL_STATES:
+                    DEV_LOGGER.error(
+                        'Detail="FMC_Lifecycle ServiceManager: enable_connectors: '
+                        '%s connector is operational after %s seconds"' % (connector_name, i+1))
+                    break
+                DEV_LOGGER.error(
+                    'Detail="FMC_Lifecycle ServiceManager: enable_connectors: '
+                    '%s connector is not operational after %s seconds"' % (connector_name, i+1))
+
         return
 
     # =============================================================================

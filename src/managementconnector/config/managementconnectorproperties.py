@@ -459,3 +459,9 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     ORG_MIGRATION_CI_POLL_TIMEOUT = 28800  # 8 hours
     ORG_MIGRATION_CI_POLL_BACKOFF = 5
     ORG_MIGRATION_CI_POLL_BACKOFF_REFRESH_INTERVAL = 120
+    ORG_MIGRATION_CI_POLL_PRE_WAIT = True
+    ORG_MIGRATION_CI_POLL_PRE_WAIT_TIME = 120  # wait X seconds before polling CI
+
+    # wait max X seconds for connector to be running and operational
+    CONNECTOR_OPERATIONAL_STATE_WAIT_TIME = 180
+    CONNECTOR_PERMITTED_OPERATIONAL_STATES = ["true", "operational"]

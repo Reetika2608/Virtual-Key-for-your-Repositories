@@ -108,11 +108,11 @@ class FederationOrgMigration(object):
                 'stop_connectors: UnhandledException, error=%s' % unhandled_exception)
     # -------------------------------------------------------------------------
 
-    def start_connectors(self, connectors):
+    def start_connectors(self, connectors, operational_status_wait=None):
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: '
                         'start_connectors: Starting %s connectors"' % connectors)
         try:
-            self._servicemanager.enable_connectors(connectors["services"])
+            self._servicemanager.enable_connectors(connectors["services"], operational_status_wait)
             self.update_stopped_connectors(connectors["names"])
         except EnableException as start_error:
             DEV_LOGGER.error(
@@ -125,10 +125,10 @@ class FederationOrgMigration(object):
 
     # -------------------------------------------------------------------------
 
-    def refresh_access_token(self):
+    def refresh_access_token(self, wait_before_polling=False):
         """ calling oauth Token refresh """
         try:
-            _oauth_response = self._oauth.refresh_oauth_resp_with_idp()
+            _oauth_response = self._oauth.refresh_oauth_resp_with_idp(wait_before_polling)
         except Exception as e:
             DEV_LOGGER.error(
                 'Detail="FMC_FederationOrgMigration: '
@@ -168,7 +168,9 @@ class FederationOrgMigration(object):
 
         # start stopped connectors - enable
         enabled_connectors["names"] = []
-        self.start_connectors(enabled_connectors)
+        self.start_connectors(
+            enabled_connectors,
+            operational_status_wait=ManagementConnectorProperties.CONNECTOR_OPERATIONAL_STATE_WAIT_TIME)
 
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: end_migration: Resume normal connector operation"')
 
@@ -193,7 +195,8 @@ class FederationOrgMigration(object):
                     # Poll CI
                     DEV_LOGGER.info(
                         'Detail="FMC_FederationOrgMigration: migrate: Poll CI at source for token refresh"')
-                    self.refresh_access_token()
+                    self.refresh_access_token(
+                        wait_before_polling=ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_PRE_WAIT)
 
                     # ensure config cache clearance
                     if not self._config.is_cache_cleared():

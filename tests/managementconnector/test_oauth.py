@@ -23,9 +23,11 @@ ACCESS_TOKEN = "Access Token"
 REFRESH_TOKEN = "Refresh Token"
 REFRESHED_TOKEN = "Refreshed Access Token"
 
-MAX_POLL_TEST_TIMEOUT = 150
+MAX_POLL_TEST_TIMEOUT = 50
 CURRENT_TIME = OAuth.get_current_time()
 MUST_END_POLL = CURRENT_TIME + MAX_POLL_TEST_TIMEOUT
+
+SLEEP_MAX_WAIT = 10
 
 
 def config_read_side_effect(*args, **kwargs):
@@ -81,7 +83,21 @@ def poll_side_effect(url, headers, data, silent=False, schema=None):
         raise urllib.error.HTTPError(url, 401, "invalid", headers, stream)
     else:
         return {'access_token': REFRESHED_TOKEN, 'refresh_token': REFRESHED_TOKEN,
-                                 'expires_in': 100, 'accountExpiration': 100}
+                'expires_in': 100, 'accountExpiration': 100}
+
+
+def sleep_side_effect(seconds):
+    """ Sleep Side Effect """
+    if seconds > SLEEP_MAX_WAIT:
+        DEV_LOGGER.debug(
+            'Detail="test_oauth: sleep_side_effect: '
+            'Bypassing %s second wait by SLEEP_MAX_WAIT of %s seconds"' % (seconds, SLEEP_MAX_WAIT))
+        seconds = SLEEP_MAX_WAIT
+
+    end_time = OAuth.get_current_time() + seconds
+    while True:
+        if OAuth.get_current_time() > end_time:
+            return
 
 
 class OAuthTest(unittest.TestCase):
@@ -251,14 +267,18 @@ class OAuthTest(unittest.TestCase):
         self.assertTrue(oauth_info['refresh_time_read'] > time_in_past)
         self.assertTrue(oauth_info['access_token'] == REFRESHED_TOKEN)
 
+    @mock.patch('managementconnector.cloud.oauth.time.sleep')
     @mock.patch('managementconnector.cloud.oauth.DEV_LOGGER.info')
     @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.cloud.oauth.Http')
-    def test_migration_polling(self, mock_http, mock_config, mock_u2c, mock_logger_info):
+    def test_migration_polling(self, mock_http, mock_config, mock_u2c, mock_logger_info, mock_sleep):
         """ Test Get Refresh Token with CI Polling """
 
         DEV_LOGGER.info("****** test_migration_polling ******")
+
+        # custom sleep method
+        mock_sleep.side_effect = sleep_side_effect
 
         time_in_past = OAuth.get_current_time() - 100
 
@@ -274,8 +294,10 @@ class OAuthTest(unittest.TestCase):
 
         mock_u2c.update_user_catalog.return_value = None
 
-        oauth_info = test_oauth.refresh_oauth_resp_with_idp()
+        oauth_info = test_oauth.refresh_oauth_resp_with_idp(
+            wait_before_polling=ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_PRE_WAIT)
 
+        mock_sleep.assert_any_call(ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_PRE_WAIT_TIME)
         mock_logger_info.assert_any_call('Detail="FMC_OAuth: exponential_backoff_retry"')
 
         # assert token refresh

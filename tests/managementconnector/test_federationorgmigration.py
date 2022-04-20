@@ -40,6 +40,12 @@ ORG_MIGRATION_DATA = {
 
 FMS_MIGRATION_STATE = "COMPLETED"  # STARTED/COMPLETED
 
+MAX_WAIT = 30
+CURRENT_TIME = OAuth.get_current_time()
+MUST_END_WAIT = CURRENT_TIME + MAX_WAIT
+
+SLEEP_MAX_WAIT = 10
+
 
 def config_read_side_effect(*args, **kwargs):
     """ Config Side Effect """
@@ -54,6 +60,29 @@ def config_read_side_effect(*args, **kwargs):
     if args[0] == ManagementConnectorProperties.FMS_MIGRATION_STATE:
         global FMS_MIGRATION_STATE
         return FMS_MIGRATION_STATE
+
+
+def operational_status_side_effect(connector_name, dev_logger):
+    """ Connector Operational status check Side Effect """
+    global MUST_END_WAIT
+    if OAuth.get_current_time() < MUST_END_WAIT:
+        return "outage"
+    else:
+        return "operational"
+
+
+def sleep_side_effect(seconds):
+    """ Sleep Side Effect """
+    if seconds > SLEEP_MAX_WAIT:
+        DEV_LOGGER.info(
+            'Detail="test_oauth: sleep_side_effect: '
+            'Bypassing %s second wait by SLEEP_MAX_WAIT of %s seconds"' % (seconds, SLEEP_MAX_WAIT))
+        seconds = SLEEP_MAX_WAIT
+
+    end_time = OAuth.get_current_time() + seconds
+    while True:
+        if OAuth.get_current_time() > end_time:
+            return
 
 
 class OrgMigrationTest(fake_filesystem_unittest.TestCase):
@@ -142,10 +171,11 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         self.assertFalse(mock_stop_connectors.called, 'failed')
         self.assertFalse(mock_refresh_access_token.called, 'failed')
 
+    @mock.patch('managementconnector.cloud.oauth.time.sleep')
     @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
     @mock.patch('managementconnector.cloud.oauth.Http')
     @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.disable_connectors')
-    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.enable_connectors')
+    @mock.patch('managementconnector.service.servicemanager.CafeXUtils.get_operation_status')
     @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=[])
     @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
     @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
@@ -153,8 +183,8 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     @mock.patch('managementconnector.cloud.oauth.OAuth.exponential_backoff_retry')
     @mock.patch('managementconnector.config.config.Config')
     def test_migrate_started(self, mock_config, mock_oauth_polling, mock_servicemanager_enabled_connectors,
-                             mock_orgmigration_other_connectors, mock_dbhandler, mock_start_connectors,
-                             mock_stop_connectors, mock_http, mock_u2c):
+                             mock_orgmigration_other_connectors, mock_dbhandler, mock_operational_status,
+                             mock_stop_connectors, mock_http, mock_u2c, mock_sleep):
         """ Test migration started workflow """
         time_in_past = OAuth.get_current_time() - 100
 
@@ -184,14 +214,19 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         # if cache is not cleared, the workflow should clear the cache
         mock_config.is_cache_cleared.return_value = False
 
+        # connector operational status check
+        mock_operational_status.side_effect = operational_status_side_effect
+        # custom sleep method
+        mock_sleep.side_effect = sleep_side_effect
+
         org_migration.migrate(status_code=302)
 
-        # should have called get_enabled_connectors, stop_connectors, exponential_backoff_retry and start_connectors
+        # should have called get_enabled_connectors, stop_connectors, exponential_backoff_retry and sleep
         mock_servicemanager_enabled_connectors.assert_called_once()
         mock_orgmigration_other_connectors.assert_called_once()
         mock_stop_connectors.assert_called_once()
         mock_oauth_polling.assert_called()
-        mock_start_connectors.assert_called()
+        mock_sleep.assert_any_call(ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_PRE_WAIT_TIME)
 
         # ensure cache clear and check calls are made
         mock_config.is_cache_cleared.assert_called()
@@ -203,19 +238,17 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
 
         # check generic exception - exception should not disturb process flow
         mock_stop_connectors.side_effect = Exception
-        mock_start_connectors.side_effect = Exception
         mock_oauth_polling.side_effect = None
         mock_servicemanager_enabled_connectors.return_value = {"services": [mock.MagicMock()], "names": ['c_xyz']}
         mock_orgmigration_other_connectors.return_value = ['c_xyz', 'c_abc']
 
         org_migration.migrate(status_code=302)
 
-        # should have called get_enabled_connectors, stop_connectors, exponential_backoff_retry and start_connectors
+        # should have called get_enabled_connectors, stop_connectors, exponential_backoff_retry
         self.assertEqual(mock_servicemanager_enabled_connectors.call_count, 2)
         self.assertEqual(mock_orgmigration_other_connectors.call_count, 2)
         self.assertEqual(mock_stop_connectors.call_count, 2)
         self.assertEqual(mock_oauth_polling.call_count, 2)
-        self.assertEqual(mock_start_connectors.call_count, 2)
 
     @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.process_migration_data')
     @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.refresh_access_token')
