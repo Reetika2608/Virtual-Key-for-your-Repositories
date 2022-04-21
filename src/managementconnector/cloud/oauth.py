@@ -239,8 +239,6 @@ class OAuth(object):
                 DEV_LOGGER.info('Detail="FMC_Utility refresh_oauth_resp_with_idp: waiting %s seconds"' %
                                 wait_time_before_poll)
                 time.sleep(wait_time_before_poll)
-            DEV_LOGGER.info('Detail="FMC_Utility refresh_oauth_resp_with_idp: Config Cache before: %s "' %
-                            self._config.read_cache())
             response = Http.post(idp_url, headers, body, silent=True, schema=schema.REFRESH_ACCESS_TOKEN_RESPONSE)
         except urllib_error.HTTPError as error:
             DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: code=%s, url=%s"' % (
