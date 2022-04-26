@@ -183,8 +183,12 @@ class FederationOrgMigration(object):
 
         enabled_connectors = self.get_enabled_connectors()
 
-        fms_migration_state = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
+        if "fms-migration-state" in federation_org_migration_data:
+            fms_migration_state = federation_org_migration_data.get("fms-migration-state", "")
+        else:
+            fms_migration_state = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: migration state=%s"' % fms_migration_state)
+        
         try:
             if status_code == HTTPStatus.FOUND.value:
                 # if migration is started continue
