@@ -124,7 +124,6 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_other_connectors.side_effect = Exception
         self.assertListEqual(sorted(org_migration.get_enabled_connectors()["names"]), sorted([]))
 
-
     @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=['c_def'])
     @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
     @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
@@ -138,6 +137,19 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
         self.assertTrue(sorted(org_migration.get_enabled_connectors()["names"]), sorted(['c_xyz', 'c_def']))
         mock_servicemanager_enabled_connectors.assert_called_once()
+        mock_other_connectors.assert_called_once()
+
+    @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager')
+    @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=['c_abc'])
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors',
+                return_value=['c_xyz', 'c_abc'])
+    @mock.patch('managementconnector.cloud.oauth.OAuth')
+    @mock.patch('managementconnector.config.config.Config')
+    def test_get_stopped_connectors(self, mock_config, mock_oauth,
+                                    mock_other_connectors, mock_dbhandler, mock_servicemanager):
+        """ Test get previously stopped connectors from Database """
+        org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
+        self.assertTrue(sorted(org_migration.get_stopped_connectors()["names"]), sorted(['c_abc']))
         mock_other_connectors.assert_called_once()
 
     @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.refresh_access_token')
@@ -163,8 +175,8 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
 
         # should have called db write, get_enabled_connectors and start_connectors
         mock_config.write_blob.assert_called()
-        mock_servicemanager_enabled_connectors.assert_called_once()
-        mock_orgmigration_other_connectors.assert_called_once()
+        mock_dbhandler.assert_called()
+        mock_orgmigration_other_connectors.assert_called()
         mock_start_connectors.assert_called()
 
         # should not have called stop_connectors() and refresh_access_token()
@@ -285,10 +297,6 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
 
         # should have called process migration to write migration data to db
         mock_process_migration_data.assert_called()
-        # should have called get_enabled_connectors and start_connectors
-        mock_servicemanager_enabled_connectors.assert_called_once()
-        mock_orgmigration_other_connectors.assert_called_once()
-
         # should not have called get_enabled_connectors, stop_connectors
         # refresh_access_token, enable_connectors, disable_connectors
         self.assertFalse(mock_stop_connectors.called, 'failed')
@@ -328,13 +336,8 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
 
         org_migration.migrate(status_code=200)
 
-        mock_orgmigration_other_connectors.assert_called()
-        mock_servicemanager_enabled_connectors.assert_called()
-        mock_dbhandler.assert_called()
-
         # should not have called stop_connectors
-        # refresh_access_token, enable_connectors, disable_connectors
-
+        # refresh_access_token, enable_connectors
         self.assertFalse(mock_stop_connectors.called, 'failed')
         self.assertFalse(mock_refresh_access_token.called, 'failed')
         self.assertFalse(mock_start_connectors.called, 'failed')

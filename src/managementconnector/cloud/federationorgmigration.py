@@ -84,6 +84,31 @@ class FederationOrgMigration(object):
 
     # -------------------------------------------------------------------------
 
+    def get_stopped_connectors(self):
+        """ Get previously stopped connectors from DataBase """
+        stopped_connectors = {"services": [], "names": []}
+        try:
+            installed_connectors = self.get_other_connectors()
+            previously_stopped_connectors = self.read_cdb(ManagementConnectorProperties.MIGRATION_STOPPED_CONNECTORS)
+            DEV_LOGGER.info(
+                'Detail="FMC_FederationOrgMigration: '
+                'get_stopped_connectors: previously stopped connectors %s"' % previously_stopped_connectors)
+            if previously_stopped_connectors is not None:
+                for connector in previously_stopped_connectors:
+                    if connector in installed_connectors:
+                        stopped_connectors["services"].append(self._servicemanager.get(connector))
+                        stopped_connectors["names"].append(connector)
+            DEV_LOGGER.info(
+                'Detail="FMC_FederationOrgMigration: '
+                'get_stopped_connectors: stopped connectors %s"' % stopped_connectors)
+        except Exception as unhandled_exception:
+            DEV_LOGGER.error(
+                'Detail="FMC_FederationOrgMigration: '
+                'get_stopped_connectors: UnhandledException, error=%s' % unhandled_exception)
+        return stopped_connectors
+
+    # -------------------------------------------------------------------------
+
     def update_stopped_connectors(self, stopped_connectors):
         """ Update MIGRATION_STOPPED_CONNECTORS in CDB """
         DEV_LOGGER.info(
@@ -159,7 +184,7 @@ class FederationOrgMigration(object):
 
     # -------------------------------------------------------------------------
 
-    def update_config_and_start_connectors(self, enabled_connectors):
+    def update_config_and_start_connectors(self, connectors):
         """ End Migration workflow by updating migration data to connector.json & starting stopped connectors """
         # Set MIGRATION_UPDATE_CONNECTOR_JSON=True in CDB, migration info will be updated in connector.json
         DEV_LOGGER.info(
@@ -168,10 +193,9 @@ class FederationOrgMigration(object):
         self.update_cdb(ManagementConnectorProperties.MIGRATION_UPDATE_CONNECTOR_JSON, "true")
 
         # start stopped connectors - enable
-        enabled_connectors["names"] = []
+        connectors["names"] = []
         self.start_connectors(
-            enabled_connectors,
-            operational_status_wait=ManagementConnectorProperties.CONNECTOR_OPERATIONAL_STATE_WAIT_TIME)
+            connectors, operational_status_wait=ManagementConnectorProperties.CONNECTOR_OPERATIONAL_STATE_WAIT_TIME)
 
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: update_config_and_start_connectors: '
                         'Resume normal connector operation"')
@@ -183,8 +207,6 @@ class FederationOrgMigration(object):
         if federation_org_migration_data is None:
             federation_org_migration_data = {}
 
-        enabled_connectors = self.get_enabled_connectors()
-
         if "fms-migration-state" in federation_org_migration_data:
             fms_migration_state = federation_org_migration_data.get("fms-migration-state", "")
         else:
@@ -195,6 +217,8 @@ class FederationOrgMigration(object):
             if status_code == HTTPStatus.FOUND.value:
                 # if migration is started continue
                 if fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_STARTED:
+                    # get enabled connectors
+                    enabled_connectors = self.get_enabled_connectors()
                     # stop other enabled connectors - disable
                     self.stop_connectors(enabled_connectors)
 
@@ -222,7 +246,8 @@ class FederationOrgMigration(object):
         finally:
             # if migration is completed do not process further
             if fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_COMPLETED:
-                self.update_config_and_start_connectors(enabled_connectors)
+                stopped_connectors = self.get_stopped_connectors()
+                self.update_config_and_start_connectors(stopped_connectors)
         # exit
         return
 

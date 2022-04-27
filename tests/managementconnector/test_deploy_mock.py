@@ -1106,6 +1106,7 @@ def org_migration_config_read_side_effect(*args, **kwargs):
 @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.refresh_access_token')
 @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.stop_connectors')
 @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.start_connectors')
+@mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_stopped_connectors')
 @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_enabled_connectors')
 @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors')
 @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler')
@@ -1138,6 +1139,7 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
                                                                             mock_dbhandler,
                                                                             mock_other_connectors,
                                                                             mock_enabled_connectors,
+                                                                            mock_stopped_connectors,
                                                                             mock_start_connectors,
                                                                             mock_stop_connectors,
                                                                             mock_refresh_access_token,
@@ -1188,10 +1190,9 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
 
         # should have called process migration to write migration data to db
         mock_process_migration_data.assert_called()
-        mock_enabled_connectors.assert_called()
         # should not have called get_enabled_connectors, db.read()
         # refresh_access_token, stop_connectors, start_connectors
-        self.assertFalse(mock_other_connectors.called, 'failed')
+        self.assertFalse(mock_enabled_connectors.called, 'failed')
         self.assertFalse(mock_dbhandler.read.called, 'failed')
         self.assertFalse(mock_refresh_access_token.called, 'failed')
         self.assertFalse(mock_stop_connectors.called, 'failed')
@@ -1206,6 +1207,7 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
                                                                             mock_dbhandler,
                                                                             mock_other_connectors,
                                                                             mock_enabled_connectors,
+                                                                            mock_stopped_connectors,
                                                                             mock_start_connectors,
                                                                             mock_stop_connectors,
                                                                             mock_refresh_access_token,
@@ -1264,6 +1266,7 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
                                                               mock_dbhandler,
                                                               mock_other_connectors,
                                                               mock_enabled_connectors,
+                                                              mock_stopped_connectors,
                                                               mock_start_connectors,
                                                               mock_stop_connectors,
                                                               mock_refresh_access_token,
@@ -1311,8 +1314,8 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
         mock_http.post.side_effect = None
         mock_config.read.side_effect = None
 
-        # should have called get_enabled_connectors, and start_connectors
-        mock_enabled_connectors.assert_called()
+        # should have called get_stopped_connectors, and start_connectors
+        mock_stopped_connectors.assert_called()
         mock_start_connectors.assert_called()
         # should not have called refresh_access_token, stop_connectors and process_migration_data
         self.assertFalse(mock_refresh_access_token.called, 'failed')
@@ -1328,6 +1331,7 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
                                                             mock_dbhandler,
                                                             mock_other_connectors,
                                                             mock_enabled_connectors,
+                                                            mock_stopped_connectors,
                                                             mock_start_connectors,
                                                             mock_stop_connectors,
                                                             mock_refresh_access_token,
@@ -1395,6 +1399,7 @@ class DeployFederationOrgMigrationTestCase(fake_filesystem_unittest.TestCase):
                                                             mock_dbhandler,
                                                             mock_other_connectors,
                                                             mock_enabled_connectors,
+                                                            mock_stopped_connectors,
                                                             mock_start_connectors,
                                                             mock_stop_connectors,
                                                             mock_refresh_access_token,
