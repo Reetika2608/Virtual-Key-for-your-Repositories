@@ -159,11 +159,12 @@ class FederationOrgMigration(object):
 
     # -------------------------------------------------------------------------
 
-    def end_migration(self, enabled_connectors):
+    def update_config_and_start_connectors(self, enabled_connectors):
         """ End Migration workflow by updating migration data to connector.json & starting stopped connectors """
         # Set MIGRATION_UPDATE_CONNECTOR_JSON=True in CDB, migration info will be updated in connector.json
         DEV_LOGGER.info(
-            'Detail="FMC_FederationOrgMigration: end_migration: Update connector.json / Notify other Connectors"')
+            'Detail="FMC_FederationOrgMigration: update_config_and_start_connectors: '
+            'Update connector.json / Notify other Connectors"')
         self.update_cdb(ManagementConnectorProperties.MIGRATION_UPDATE_CONNECTOR_JSON, "true")
 
         # start stopped connectors - enable
@@ -172,7 +173,8 @@ class FederationOrgMigration(object):
             enabled_connectors,
             operational_status_wait=ManagementConnectorProperties.CONNECTOR_OPERATIONAL_STATE_WAIT_TIME)
 
-        DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: end_migration: Resume normal connector operation"')
+        DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: update_config_and_start_connectors: '
+                        'Resume normal connector operation"')
 
     # -------------------------------------------------------------------------
 
@@ -188,7 +190,7 @@ class FederationOrgMigration(object):
         else:
             fms_migration_state = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: migration state=%s"' % fms_migration_state)
-        
+
         try:
             if status_code == HTTPStatus.FOUND.value:
                 # if migration is started continue
@@ -212,7 +214,7 @@ class FederationOrgMigration(object):
                     DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: Refresh access token at target CI"')
                     self.refresh_access_token()
 
-                    self.end_migration(enabled_connectors)
+                    self.update_config_and_start_connectors(enabled_connectors)
             elif len(federation_org_migration_data):
                 # update CDB
                 DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: Save migration info to DB"')
@@ -220,7 +222,7 @@ class FederationOrgMigration(object):
         finally:
             # if migration is completed do not process further
             if fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_COMPLETED:
-                self.end_migration(enabled_connectors)
+                self.update_config_and_start_connectors(enabled_connectors)
         # exit
         return
 
