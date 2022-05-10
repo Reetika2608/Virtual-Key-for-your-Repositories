@@ -228,13 +228,6 @@ class FederationOrgMigration(object):
                     self.refresh_access_token(
                         wait_before_polling=ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_PRE_WAIT)
 
-                    # ensure config cache clearance
-                    if not self._config.is_cache_cleared():
-                        DEV_LOGGER.warn(
-                            'Detail="FMC_FederationOrgMigration: '
-                            'migrate: Config cache was not cleared, clearing it now"')
-                        self._config.clear_cache()
-
                     DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: Refresh access token at target CI"')
                     self.refresh_access_token()
 

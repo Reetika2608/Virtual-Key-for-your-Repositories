@@ -225,6 +225,17 @@ class OAuth(object):
 
         DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_response_with_idp:"')
 
+        # user catalog refresh
+        u2c_status = self.refresh_u2c(check_config=True)
+        if not u2c_status:
+            raise ConfigFileUpdateFailedException({"message": "Config File did not update after U2C refresh"})
+
+        # ensure config cache clearance
+        if not self._config.is_cache_cleared():
+            DEV_LOGGER.warn(
+                'Detail="FMC_OAuth: refresh_oauth_resp_with_idp: Config cache was not cleared, clearing it now"')
+            self._config.clear_cache()
+
         body = 'grant_type=refresh_token&refresh_token=' + self.oauth_response["refresh_token"]
         headers = self._get_idp_headers()
 
@@ -277,11 +288,6 @@ class OAuth(object):
 
         DEV_LOGGER.info('Detail="FMC_OAuth refresh_oauth_resp_with_idp: refresh_time_read %s; expires_in %s "' %
                         (self.oauth_response["refresh_time_read"], self.oauth_response["expires_in"]))
-
-        # user catalog refresh
-        u2c_status = self.refresh_u2c(check_config=True)
-        if not u2c_status:
-            raise ConfigFileUpdateFailedException({"message": "Config File did not update after U2C refresh"})
 
         return self.oauth_response
 
