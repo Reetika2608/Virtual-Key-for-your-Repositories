@@ -339,7 +339,7 @@ class OAuth(object):
             u2c_status = self._u2c.update_user_catalog(
                 header=self.get_header(access_token=self.oauth_response["access_token"]),
                 check_config=check_config)
-        except urllib_error.HTTPError:
+        except:
             u2c_status = self._u2c.update_user_catalog(
                 header=self.get_header(no_auth=True),
                 check_config=check_config)
