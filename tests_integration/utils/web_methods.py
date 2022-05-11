@@ -361,7 +361,7 @@ def enable_expressway_cert_management(exp_hostname, admin_user, admin_pass, web_
         web_driver.get("https://" + exp_hostname + "/fusioncerts")
         web_driver.find_element_by_name('formbutton').click()
         web_driver.get("https://" + exp_hostname + "/fusioncerts")
-        if not wait_until_true(is_in_page_source, 90, 1, *(web_driver, "The following certificates have been added by Cisco.")):
+        if not wait_until_true(is_in_page_source, 150, 1, *(web_driver, "The following certificates have been added by Cisco.")):
             raise WaitTimeoutException("Timed out waiting for certificates-managed-by-Cisco message")
     finally:
         if close_web_driver:
