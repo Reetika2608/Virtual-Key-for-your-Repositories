@@ -96,7 +96,7 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     LOG.info("Logging in to control hub, %s, adding the Expressway, %s and activating all services.",
              control_hub, exp_hostname)
     web_driver.get('https://' + control_hub)
-    time.sleep(5)
+    time.sleep(10)
     web_driver.find_element_by_name('email').send_keys(org_admin_user)
     web_driver.find_element_by_xpath('//button').click()
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
@@ -107,9 +107,10 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     web_driver.find_element_by_css_selector('button[class="md-button md-button--32 md-button--blue"]').click()
     web_driver.find_element_by_xpath('//label[@class="md-radio__label" and @for="selectedType_expressway"]').click()
     web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
-    web_driver.find_element_by_name('//label[@class="md-checkbox__label" and @for="service_calendar"]').click()
-    web_driver.find_element_by_name('//label[@class="md-checkbox__label" and @for="service_call"]').click()
-    web_driver.find_element_by_id('//label[@class="md-checkbox__label" and @for="service_imp"]').click()
+    time.sleep(3)
+    web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_calendar"]').click()
+    web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_call"]').click()
+    web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_imp"]').click()
     web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
     web_driver.find_element_by_name('hostname').send_keys(exp_hostname)
     web_driver.find_element_by_css_selector('button[ng-click="vm.next()"]').click()
@@ -359,9 +360,10 @@ def enable_expressway_cert_management(exp_hostname, admin_user, admin_pass, web_
     try:
         login_expressway(web_driver, exp_hostname, admin_user, admin_pass)
         web_driver.get("https://" + exp_hostname + "/fusioncerts")
-        web_driver.find_element_by_name('formbutton').click()
+        if not is_in_page_source(web_driver, "The following certificates have been added by Cisco."):
+            web_driver.find_element_by_name('formbutton').click()
         web_driver.get("https://" + exp_hostname + "/fusioncerts")
-        if not wait_until_true(is_in_page_source, 150, 1, *(web_driver, "The following certificates have been added by Cisco.")):
+        if not wait_until_true(is_in_page_source, 90, 1, *(web_driver, "The following certificates have been added by Cisco.")):
             raise WaitTimeoutException("Timed out waiting for certificates-managed-by-Cisco message")
     finally:
         if close_web_driver:
