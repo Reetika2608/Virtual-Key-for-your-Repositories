@@ -326,6 +326,15 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
     # post_json might need response.info().dict to supply the delete_url
     # delete_url = headers['location']
 
+    try:
+        if load_validate_json:
+            response = _validate_json_response(response, schema)
+    except (jsonschema.ValidationError, KeyError, ValueError) as validation_exc:
+        DEV_LOGGER.error(
+            'Detail="RAW: _http_request_response: type=%s, url=%s, load_validate_json=%s, headers=%s, error=%s"' %
+            (request_type, url, load_validate_json, headers_copy, str(validation_exc)))
+        raise
+
     if silent:
         DEV_LOGGER.info(
             'Detail="RAW: _http_request_response silent: type=%s, url=%s, load_validate_json=%s, headers=%s"' %
@@ -335,9 +344,6 @@ def _http_request(url, headers, data, request_type, silent=False, schema=None, l
             'Detail="RAW: _http_request_response: type=%s, url=%s, load_validate_json=%s, headers=%s, data=%s, '
             'response = %s"' %
             (request_type, url, load_validate_json, headers_copy, data, response))
-
-    if load_validate_json:
-        response = _validate_json_response(response, schema)
 
     return response
 

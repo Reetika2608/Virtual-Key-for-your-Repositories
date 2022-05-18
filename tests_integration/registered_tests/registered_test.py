@@ -153,7 +153,7 @@ class RegisteredTest(unittest.TestCase):
             {"action": "ping"},
             self.access_token)
 
-        self.assertTrue(wait_until_true(is_command_complete, 60, 1, *(
+        self.assertTrue(wait_until_true(is_command_complete, 180, 1, *(
             self.config.org_id(),
             self.connector_id,
             self.config.rd_server(),
@@ -298,11 +298,11 @@ class RegisteredTest(unittest.TestCase):
                 etc_user = "_%s" % connector
 
                 for path, perm in etc_conn_perms.items():
-                    LOG.info("Check user and permissions of '%s'", path)
+                    LOG.info("Check user and permissions of '%s'." % (path))
                     pattern = '(%s).*?(%s).*?(%s).*?(%s)' % (perm, etc_user, etc_user, path)
                     regex = re.compile(pattern)
                     match = regex.search(results)
-                    self.assertIsNotNone(match, "User or permissions of %s are not correct. The actual values are %s."
+                    self.assertIsNotNone(match, "User or permissions of %s are not correct. The actual values are '%s'."
                                          % (path, results))
 
                 LOG.info("Check opt user permissions")

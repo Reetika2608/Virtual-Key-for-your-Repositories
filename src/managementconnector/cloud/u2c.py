@@ -58,7 +58,17 @@ class U2C(object):
             org_id = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
             u2c_url = host + user_service_url + org_id
 
-        service_catalogs = self._http.get(u2c_url, headers=header, schema=schema.U2C_SERVICES_RESPONSE)
+        try:
+            service_catalogs = self._http.get(u2c_url, headers=header, schema=schema.U2C_SERVICES_RESPONSE)
+        except:
+            # an edge scenario if the tokens are invalid during restart
+            # todo: refactor for better code reuse
+            # fetch limited service catalog without auth
+            user_service_url = self._config.read(ManagementConnectorProperties.U2C_LIMITED_SERVICE_URL)
+            org_id = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
+            u2c_url = host + user_service_url + org_id
+            header = self._oauth.get_header(no_auth=True)
+            service_catalogs = self._http.get(u2c_url, headers=header, schema=schema.U2C_SERVICES_RESPONSE)
 
         self.process_catalog(self._config, service_catalogs["services"])
 

@@ -196,7 +196,7 @@ class LogArchiver(object):
 
         files_to_tar += glob.glob(CONFIGURATION_FILES_DIR + "*.json")
 
-        tar_command = ["tar",  "-zcvf", log_file] + files_to_tar + ["--ignore-failed-read"]
+        tar_command = ["tar", "-zcvf", log_file] + files_to_tar + ["--ignore-failed-read"]
 
         start_archive_timer = time.time()
 
