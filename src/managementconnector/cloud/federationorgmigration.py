@@ -138,6 +138,7 @@ class FederationOrgMigration(object):
                         'start_connectors: Starting %s connectors"' % connectors)
         try:
             self._servicemanager.enable_connectors(connectors["services"], operational_status_wait)
+            connectors["names"] = []
             self.update_stopped_connectors(connectors["names"])
         except EnableException as start_error:
             DEV_LOGGER.error(
@@ -193,7 +194,6 @@ class FederationOrgMigration(object):
         self.update_cdb(ManagementConnectorProperties.MIGRATION_UPDATE_CONNECTOR_JSON, "true")
 
         # start stopped connectors - enable
-        connectors["names"] = []
         self.start_connectors(
             connectors, operational_status_wait=ManagementConnectorProperties.CONNECTOR_OPERATIONAL_STATE_WAIT_TIME)
 
