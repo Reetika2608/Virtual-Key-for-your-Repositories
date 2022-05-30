@@ -5,16 +5,20 @@ RELEASE_CHANNEL = params.RELEASE_CHANNEL
 CONNECTOR_TYPE = params.CONNECTOR_TYPE
 FEDRAMP_CHANGE_CATEGORY = params.FEDRAMP_CHANGE_CATEGORY
 FEDRAMP_REASON = params.FEDRAMP_REASON
-STABLE_PROVISIONING = ''
-FEDRAMP_CDN = "binary-usgov.webex.com"
-MANAGEMENT_CONNECTOR_TLP = "c_mgmt.tlp"
+RELEASE_CHANNEL_NAME = ''
+PROVISIONING_INFO = ''
+FEDRAMP_CDN = 'binary-usgov.webex.com'
+MANAGEMENT_CONNECTOR_TLP = 'c_mgmt.tlp'
 
     try {
-        stage('Copy Stable FMC Artifacts') {
+        stage('Copy FMC Artifacts') {
+            checkpoint("Copy FMC Artifacts")
             node('BASIC_AGENT') {
+                RELEASE_CHANNEL_NAME = RELEASE_CHANNEL.replace('fedramp-', '').trim()
+                PROVISIONING_INFO = RELEASE_CHANNEL_NAME + '_provisioning.txt'
                 sh(script: """
-                    if [ -f stable_provisioning.txt ]; then
-                        rm -rf stable_provisioning.txt
+                    if [ -f ${PROVISIONING_INFO} ]; then
+                        rm -rf ${PROVISIONING_INFO}
                     fi
                     """.trim())
                 sh(script: """
@@ -27,23 +31,23 @@ MANAGEMENT_CONNECTOR_TLP = "c_mgmt.tlp"
                         flatten: true,
                         projectName: 'team/management-connector/deploy_files/provisioning_json_stable',
                         selector: [$class                   : 'StatusBuildSelector'])
-                print("copying stable_provisioning.txt")
-                copyArtifacts(filter: 'stable_provisioning.txt',
+                copyArtifacts(filter: PROVISIONING_INFO,
                         fingerprintArtifacts: true,
                         flatten: true,
                         projectName: 'team/management-connector/deploy_files/provisioning_json_stable',
                         selector: [$class                   : 'StatusBuildSelector'])
 
                 stash(includes: 'library.yml', name: 'library')
-                STABLE_PROVISIONING = sh(script: "ls stable_provisioning.txt", returnStdout: true).trim()
-                stash(includes: "${STABLE_PROVISIONING}", name: 'stable_provisioning')
+                sh(script: "ls ${PROVISIONING_INFO}")  // verify file copy
+                stash(includes: PROVISIONING_INFO, name: 'provisioning_info')
             }
         }
 
-        stage('Prepare Provisioning') {
+        stage('Prepare FedRamp Provisioning') {
+            checkpoint("Prepare FedRamp Provisioning")
             node('BASIC_AGENT') {
                 unstash('library')
-                unstash('stable_provisioning')
+                unstash('provisioning_info')
                 // maven is the current approach for static url file storage of release channel tlp, for the binary
                 // deploy job, alternatively you could have a downstream jenkins job archiving all TLP also
                 print("Step 2. Trigger Binaries Deploy Job")
@@ -108,8 +112,8 @@ def createProvisioning(String release, String connector_type) {
 }
 
 def getTlpVersionFromProvisioningFile() {
-    def data = readJSON(file: STABLE_PROVISIONING)
-    print("Read ${STABLE_PROVISIONING}. Content: ${data}")
+    def data = readJSON(file: PROVISIONING_INFO)
+    print("Read ${PROVISIONING_INFO}. Content: ${data}")
     def version = data.version
     print("TLP version from provisioning json: ${version}")
     return version
@@ -140,7 +144,7 @@ def createProvisioningJson(String release, String tlp_url, String type, String v
     def con_desc = ''
     def rel_notes = 'This Management Connector update includes ongoing improvements and minor bug fixes.'
     def pkg_type = 'connector'
-    def rel_chn = release.replace('fedramp-', '').trim()
+    def rel_chn = RELEASE_CHANNEL_NAME
     def urgent = 'false'
 
     def data = "{'tlp_url':'${tlp_url}', 'version':'${version}', 'connector_type': '${con_type}', 'display_name':'${dis_name}', " +
