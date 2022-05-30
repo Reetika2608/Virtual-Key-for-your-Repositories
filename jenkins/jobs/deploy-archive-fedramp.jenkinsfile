@@ -1,0 +1,154 @@
+#!/usr/bin/groovy
+@Library('sparkPipeline') _
+
+RELEASE_CHANNEL = params.RELEASE_CHANNEL
+CONNECTOR_TYPE = params.CONNECTOR_TYPE
+FEDRAMP_CHANGE_CATEGORY = params.FEDRAMP_CHANGE_CATEGORY
+FEDRAMP_REASON = params.FEDRAMP_REASON
+STABLE_PROVISIONING = ''
+FEDRAMP_CDN = "binary-usgov.webex.com"
+MANAGEMENT_CONNECTOR_TLP = "c_mgmt.tlp"
+
+    try {
+        stage('Copy Stable FMC Artifacts') {
+            node('BASIC_AGENT') {
+                sh(script: """
+                    if [ -f stable_provisioning.txt ]; then
+                        rm -rf stable_provisioning.txt
+                    fi
+                    """.trim())
+                sh(script: """
+                    if [ -f library.yml ]; then
+                        rm -rf library.yml
+                    fi
+                    """.trim())
+                copyArtifacts(filter: 'library.yml',
+                        fingerprintArtifacts: true,
+                        flatten: true,
+                        projectName: 'team/management-connector/deploy_files/provisioning_json_stable',
+                        selector: [$class                   : 'StatusBuildSelector'])
+                print("copying stable_provisioning.txt")
+                copyArtifacts(filter: 'stable_provisioning.txt',
+                        fingerprintArtifacts: true,
+                        flatten: true,
+                        projectName: 'team/management-connector/deploy_files/provisioning_json_stable',
+                        selector: [$class                   : 'StatusBuildSelector'])
+
+                stash(includes: 'library.yml', name: 'library')
+                STABLE_PROVISIONING = sh(script: "ls stable_provisioning.txt", returnStdout: true).trim()
+                stash(includes: "${STABLE_PROVISIONING}", name: 'stable_provisioning')
+            }
+        }
+
+        stage('Prepare Provisioning') {
+            node('BASIC_AGENT') {
+                unstash('library')
+                unstash('stable_provisioning')
+                // maven is the current approach for static url file storage of release channel tlp, for the binary
+                // deploy job, alternatively you could have a downstream jenkins job archiving all TLP also
+                print("Step 2. Trigger Binaries Deploy Job")
+                def credentialsId = 'cafefusion.gen.job.executor'
+                def remoteJenkinsUrl = "https://sqbu-jenkins.wbx2.com/support/"
+
+                def binary_build
+                def binary_job_url = "platform/binaries/binaries-deploy-management-connector-${RELEASE_CHANNEL}"
+                binary_build = 'org.jenkinsci.plugins.ParameterizedRemoteTrigger.pipeline.RemoteBuildPipelineStep' (
+                        abortTriggeredJob: true,
+                        auth: CredentialsAuth(credentials: credentialsId),
+                        remoteJenkinsUrl: "${remoteJenkinsUrl}",
+                        job: "${binary_job_url}",
+                        useCrumbCache: false,
+                        useJobInfoCache: true,
+                        maxConn: 2,
+                        pollInterval: 15,
+                        blockBuildUntilComplete: true,
+                        parameters: "FEDRAMP_REASON=${FEDRAMP_REASON}\nFEDRAMP_CHANGE_CATEGORY=${FEDRAMP_CHANGE_CATEGORY}"
+                )
+
+                def build_number = binary_build.getBuildNumber()
+                if (build_number == 0) {
+                    error("Unexpected remote build number: 0")
+                } else {
+                    sh("rm -rf manifest.yaml*")
+                    print ("Step 3. Copy the artifacts from Remote Server")
+                    withCredentials([usernamePassword(credentialsId: 'cafefusion.gen.job.executor',  usernameVariable: 'username', passwordVariable:'token')]) {
+                        sh """
+                        curl -X GET -u $username:$token https://sqbu-jenkins.wbx2.com/support/job/platform/job/binaries/job/binaries-deploy-management-connector-${RELEASE_CHANNEL}/${build_number}/artifact/_dist/manifest.yaml -O """
+                    }
+
+                    print("Step 4. Create provisioning JSON file")
+                    createProvisioning(RELEASE_CHANNEL, CONNECTOR_TYPE)
+
+                    archiveArtifacts(artifacts: "library.yml, *targeted.txt, *provisioning.txt, manifest.yaml")
+                }
+            }
+        }
+    }
+    finally {
+        node('BASIC_AGENT') {
+            print('Cleaning ws')
+            cleanWs()
+        }
+    }
+
+/********************************************************************************/
+
+def getPublishedUrl(String release) {
+    print("Generating published url from Release channel input: ${release}")
+    def fedramp_release_channel = getReleaseChannelFromInput(release)
+    def published_url = "https://${FEDRAMP_CDN}/ManagementConnector${fedramp_release_channel}/${MANAGEMENT_CONNECTOR_TLP}"
+    print("Published url for Release channel ${release}: ${published_url}")
+    return published_url
+}
+
+def createProvisioning(String release, String connector_type) {
+    def published_url = getPublishedUrl(release)
+    def connector_version = getTlpVersionFromProvisioningFile()
+    createProvisioningJson(release, published_url, connector_type, connector_version)
+}
+
+def getTlpVersionFromProvisioningFile() {
+    def data = readJSON(file: STABLE_PROVISIONING)
+    print("Read ${STABLE_PROVISIONING}. Content: ${data}")
+    def version = data.version
+    print("TLP version from provisioning json: ${version}")
+    return version
+}
+
+def getReleaseChannelFromInput(String release) {
+    def release_channel_list = release.tokenize('-')
+    def release_channel = ''
+    release_channel_list.each {
+        release_channel += it.toLowerCase().capitalize()
+    }
+
+    print("Release Channel from Input: ${release_channel}")
+    return release_channel.trim()
+}
+
+def createProvisioningJson(String release, String tlp_url, String type, String version) {
+
+    def dis_name = ''
+    if (type == 'c_ccucmgmt') {
+        dis_name = 'CCUC Management Connector'
+    } else {
+        dis_name = 'Management Connector'
+    }
+    def filename = release.replace('-', '_').trim() + "_provisioning.txt"
+    def con_type = "${type}"
+    def ser_id = 'squared-fusion-mgmt'
+    def con_desc = ''
+    def rel_notes = 'This Management Connector update includes ongoing improvements and minor bug fixes.'
+    def pkg_type = 'connector'
+    def rel_chn = release.replace('fedramp-', '').trim()
+    def urgent = 'false'
+
+    def data = "{'tlp_url':'${tlp_url}', 'version':'${version}', 'connector_type': '${con_type}', 'display_name':'${dis_name}', " +
+            "'service_id':'${ser_id}', 'description':'${con_desc}', 'release_notes':'${rel_notes}', 'package_type':'${pkg_type}', " +
+            "'release_channel':'${rel_chn}', 'dependencies':[], 'targets':['${con_type}'], 'urgent':'${urgent}'}"
+
+    def json_data = readJSON(text: data)
+
+    print("Creating ${filename} with content: ${json_data}")
+    writeJSON(file: filename, json: json_data)
+}
