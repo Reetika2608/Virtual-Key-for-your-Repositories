@@ -29,12 +29,12 @@ MANAGEMENT_CONNECTOR_TLP = 'c_mgmt.tlp'
                 copyArtifacts(filter: 'library.yml',
                         fingerprintArtifacts: true,
                         flatten: true,
-                        projectName: 'team/management-connector/deploy_files/provisioning_json_stable',
+                        projectName: 'team/management-connector/deploy_files/provisioning_json_${RELEASE_CHANNEL_NAME}',
                         selector: [$class                   : 'StatusBuildSelector'])
                 copyArtifacts(filter: PROVISIONING_INFO,
                         fingerprintArtifacts: true,
                         flatten: true,
-                        projectName: 'team/management-connector/deploy_files/provisioning_json_stable',
+                        projectName: 'team/management-connector/deploy_files/provisioning_json_${RELEASE_CHANNEL_NAME}',
                         selector: [$class                   : 'StatusBuildSelector'])
 
                 stash(includes: 'library.yml', name: 'library')
@@ -56,20 +56,21 @@ MANAGEMENT_CONNECTOR_TLP = 'c_mgmt.tlp'
 
                 def binary_build
                 def binary_job_url = "platform/binaries/binaries-deploy-management-connector-${RELEASE_CHANNEL}"
-                binary_build = 'org.jenkinsci.plugins.ParameterizedRemoteTrigger.pipeline.RemoteBuildPipelineStep' (
-                        abortTriggeredJob: true,
-                        auth: CredentialsAuth(credentials: credentialsId),
-                        remoteJenkinsUrl: "${remoteJenkinsUrl}",
-                        job: "${binary_job_url}",
-                        useCrumbCache: false,
-                        useJobInfoCache: true,
-                        maxConn: 2,
-                        pollInterval: 15,
-                        blockBuildUntilComplete: true,
-                        parameters: "FEDRAMP_REASON=${FEDRAMP_REASON}\nFEDRAMP_CHANGE_CATEGORY=${FEDRAMP_CHANGE_CATEGORY}"
-                )
-
-                def build_number = binary_build.getBuildNumber()
+//                 binary_build = 'org.jenkinsci.plugins.ParameterizedRemoteTrigger.pipeline.RemoteBuildPipelineStep' (
+//                         abortTriggeredJob: true,
+//                         auth: CredentialsAuth(credentials: credentialsId),
+//                         remoteJenkinsUrl: "${remoteJenkinsUrl}",
+//                         job: "${binary_job_url}",
+//                         useCrumbCache: false,
+//                         useJobInfoCache: true,
+//                         maxConn: 2,
+//                         pollInterval: 15,
+//                         blockBuildUntilComplete: true,
+//                         parameters: "FEDRAMP_REASON=${FEDRAMP_REASON}\nFEDRAMP_CHANGE_CATEGORY=${FEDRAMP_CHANGE_CATEGORY}"
+//                 )
+//
+//                 def build_number = binary_build.getBuildNumber()
+                def build_number = 7
                 if (build_number == 0) {
                     error("Unexpected remote build number: 0")
                 } else {
