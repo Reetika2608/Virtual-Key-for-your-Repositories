@@ -29,12 +29,12 @@ MANAGEMENT_CONNECTOR_TLP = 'c_mgmt.tlp'
                 copyArtifacts(filter: 'library.yml',
                         fingerprintArtifacts: true,
                         flatten: true,
-                        projectName: 'team/management-connector/deploy_files/provisioning_json_${RELEASE_CHANNEL_NAME}',
+                        projectName: 'team/management-connector/deploy_files/provisioning_json_'+RELEASE_CHANNEL_NAME,
                         selector: [$class                   : 'StatusBuildSelector'])
                 copyArtifacts(filter: PROVISIONING_INFO,
                         fingerprintArtifacts: true,
                         flatten: true,
-                        projectName: 'team/management-connector/deploy_files/provisioning_json_${RELEASE_CHANNEL_NAME}',
+                        projectName: 'team/management-connector/deploy_files/provisioning_json_'+RELEASE_CHANNEL_NAME,
                         selector: [$class                   : 'StatusBuildSelector'])
 
                 stash(includes: 'library.yml', name: 'library')
