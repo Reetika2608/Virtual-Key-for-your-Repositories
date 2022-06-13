@@ -1,10 +1,8 @@
 #!/usr/bin/groovy
-properties([parameters([string(name: 'creatorOTP', defaultValue: '', description: 'Used to create the ticket')])])
 
 timestamps {
     stage('Create ticket') {
         currentBuild.description = "Create SWIMs ticket"
-        creatorOTP = params.creatorOTP
 
         node('SPARK_BUILDER_TOOLS') {
             checkout scm
@@ -17,7 +15,7 @@ timestamps {
             send_to = get_approver_list(user_id)
             echo "run command with User: ${user_id} to approvers: ${send_to}"
             try {
-                sh("./jenkins/swims/code_sign_2.5 swims ticket create -verbose -logLevel DEBUG -host swims-rtp.cisco.com -products Fusion_Management_Connector -ticketType RELEASE -approverNames ${send_to} -authType OTP -username1 ${user_id} -password1 ${creatorOTP} -reason 'FMC TLP Creation' > command_output.txt")
+                sh("./jenkins/swims/code_sign_2.5 swims ticket create -verbose -logLevel DEBUG -host swims-rtp.cisco.com -products Fusion_Management_Connector -ticketType RELEASE -approverNames ${send_to} -authType OTP -username1 ${user_id} -password1 'push' -reason 'FMC TLP Creation' > command_output.txt")
                 ticket = sh(returnStdout: true, script: "cat command_output.txt | sed -n 's/.*\"ticketId\": \\([0-9]*\\).*/\\1/p'")[0..-2]
                 print("Got Ticket ID: ${ticket}")
 
@@ -32,13 +30,11 @@ timestamps {
 
     stage('Approve ticket') {
         checkpoint 'Approve ticket'
-        approverOTPs = null
+        approver = null
         timeout(time: 4, unit: 'HOURS') {
             currentBuild.description = "<a href=\"${BUILD_URL}input\">Ticket waiting for approval, Click here to approve ticket</a>"
-            approverOTPs = input(submitterParameter: 'user_id',
-                                 message: 'Enter two one-time password to first approve the ticket and then to download it',
-                                 parameters: [string(defaultValue: '', description: 'Used to approve ticket.', name: 'otp1'),
-                                              string(defaultValue: '', description: 'Used to download ticket.', name: 'otp2')])
+            approver = input(submitterParameter: 'user_id',
+                                 message: 'Approve two Duo Push requests, first to approve the ticket and the next to download it'])
         }
 
         node('SPARK_BUILDER_TOOLS') {
@@ -46,20 +42,20 @@ timestamps {
 
             unstash("swims_ticket")
             ticket = sh(returnStdout: true, script: "cat swims_ticket.txt")
-            print("Run approve command with this username: ${approverOTPs.user_id} and the ticket ID: ${approverOTPs.otp1} to create tic file")
+            print("Run approve command with this username: ${approver.user_id} and the ticket ID: ${ticket} to create tic file")
             sh(script: """
                 if [ -f *.tic]; then
                     rm -rf *.tic
                 fi
             """.trim())
-            sh("./jenkins/swims/code_sign_2.5 swims ticket approve -host swims-rtp.cisco.com -ticket ${ticket} -authType OTP -username1 ${approverOTPs.user_id} -password1 ${approverOTPs.otp1}")
-            sh("./jenkins/swims/code_sign_2.5 swims ticket download -host swims-rtp.cisco.com -ticket ${ticket} -authType OTP -username1 ${approverOTPs.user_id} -password1 ${approverOTPs.otp2} -out FMC.tic.RELEASE")
+            sh("./jenkins/swims/code_sign_2.5 swims ticket approve -host swims-rtp.cisco.com -ticket ${ticket} -authType OTP -username1 ${approver.user_id} -password1 'push'")
+            sh("./jenkins/swims/code_sign_2.5 swims ticket download -host swims-rtp.cisco.com -ticket ${ticket} -authType OTP -username1 ${approver.user_id} -password1 'push' -out FMC.tic.RELEASE")
             sh(script: """
                 if [ -f *output.txt]; then
                     rm *output.txt
                 fi
             """.trim())
-            print("SWIMS ticket ${ticket} was approved by ${approverOTPs.user_id}")
+            print("SWIMS ticket ${ticket} was approved by ${approver.user_id}")
             stash(name: "swims_ticket", includes: "FMC.tic.RELEASE")
         }
     }
