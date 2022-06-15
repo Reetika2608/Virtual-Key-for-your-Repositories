@@ -191,7 +191,7 @@ def delete_file(path):
         os.remove(path)
     except OSError as ex:
         # Ignore file or directory not found
-        if ex.errno != errno.ENOENT:
+        if ex.errno == errno.ENOENT:
             DEV_LOGGER.debug('Detail="delete_file = %s not found when removing."' % path)
 
 

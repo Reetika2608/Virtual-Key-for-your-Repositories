@@ -130,7 +130,8 @@ class Mercury(threading.Thread):
         """
 
         DEV_LOGGER.info('Detail="FMC_Websocket Stopping Mercury Listener"')
-
+        
+        self._running = False
         if self._ws:
             self._ws.close()
 
