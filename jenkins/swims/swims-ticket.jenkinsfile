@@ -24,6 +24,7 @@ timestamps {
                 print("SWIMs ticket request created")
             } catch (Exception exception) {
                 print("Failed to create SWIMs ticket request")
+                throw exception
             }
         }
     }
@@ -34,7 +35,7 @@ timestamps {
         timeout(time: 4, unit: 'HOURS') {
             currentBuild.description = "<a href=\"${BUILD_URL}input\">Ticket waiting for approval, Click here to approve ticket</a>"
             approver = input(submitterParameter: 'user_id',
-                                 message: 'Approve two Duo Push requests, first to approve the ticket and the next to download it'])
+                                 message: 'Approve two Duo Push requests, first to approve the ticket and the next to download it')
         }
 
         node('SPARK_BUILDER_TOOLS') {
