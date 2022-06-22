@@ -252,7 +252,9 @@ class OAuth(object):
         except urllib_error.HTTPError as error:
             DEV_LOGGER.error('Detail="RAW: FMC_OAuth refresh_oauth_resp_with_idp: error: code=%s, url=%s"' % (
                 error.code, error.url))
-            if error.code == 400:
+            MIGRATION_STATE = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
+            DEV_LOGGER.debug('Detail="FMC_Utility refresh_oauth_resp_with_idp: MIGRATION_STATE: %s"' % MIGRATION_STATE)
+            if MIGRATION_STATE != ManagementConnectorProperties.FMS_MIGRATION_STARTED and error.code == 400:
                 self._revive_on_http_error(error)
             else:
                 try:
