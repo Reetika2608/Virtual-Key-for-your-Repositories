@@ -25,6 +25,7 @@ import traceback
 import types
 import xml.etree.cElementTree as ElementTree
 import __main__
+import subprocess
 
 # Third party imports
 # Force an early import of pyinotify and fix up the repurcussions it has on the
@@ -157,9 +158,19 @@ class SysLogHandler(logging.handlers.SysLogHandler):
        It also provides a method for encoding said messages as UTF-8"""
     MAX_MESSAGE_LENGTH = 16000  # we can log upto 32768, allow 16768 bytes for other stuff in log
 
-    def __init__(self, facility):
-        logging.handlers.SysLogHandler.__init__(self, facility=facility)
+    def __init__(self, facility):     
+        """This check (dpkg -s c_mgmt) has been added to differentiate the target
+           machine (Linux) and docker environment (used to run UTs in Jenkins pipeline)
+           since this command gives FMC version details in the output, which will only
+           work inside target machine"""
+        try:
+            subprocess.check_output(['dpkg', '-s', 'c_mgmt'])
+            logging.handlers.SysLogHandler.__init__(self, 
+                                                address ='/dev/log', facility=facility)
 
+        except:
+            logging.handlers.SysLogHandler.__init__(self, facility=facility)
+            
     def format(self, record):
         """Formats "record" as a utf-8 string"""
         msg = logging.handlers.SysLogHandler.format(self, record)
