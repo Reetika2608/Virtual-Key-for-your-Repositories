@@ -30,7 +30,7 @@ class PylintCommand(Command):
             sys.exit(1)
 
         run = lint.Run(["src/base_platform", "src/cafedynamic", "src/managementconnector", "src/unittests"], exit=False)
-        actual_score = run.linter.stats['global_note']
+        actual_score = run.linter.stats.global_note
 
         if actual_score < min_score:
             print("FAILURE: Code quality was {} and it must be greater than {}".format(actual_score, min_score))

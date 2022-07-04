@@ -7,8 +7,7 @@ import mock
 import sys
 from .constants import SYS_LOG_HANDLER
 
-# Pre-import a mocked taacrypto
-sys.modules['taacrypto'] = mock.Mock()
+# Pre-import a mocked pyinotify
 sys.modules['pyinotify'] = mock.MagicMock()
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)

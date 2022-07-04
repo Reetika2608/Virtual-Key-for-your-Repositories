@@ -1,8 +1,4 @@
 """ Metrics Test """
-
-
-
-
 import sys
 import mock
 import json
@@ -10,8 +6,7 @@ import unittest
 import logging
 from .constants import SYS_LOG_HANDLER
 
-# Pre-import a mocked taacrypto
-sys.modules['taacrypto'] = mock.Mock()
+# Pre-import a mocked pyinotify
 sys.modules['pyinotify'] = mock.MagicMock()
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
@@ -24,10 +19,9 @@ HEADERS = {'Content-Type': 'application/json'}
 CURRENT_TIME = 'current_time'
 CERT_MANAGED = ''
 
+
 def get_current_time(unused):
     return CURRENT_TIME
-
-
 
 
 class MetricsTest(unittest.TestCase):

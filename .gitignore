@@ -35,3 +35,5 @@ swims_client.log
 
 # Ignore Mac DS_Store files
 **/.DS_Store
+__pycache__*
+venv*

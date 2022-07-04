@@ -4,8 +4,7 @@ import logging
 import sys
 import io
 
-# Pre-import a mocked taacrypto
-sys.modules['taacrypto'] = mock.Mock()
+# Pre-import a mocked pyinotify
 sys.modules['pyinotify'] = mock.MagicMock()
 
 from urllib import error as urllib_error
