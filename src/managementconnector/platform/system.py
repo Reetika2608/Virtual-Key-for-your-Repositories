@@ -301,31 +301,31 @@ class System(object):
         return am_i_master
 
     # -------------------------------------------------------------------------
-
+    
     @staticmethod
-    def is_platform_version_supported(expressway, fmc):
-        """ Compare fmc & expressway versions"""
+    def minimum_expressway_supported_version():
+        minimum_version = ManagementConnectorProperties.MINIMUM_EXPRESSWAY_VERSION
+        if not minimum_version:
+            DEV_LOGGER.info("No minimum supported version has been set. Please configure. It has skipped the check if Expressway platform version is supported or not")
 
-        supported = True
-        if StrictVersion(expressway) < StrictVersion(fmc):
-            DEV_LOGGER.info('Detail="Expressway version: %s is unsupported as FMC min supported version is: %s"' % (expressway, fmc))
-            supported = False
+        return minimum_version
 
-        return supported
-
-    # -------------------------------------------------------------------------
+   # -------------------------------------------------------------------------
 
     @staticmethod
     def is_penultimate_version():
-        """ Compare fmc & expressway versions"""
+        """ Check expressway versions"""
 
         expressway = get_expressway_version()
-        fmc = CafeXUtils.get_package_version(ManagementConnectorProperties.SERVICE_NAME).split('-')[0]
+        minimum_expressway_version_support = System.minimum_expressway_supported_version()
 
         ultimate_supported = False
-        if StrictVersion(expressway) == StrictVersion(fmc):
-            DEV_LOGGER.info('Detail="Expressway version: %s will soon be an unsupported version as FMC min supported version is: %s"' % (expressway, fmc))
-            ultimate_supported = True
+        try:
+            if StrictVersion(expressway) == StrictVersion(minimum_expressway_version_support):
+                DEV_LOGGER.info('Detail="Expressway version: %s will soon be an unsupported version as min Expressway supported version is: %s"' % (expressway, minimum_expressway_version_support))
+                ultimate_supported = True
+        except Exception as e:
+            DEV_LOGGER.error("Error while validation version number: {0}".format(e))
 
         return ultimate_supported
 
@@ -336,5 +336,13 @@ class System(object):
         """ Does the platform meet the min supported version. """
 
         expressway_major_minor_version = get_expressway_version()
-        fmc_major_minor_version = CafeXUtils.get_package_version(ManagementConnectorProperties.SERVICE_NAME).split('-')[0]
-        return System.is_platform_version_supported(expressway_major_minor_version, fmc_major_minor_version)
+        minimum_expressway_version_support = System.minimum_expressway_supported_version()
+        supported = True
+        try:
+            if StrictVersion(expressway_major_minor_version) < StrictVersion(minimum_expressway_version_support):
+                DEV_LOGGER.info('Detail="Expressway version: %s is unsupported as min Expressway supported version is: %s"' % (expressway_major_minor_version, minimum_expressway_version_support))
+                supported = False
+        except Exception as e:
+            DEV_LOGGER.error("Error while validation version number: {0}".format(e))
+
+        return supported

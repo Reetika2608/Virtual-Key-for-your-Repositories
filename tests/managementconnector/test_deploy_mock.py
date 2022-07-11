@@ -934,7 +934,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
         deploy._alarms = mock_alarm
 
         mock_cafeutils.get_package_version.return_value = "8.7-1.0.321171"
-        mock_get_expressway_version.return_value = "8.6"
+        mock_get_expressway_version.return_value = "12.4"
         deploy._quit = True
         deploy.deploy_fusion()
 
@@ -943,7 +943,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
         mock_alarm.reset_mock()
 
         mock_cafeutils.get_package_version.return_value = "8.7-1.0.321171"
-        mock_get_expressway_version.return_value = "8.7"
+        mock_get_expressway_version.return_value = "12.6"
         deploy._quit = True
         deploy.deploy_fusion()
 
