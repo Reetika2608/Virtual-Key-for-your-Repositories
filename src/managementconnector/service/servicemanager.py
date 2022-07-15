@@ -3,6 +3,7 @@
 import traceback
 import time
 from urllib.parse import urlparse
+from concurrent.futures import ThreadPoolExecutor
 
 from managementconnector.config import jsonhandler
 from managementconnector.config.databasehandler import DatabaseHandler
@@ -416,28 +417,41 @@ class ServiceManager():
     # =============================================================================
 
     @staticmethod
-    def enable_connectors(connectors=None, operational_status_wait=None):
-        """ Enable all connectors from list """
+    def enable_connectors(connectors=None):
+        """ Enable connectors and ensure it is operational """
         if connectors is None:
             connectors = []
-        if operational_status_wait is None:
-            operational_status_wait = 0
+        start_time = time.time()
+        # connector service enable should be sequential as it involves DB write operation to the same field
         for connector_service in connectors:
             connector_service.enable()
-            connector_name = connector_service.get_name()
-            DEV_LOGGER.info('Detail="FMC_Lifecycle ServiceManager: enable: connector=%s"' % connector_name)
-            for i in range(operational_status_wait):
-                time.sleep(1)  # wait before status check
-                op_status = CafeXUtils.get_operation_status(connector_name, DEV_LOGGER)
-                if op_status in ManagementConnectorProperties.CONNECTOR_PERMITTED_OPERATIONAL_STATES:
-                    DEV_LOGGER.error(
-                        'Detail="FMC_Lifecycle ServiceManager: enable_connectors: '
-                        '%s connector is operational after %s seconds"' % (connector_name, i+1))
-                    break
-                DEV_LOGGER.error(
-                    'Detail="FMC_Lifecycle ServiceManager: enable_connectors: '
-                    '%s connector is not operational after %s seconds"' % (connector_name, i+1))
+        # check for operational connector status in parallel
+        with ThreadPoolExecutor() as executor:
+            executor.map(ServiceManager.check_operational_status, connectors)
+        DEV_LOGGER.debug(
+            'Detail="FMC_FederationOrgMigration: '
+            'start_connectors: Time taken to start the connectors: %0.2f seconds' % (time.time() - start_time))
+        return
 
+    # =============================================================================
+
+    @staticmethod
+    def check_operational_status(connector):
+        connector_name = connector.get_name()
+        DEV_LOGGER.info(
+            'Detail="FMC_Lifecycle ServiceManager: check_operational_status: connector=%s"' % connector_name)
+        operational_status_wait = ManagementConnectorProperties.CONNECTOR_OPERATIONAL_STATE_WAIT_TIME
+        for i in range(operational_status_wait):
+            time.sleep(1)  # wait before status check
+            op_status = CafeXUtils.get_operation_status(connector_name, DEV_LOGGER)
+            if op_status in ManagementConnectorProperties.CONNECTOR_PERMITTED_OPERATIONAL_STATES:
+                DEV_LOGGER.info(
+                    'Detail="FMC_Lifecycle ServiceManager: enable_connectors: '
+                    '%s connector is operational after %s seconds"' % (connector_name, i + 1))
+                break
+            DEV_LOGGER.error(
+                'Detail="FMC_Lifecycle ServiceManager: enable_connectors: '
+                '%s connector is not operational after %s seconds"' % (connector_name, i + 1))
         return
 
     # =============================================================================

@@ -133,11 +133,11 @@ class FederationOrgMigration(object):
                 'stop_connectors: UnhandledException, error=%s' % unhandled_exception)
     # -------------------------------------------------------------------------
 
-    def start_connectors(self, connectors, operational_status_wait=None):
+    def start_connectors(self, connectors):
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: '
                         'start_connectors: Starting %s connectors"' % connectors)
         try:
-            self._servicemanager.enable_connectors(connectors["services"], operational_status_wait)
+            self._servicemanager.enable_connectors(connectors["services"])
             connectors["names"] = []
             self.update_stopped_connectors(connectors["names"])
         except EnableException as start_error:
@@ -194,8 +194,7 @@ class FederationOrgMigration(object):
         self.update_cdb(ManagementConnectorProperties.MIGRATION_UPDATE_CONNECTOR_JSON, "true")
 
         # start stopped connectors - enable
-        self.start_connectors(
-            connectors, operational_status_wait=ManagementConnectorProperties.CONNECTOR_OPERATIONAL_STATE_WAIT_TIME)
+        self.start_connectors(connectors)
 
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: update_config_and_start_connectors: '
                         'Resume normal connector operation"')
