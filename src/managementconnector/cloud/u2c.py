@@ -40,34 +40,27 @@ class U2C(object):
 
     def update_user_catalog(self, header=None, check_config=False):
         """ Update any service in the U2C User URL List"""
-        DEV_LOGGER.debug('Detail="FMC_U2C update_user_catalog: updating user catalog"')
+        DEV_LOGGER.info('Detail="FMC_U2C update_user_catalog: updating user catalog"')
         host = self._config.read(ManagementConnectorProperties.U2C_HOST)
         if isinstance(host, dict):  # Workaround for SPARK-91437: If the u2c url was NOT set, we wrote the wrong value to the DB
             host = host["value"].replace('"', '').replace('\\', '')
 
-        if header is None:
-            header = self._oauth.get_header()
-
-        if header.get("Authorization") is not None:
+        try:
+            if header is None:
+                header = self._oauth.get_header()
             # fetch complete service catalog
             user_service_url = self._config.read(ManagementConnectorProperties.U2C_USER_SERVICE_URL)
             u2c_url = host + user_service_url + SERVICE_PREFIX + self.build_services_list(self.service_map)
-        else:
-            # fetch limited service catalog without auth
-            user_service_url = self._config.read(ManagementConnectorProperties.U2C_LIMITED_SERVICE_URL)
-            org_id = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
-            u2c_url = host + user_service_url + org_id
-
-        try:
             service_catalogs = self._http.get(u2c_url, headers=header, schema=schema.U2C_SERVICES_RESPONSE)
-        except:
+        except:  # pylint: disable=W0703
             # an edge scenario if the tokens are invalid during restart
             # todo: refactor for better code reuse
             # fetch limited service catalog without auth
             user_service_url = self._config.read(ManagementConnectorProperties.U2C_LIMITED_SERVICE_URL)
             org_id = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
             u2c_url = host + user_service_url + org_id
-            header = self._oauth.get_header(no_auth=True)
+            header = dict()
+            header['Content-Type'] = 'application/json'
             service_catalogs = self._http.get(u2c_url, headers=header, schema=schema.U2C_SERVICES_RESPONSE)
 
         self.process_catalog(self._config, service_catalogs["services"])

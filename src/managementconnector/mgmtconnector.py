@@ -49,7 +49,7 @@ class ManagementConnector(object):
 
     def __init__(self):
         """Management Connector __init__"""
-        DEV_LOGGER.debug('Detail="FMC_Lifecycle ManagementConnector init called"')
+        DEV_LOGGER.info('Detail="FMC_Lifecycle ManagementConnector init called"')
 
         # Initialise listener waiting for deploy
         self._config = Config()

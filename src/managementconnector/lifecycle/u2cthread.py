@@ -73,6 +73,7 @@ class U2CThread(threading.Thread):
             self._u2c.update_user_catalog()
 
         except Exception as u2c_error:  # pylint: disable=W0703
+            self._u2c.update_user_catalog()
             DEV_LOGGER.error('Detail="FMC_Lifecycle U2CThread: error during heartbeat. Exception=%s, stacktrace=%s"'
                              % (repr(u2c_error), traceback.format_exc()))
 
