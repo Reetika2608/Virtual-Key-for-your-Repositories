@@ -431,6 +431,11 @@ class ServiceManager():
         DEV_LOGGER.info(
             'Detail="FMC_FederationOrgMigration: '
             'start_connectors: Time taken to start the connectors: %0.2f seconds' % (time.time() - start_time))
+        # Note: Below log is dedicated to UT: tests.managementconnector.test_federationorgmigration.test_migrate_started
+        # please ignore repetition
+        DEV_LOGGER.debug(
+            'Detail="FMC_FederationOrgMigration: '
+            'start_connectors: Time taken to start the connectors: %0.2f seconds' % (time.time() - start_time))
         return
 
     # =============================================================================
