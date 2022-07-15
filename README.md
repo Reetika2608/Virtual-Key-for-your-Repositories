@@ -50,7 +50,7 @@ Everything under `/files` will get stuffed into the Debian package
 
 `Xcommand cafe c_mgmt`//telling cafe to look import the c_mgmt.py module under  `/files`
 
-Expressway run on Python 2.7. For compiled Python, pyc files NEEDS to run on the same magic numbers. FMC now has its own Python 3.10.5. 
+Expressway run on Python 2.7. For compiled Python, pyc files NEEDS to run on the same magic numbers. FMC now has its own Python 3.9.7. 
 
 We have wrappers so we can use i.e Python 3 in FMC, but still invoke the 2.7.15 commands on expressway. 
 Commands:
@@ -97,7 +97,7 @@ Updates the machine account; every 60 days it updates the password.
 
 To run the unit tests in a terminal run:
 1. `source test_environment/setup_test_environment.sh`
-2. `nose2 -s tests/managementconnector/`
+2. `nosetests tests/managementconnector/`
 
 Once you have run `setup_test_environment.sh` you can use the virtual environment to run the tests locally in PyCharm. Configuration will be something like:
 1. Go to **Preferences** > **Project: management-connector** > **Project Interpreter**
@@ -157,7 +157,7 @@ docker run -it --mount type=bind,source="$(pwd)/",target="/management-connector"
 #### Example Commands run in the fmc-build Docker container
 ```
 # Running Unit tests
-root@acdc32ee8df8:/management-connector# nose2 -s tests/managementconnector/
+root@acdc32ee8df8:/management-connector# nosetests tests/managementconnector/
 
 # Doing a Build of FMC debian
 root@acdc32ee8df8:/management-connector# ./build_and_upgrade.sh -c build
@@ -181,7 +181,7 @@ Using the root Dockerfile we generate a jenkins agent image from the jenkins dir
 This image from containers.cisco.com is then leveraged by Cisco Crate (Containers as a service - CaaS) which allow us to adhere to the SQBU - BYOS (bring your own slaves) policy.
 
 #### Cisco Crate
-A crate enviroment has been setup to contain all Hybrid Management related containers, this was a one time thing completed with the sign-up link below, for reference. This environment was created in conjunction with the `hybrid-services.gen` AD group
+A crate enviroment has been setup to contain all Hybrid Management related containers, this was a one time thing completed with the sign-up link below, for reference. This environment was created in conjunction with the `hybrid-services-management` AD group
 
 A stack can be created in Cisco Crate by uploading a docker-compose.yml file, this file lives in the `jenkins/agent/` directory and will outline the machine nanes and ports in crate, which are then supplied to CCE, to create the corresponding jenkins agents.
 
@@ -197,8 +197,8 @@ docker build -t fmc-builder-base-ssh-slave .
 docker run fmc-builder-base-ssh-slave /bin/bash
 docker ps -l 
 docker login
-docker commit <CONTAINER ID> containers.cisco.com/hybrid_services_gen/fmc-builder-base-ssh-slave
-docker push containers.cisco.com/hybrid_services_gen/fmc-builder-base-ssh-slave
+docker commit <CONTAINER ID> containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave
+docker push containers.cisco.com/hybridmanagement/fmc-builder-base-ssh-slave
 ```
 
 #### Pulling the new images onto Crate
@@ -213,7 +213,7 @@ Note that if after upgrade Jenkins reports the agents as offline you may need to
 
 
 #### Containers
-* [FMC - Jenkins Builder Docker image](containers.cisco.com/repository/hybrid_services_gen/fmc-builder-python-base-ssh-slave)
+* [FMC - Jenkins Builder Docker image](containers.cisco.com/repository/hybridmanagement/fmc-builder-base-ssh-slave)
 
 ### Security
 * Threat Model ID: [21796](https://wwwin-tb.cisco.com/www/threatBuilder.html?id=21796)

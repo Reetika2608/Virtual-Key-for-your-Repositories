@@ -22,7 +22,7 @@ from tests_integration.utils.predicates import is_alarm_raised, \
     is_connector_in_composed_status, is_connector_in_fms_state
 from tests_integration.utils.remote_dispatcher import dispatch_command_to_rd
 from tests_integration.utils.ssh_methods import run_ssh_command, get_device_time, file_exists, restart_connector, \
-    stop_connector, start_connector, run_xcommand, get_connector_pid, check_taacrypto_compatibility
+    stop_connector, start_connector, run_xcommand, get_connector_pid
 
 LOG = get_logger()
 
@@ -85,25 +85,6 @@ class RegisteredTest(unittest.TestCase):
         self.assertIsNotNone(current_pid)
 
         self.assertTrue(starting_pid == current_pid)
-
-    def test_taacrypto_module_compatibility(self):
-        """
-        Purpose: Verify if management connector would be able to access taacrypto library
-        Steps:
-                1. Encrypt input string
-                2. Decrypt the encrypted string
-                3. Validate input_string == decrypted_string
-        """
-        LOG.info("Running test: %s", self._testMethodName)
-        LOG.info(self.test_taacrypto_module_compatibility.__doc__)
-
-        LOG.info("test_taacrypto_module_compatibility: "
-                 "Dispatch encrypt/decrypt command to validate taacrypto module compatibility ")
-        input_string = "mgmt-connector"
-        self.assertTrue(check_taacrypto_compatibility(self.config.exp_hostname_primary(),
-                                                      self.config.exp_root_user(),
-                                                      self.config.exp_root_pass(),
-                                                      input_string))
 
     def test_alarm_post(self):
         """

@@ -25,8 +25,7 @@ import base64
 import email.message
 import httplib2
 from base_platform.expressway import httplib2ssl
-from base_platform.expressway.taacrypto.taacrypto import decrypt_with_system_key
-from base_platform.expressway.taacrypto.taacrypto import TaaCryptoException, SystemCallException
+import taacrypto
 
 DEV_LOGGER = logging.getLogger("developer.web.restclient")
 
@@ -93,13 +92,15 @@ class CryptoBasicAuthentication(httplib2.Authentication):
         (user, encrypted_password) = self.credentials
 
         try:
-            b64 = base64.b64encode("%s:%s" % (user, decrypt_with_system_key(encrypted_password))).strip()
+            b64 = base64.b64encode("%s:%s" % (user,
+                                              taacrypto.decrypt_with_system_key(encrypted_password))
+                                   ).strip()
 
             headers['authorization'] = 'Basic %s' % (b64,)
 
-        except (TaaCryptoException, SystemCallException) as ex:
+        except taacrypto.CryptoError as ex:
             DEV_LOGGER.warning('Detail="Problem decrypting password" ' \
-                               'Status="%r"' % (ex.error,))
+                               'Status="%r"' % (ex,))
             raise
 
 

@@ -142,8 +142,6 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     UPGRADE_REASON_ENABLE = "enable"
 
     LIBRARY_PATH = '/opt/%s/lib/' % SERVICE_NAME
-    PYTHON_LIBRARY_PATH = '/opt/%s/python/lib/' % SERVICE_NAME
-    SHARED_BINARY_PATH = '/opt/%s/lib64/' % SERVICE_NAME
 
     SERVICE_CHANGE_TRIGGER = '/tmp/request/servicechange'
     SERVICE_CONTROL_REQUEST = '/tmp/request/requestservicestart'
@@ -468,10 +466,3 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     # wait max X seconds for connector to be running and operational
     CONNECTOR_OPERATIONAL_STATE_WAIT_TIME = 180
     CONNECTOR_PERMITTED_OPERATIONAL_STATES = ["true", "operational"]
-
-    # -------------------------------------------------------------------------
-    # TAA-CRYPTO SHARED UTILITY PATHS
-    # -------------------------------------------------------------------------
-    TAA_CRYPTO_SHARED_UTIL_PATH = "/share/python/site-packages/ni/utils/taacrypto/"
-    TAA_CRYPTO_ENCRYPT = TAA_CRYPTO_SHARED_UTIL_PATH + "encrypt.py"
-    TAA_CRYPTO_DECRYPT = TAA_CRYPTO_SHARED_UTIL_PATH + "decrypt.py"

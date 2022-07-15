@@ -10,14 +10,21 @@ import socket
 import uuid
 import jsonschema
 
-from base_platform.expressway.taacrypto.taacrypto import decrypt_with_system_key
-from base_platform.expressway.taacrypto.taacrypto import TaaCryptoException, SystemCallException
 from managementconnector.platform.certnamematch import match_hostname, CertificateError
 from managementconnector.config.databasehandler import DatabaseHandler
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
+
+try:
+    import taacrypto
+except ImportError:
+    DEV_LOGGER.info('Detail="Running unittests? Could not import taacrypto, mocking it"')
+    import sys
+    import mock
+    sys.modules['taacrypto'] = mock.Mock()
+    import taacrypto  # pylint: disable=ungrouped-imports
 
 
 class CertificateExceptionFusionCA(Exception):
@@ -166,14 +173,14 @@ class Http(object):
         password = Http._config.read(ManagementConnectorProperties.PROXY_PASSWORD)
         if password:
             try:
-                proxy['password'] = decrypt_with_system_key(password)
-            except (TaaCryptoException, SystemCallException):
+                proxy['password'] = taacrypto.decrypt_with_system_key(password)
+            except taacrypto.CryptoError:
                 try:
                     DEV_LOGGER.debug('Detail="Http.get_proxy: Attempting to read password from CDB"')
                     database_handler = DatabaseHandler()
                     proxy_details = database_handler.read('https_proxy')
-                    proxy['password'] = decrypt_with_system_key(proxy_details['password'])
-                except (TaaCryptoException, SystemCallException):
+                    proxy['password'] = taacrypto.decrypt_with_system_key(proxy_details['password'])
+                except taacrypto.CryptoError:
                     DEV_LOGGER.debug(
                         'Detail="Http.get_proxy: CDB password was not decrypted, defaulting to no password"')
                     proxy['password'] = None

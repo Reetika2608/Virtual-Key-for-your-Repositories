@@ -2,12 +2,12 @@ import unittest
 import sys
 import logging
 import mock
-
 from pyfakefs import fake_filesystem_unittest
 from .productxml import PRODUCT_XML_CONTENTS
 from .constants import SYS_LOG_HANDLER
 
-# Pre-import a mocked pyinotify
+# Pre-import a mocked taacrypto
+sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)

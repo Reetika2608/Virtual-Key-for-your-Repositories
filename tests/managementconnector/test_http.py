@@ -8,7 +8,8 @@ from urllib import request as urllib_request
 from io import StringIO
 from .constants import SYS_LOG_HANDLER
 
-# Pre-import a mocked pyinotify
+# Pre-import a mocked taacrypto
+sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
@@ -66,7 +67,7 @@ class HTTPTest(unittest.TestCase):
         self.assertEqual(http.Http.create_tracking_id(), expected_tracking_id)
 
     @mock.patch('managementconnector.platform.http.ManagementConnectorProperties')
-    @mock.patch('managementconnector.platform.http.decrypt_with_system_key')
+    @mock.patch('managementconnector.platform.http.taacrypto.decrypt_with_system_key')
     @mock.patch('managementconnector.platform.http.Http._config.read')
     def test_get_proxy(self, mock_config_read, mock_decrypt, mock_properties):
         """ Test get_proxy """

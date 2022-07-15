@@ -10,6 +10,8 @@ import sys
 sys.path.append('/opt/c_mgmt/src/')
 from managementconnector.platform.libraryutils import LibraryUtils
 LibraryUtils.append_library_path()
+from managementconnector.platform.taacryptoappender import TaacryptoAppender
+TaacryptoAppender.append_taacrypto_version()
 
 from managementconnector.platform.hybridlogsetup import initialise_logging_hybrid_services
 initialise_logging_hybrid_services("managementconnector")

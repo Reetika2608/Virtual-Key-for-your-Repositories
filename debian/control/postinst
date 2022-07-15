@@ -1,14 +1,6 @@
 #!/bin/bash
 [ -f "/etc/functions" ] && . "/etc/functions"
 
-function remove_old_python_libs()
-{
-    LIBRARY_PATH="/opt/c_mgmt/python/lib/"
-    CURRENT_PYTHON_DIR="python3.10"
-    echo "POSTINSTALL: Removing old python libraries except current ${CURRENT_PYTHON_DIR} from ${LIBRARY_PATH}"
-    find ${LIBRARY_PATH} -mindepth 1 -maxdepth 1 -type d -not -name ${CURRENT_PYTHON_DIR} -exec rm -rf '{}' \;
-}
-
 function register_alarms()
 {
     /sbin/alarm register ba883968-4b5a-4f83-9e71-50c7d7621b44 --id 60050 --severity error --solution-links '["txt.DNS", "dns", "txt.PROXY", "fusionproxy", "txt.PING", "ping"]'
@@ -95,12 +87,4 @@ wait_for_user_and_package
 register_alarms
 reload_logging_plugin
 onboard_ui
-
-# Ensure ManagementConnector is stopped before removing existing libraries.
-/etc/init.d/c_mgmt stop
-
-# Remove old python library files if any
-remove_old_python_libs
-
-# Restart c_mgmt
 /etc/init.d/c_mgmt restart

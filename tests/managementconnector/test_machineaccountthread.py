@@ -12,7 +12,8 @@ from urllib import error as urllib_error
 from time import sleep
 from .constants import SYS_LOG_HANDLER
 
-# Pre-import a mocked pyinotify
+# Pre-import a mocked taacrypto
+sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
@@ -38,8 +39,8 @@ class MachineAccountThreadTest(unittest.TestCase):
 
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.Http.patch')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.decrypt_with_system_key')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.encrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.decrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.encrypt_with_system_key')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.MCAlarm')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.OAuth')
     def test_machine_account_password_refresh_thread_stop_event_test(self, mock_oauth, mock_alarm, mock_encrypt, mock_decrypt, mock_patch, mock_config):
@@ -73,8 +74,8 @@ class MachineAccountThreadTest(unittest.TestCase):
 
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.Http.patch')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.decrypt_with_system_key')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.encrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.decrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.encrypt_with_system_key')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.MCAlarm')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.OAuth')
     def test_machine_account_alarm_raised(self, mock_oauth, mock_alarm, mock_encrypt, mock_decrypt, mock_patch, mock_config):
@@ -116,8 +117,8 @@ class MachineAccountThreadTest(unittest.TestCase):
 
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.Http.patch')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.decrypt_with_system_key')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.encrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.decrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.encrypt_with_system_key')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.MCAlarm')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.OAuth')
     def test_password_not_refreshed(self, mock_oauth, mock_alarm, mock_encrypt, mock_decrypt, mock_patch, mock_config):
@@ -155,8 +156,8 @@ class MachineAccountThreadTest(unittest.TestCase):
 
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.Http.patch')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.decrypt_with_system_key')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.encrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.decrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.encrypt_with_system_key')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.MCAlarm')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.OAuth')
     def test_account_expiration_not_set(self, mock_oauth, mock_alarm, mock_encrypt, mock_decrypt, mock_patch, mock_config):
@@ -196,8 +197,8 @@ class MachineAccountThreadTest(unittest.TestCase):
     @mock.patch('managementconnector.lifecycle.machineaccountthread.ManagementConnectorProperties.MACHINE_POLL_TIME_FAIL', 1)
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.Http.patch')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.decrypt_with_system_key')
-    @mock.patch('managementconnector.lifecycle.machineaccountthread.encrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.decrypt_with_system_key')
+    @mock.patch('managementconnector.lifecycle.machineaccountthread.taacrypto.encrypt_with_system_key')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.MCAlarm')
     @mock.patch('managementconnector.lifecycle.machineaccountthread.OAuth')
     def test_machine_account_alarm_raised_and_cleared(self, mock_oauth, mock_alarm, mock_encrypt, mock_decrypt, mock_patch, mock_config):

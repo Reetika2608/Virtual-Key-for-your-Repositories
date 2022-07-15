@@ -19,6 +19,7 @@ C_MGMT_FILE = '/opt/c_mgmt/src/managementconnector/managementconnectormain.pyc'
 __main__.__file__ = C_MGMT_FILE
 sys.argv[0] = C_MGMT_FILE
 
+sys.path.append('/opt/c_mgmt/')
 sys.path.append('/opt/c_mgmt/src/')
 import managementconnector.managementconnectormain
 

@@ -15,7 +15,8 @@ from .productxml import PRODUCT_XML_CONTENTS
 from urllib.error import HTTPError
 from .constants import SYS_LOG_HANDLER
 
-# Pre-import a mocked pyinotify
+# Pre-import a mocked taacrypto
+sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
@@ -63,7 +64,6 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         """ Mercury Test setUp """
         self.setUpPyfakefs()
         self.fs.create_file('/var/run/c_mgmt/c_mgmt.mercury', contents="{\"device_url\": \"device_url\"}")
-        self.fs.add_real_directory('/usr/local/lib/')
 
     @mock.patch('managementconnector.cloud.remotedispatcher.RemoteDispatcher.register')
     @mock.patch('managementconnector.cloud.wdm.time.time')

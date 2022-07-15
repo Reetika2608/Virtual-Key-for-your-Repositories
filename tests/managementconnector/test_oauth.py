@@ -7,7 +7,8 @@ import io
 import urllib.request, urllib.error, urllib.parse
 from .constants import SYS_LOG_HANDLER
 
-# Pre-import a mocked pyinotify
+# Pre-import a mocked taacrypto
+sys.modules['taacrypto'] = mock.Mock()
 sys.modules['pyinotify'] = mock.MagicMock()
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
@@ -111,7 +112,7 @@ class OAuthTest(unittest.TestCase):
         """ Test tearDown """
 
     @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
-    @mock.patch('managementconnector.cloud.oauth.decrypt_with_system_key')
+    @mock.patch('managementconnector.cloud.oauth.taacrypto.decrypt_with_system_key')
     @mock.patch('managementconnector.platform.http.Http.post', side_effect=post)
     @mock.patch('managementconnector.config.config.Config')
     def test_init(self, mock_config, mock_http, mock_decrypt, mock_u2c):
@@ -202,7 +203,7 @@ class OAuthTest(unittest.TestCase):
         self.assertTrue(token == REFRESHED_TOKEN)
 
     @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
-    @mock.patch('managementconnector.cloud.oauth.decrypt_with_system_key')
+    @mock.patch('managementconnector.cloud.oauth.taacrypto.decrypt_with_system_key')
     @mock.patch('managementconnector.cloud.oauth.OAuth._is_machine_account_cache_stale')
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.platform.http.Http.post', side_effect=post)

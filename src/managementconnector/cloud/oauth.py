@@ -6,11 +6,12 @@ import json
 import traceback
 from urllib import error as urllib_error
 from urllib.parse import quote as urllib_quote
+import taacrypto
 from random import SystemRandom as RandomGenerator
 
-from base_platform.expressway.taacrypto.taacrypto import encrypt_with_system_key, decrypt_with_system_key
 from managementconnector.platform.http import Http
 from managementconnector.cloud import schema
+
 from managementconnector.cloud.u2c import U2C
 from managementconnector.config.databasehandler import DatabaseHandler
 
@@ -359,7 +360,7 @@ class OAuth(object):
             return None
 
         rtn_value_copy = rtn_value.copy()
-        rtn_value_copy['password'] = decrypt_with_system_key(rtn_value_copy['password'])
+        rtn_value_copy['password'] = taacrypto.decrypt_with_system_key(rtn_value_copy['password'])
 
         return rtn_value_copy
 
@@ -369,7 +370,7 @@ class OAuth(object):
         """Store Machine Details in the DB"""
         # Convert to JSON Dict and write to DB
         machine_response_copy = self.machine_response.copy()
-        machine_response_copy['password'] = encrypt_with_system_key(machine_response_copy['password'])
+        machine_response_copy['password'] = taacrypto.encrypt_with_system_key(machine_response_copy['password'])
 
         self._config.write_blob(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS, machine_response_copy)
 

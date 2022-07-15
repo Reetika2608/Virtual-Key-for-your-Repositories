@@ -3,8 +3,11 @@
 """
 import sys
 
-sys.path.append('/opt/c_mgmt/python/lib/')
+sys.path.insert(0, '/opt/c_mgmt/python/lib/python3.9/')
+sys.path.append('/opt/c_mgmt/python/lib/python3.9/lib-dynload/')
+# sys.path.append('/opt/c_mgmt/python/lib/python3.9/')
 sys.path.append('/opt/c_mgmt/lib/')
+sys.path.append('/opt/c_mgmt/bin/')
 
 import xml.etree.cElementTree as ElementTree
 import logging
