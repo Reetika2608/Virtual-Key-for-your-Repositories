@@ -3,6 +3,7 @@ import mock
 import logging
 import sys
 import io
+import re
 
 # Pre-import a mocked taacrypto
 sys.modules['taacrypto'] = mock.Mock()
@@ -83,6 +84,11 @@ def sleep_side_effect(seconds):
     while True:
         if OAuth.get_current_time() > end_time:
             return
+
+
+def debug_logger_side_effect(input_string=''):
+    """ Debug logger side effect """
+    DEV_LOGGER.info(input_string)
 
 
 class OrgMigrationTest(fake_filesystem_unittest.TestCase):
@@ -183,20 +189,23 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         self.assertFalse(mock_stop_connectors.called, 'failed')
         self.assertFalse(mock_refresh_access_token.called, 'failed')
 
+    @mock.patch('managementconnector.service.servicemanager.DEV_LOGGER.debug')
     @mock.patch('managementconnector.cloud.oauth.time.sleep')
     @mock.patch('managementconnector.cloud.oauth.U2C.update_user_catalog')
     @mock.patch('managementconnector.cloud.oauth.Http')
     @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.disable_connectors')
     @mock.patch('managementconnector.service.servicemanager.CafeXUtils.get_operation_status')
     @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=[])
-    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors',
+                return_value=['c_xyz', 'c_abc', 'c_def'])
     @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
-                return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
+                return_value={"services": [mock.MagicMock(name='c_xyz'), mock.MagicMock(name='c_abc')],
+                              "names": ['c_xyz', 'c_abc']})
     @mock.patch('managementconnector.cloud.oauth.OAuth.exponential_backoff_retry')
     @mock.patch('managementconnector.config.config.Config')
     def test_migrate_started(self, mock_config, mock_oauth_polling, mock_servicemanager_enabled_connectors,
                              mock_orgmigration_other_connectors, mock_dbhandler, mock_operational_status,
-                             mock_stop_connectors, mock_http, mock_u2c, mock_sleep):
+                             mock_stop_connectors, mock_http, mock_u2c, mock_sleep, mock_logger_debug):
         """ Test migration started workflow """
         time_in_past = OAuth.get_current_time() - 100
 
@@ -228,6 +237,9 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
 
         # connector operational status check
         mock_operational_status.side_effect = operational_status_side_effect
+
+        mock_logger_debug.side_effect = debug_logger_side_effect
+
         # custom sleep method
         mock_sleep.side_effect = sleep_side_effect
 
@@ -239,6 +251,9 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_stop_connectors.assert_called_once()
         mock_oauth_polling.assert_called()
         mock_sleep.assert_any_call(ManagementConnectorProperties.ORG_MIGRATION_CI_POLL_PRE_WAIT_TIME)
+        debug_log_input = str(mock_logger_debug.call_args.args[0])
+        time_taken_to_start_connectors = float(re.findall("\d*\.?\d+", debug_log_input)[0])
+        self.assertLessEqual(time_taken_to_start_connectors, 30, msg="Start connectors took more than anticipated time")
 
         # ensure cache clear and check calls are made
         mock_config.is_cache_cleared.assert_called()

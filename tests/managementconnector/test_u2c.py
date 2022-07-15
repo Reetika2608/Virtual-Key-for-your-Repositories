@@ -148,6 +148,18 @@ class U2CTest(unittest.TestCase):
             '/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_host_u2c',
             {'value': '"https://client-logs-a.wbx2.com/api/v1"'})
 
+    def test_update_user_catalog_on_exception(self):
+        """ Test U2C User Catalog Processed Correctly"""
+        self.config_mock.read.side_effect = config_read
+        test_u2c = U2C(self.config_mock, self.oauth, self.http, self.database)
+        self.oauth.get_header.side_effect = Exception
+
+        test_u2c.update_user_catalog()
+
+        self.config_mock.write.assert_called_with(
+            '/configuration/cafe/cafeblobconfiguration/name/c_mgmt_logging_host_u2c',
+            {'value': '"https://client-logs-a.wbx2.com/api/v1"'})
+
     def test_update_user_catalog_config_check(self):
         """ Test FMC config is updated post U2C User Catalog Refresh """
 

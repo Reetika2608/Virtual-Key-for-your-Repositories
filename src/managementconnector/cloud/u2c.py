@@ -56,6 +56,7 @@ class U2C(object):
             # an edge scenario if the tokens are invalid during restart
             # todo: refactor for better code reuse
             # fetch limited service catalog without auth
+            DEV_LOGGER.debug('Detail="FMC_U2C update_user_catalog: Fetching limited service catalog without auth"')
             user_service_url = self._config.read(ManagementConnectorProperties.U2C_LIMITED_SERVICE_URL)
             org_id = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)['organization_id']
             u2c_url = host + user_service_url + org_id

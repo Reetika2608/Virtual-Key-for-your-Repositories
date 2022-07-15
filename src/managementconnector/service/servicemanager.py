@@ -428,7 +428,7 @@ class ServiceManager():
         # check for operational connector status in parallel
         with ThreadPoolExecutor() as executor:
             executor.map(ServiceManager.check_operational_status, connectors)
-        DEV_LOGGER.debug(
+        DEV_LOGGER.info(
             'Detail="FMC_FederationOrgMigration: '
             'start_connectors: Time taken to start the connectors: %0.2f seconds' % (time.time() - start_time))
         return
