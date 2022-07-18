@@ -174,8 +174,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     DEFUSE_ATTEMPT_LIMIT = 30
 
     SHUT_DOWN_WAIT = 8
-    
-    MINIMUM_EXPRESSWAY_VERSION = "12.5"
+
     # Should be updated every time there is a change to Mgmt Connector DB Schema
     CDB_VERSION_CURRENT = "1.0"
 

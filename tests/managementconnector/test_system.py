@@ -85,40 +85,61 @@ class ManagementConnectorTest(fake_filesystem_unittest.TestCase):
             version = System.get_version_from_file(path)
             self.assertEqual(version, expected)
 
-    @mock.patch('managementconnector.platform.system.get_expressway_version')
-    def test_unsupported_version_status(self, mock_get_expressway_version):
+    @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
+    def test_platform_supported_against_baked_in_version(self, mock_get_package_version):
         """
             User Story: US13965: Alert the Admin in case of unsupported version
-            Purpose: To verify Expressway version is not unsupported version.
+            Purpose: To verify baked in version is <= platform version, otherwise alarm will be raised after fresh install.
+        """
+        DEV_LOGGER.debug('***TEST*** test_platform_supported_against_baked_in_version')
+        self.setUpPyfakefs()
+        self.fs.create_file('/info/product_info.xml', contents=PRODUCT_XML_CONTENTS)
+        mock_get_package_version.return_value = "1.2.3"
+
+        self.assertTrue(System.get_platform_supported_status(), "baked in version of FMC should not exceed Expressway version")
+
+    @mock.patch('managementconnector.platform.system.CafeXUtils')
+    @mock.patch('managementconnector.platform.system.get_expressway_version')
+    def test_unsupported_version_status(self, mock_get_expressway_version, mock_cafeutils):
+        """
+            User Story: US13965: Alert the Admin in case of unsupported version
+            Purpose: To verify Expressway v FMC major_minor version comparisons.
         """
 
         DEV_LOGGER.debug('***TEST*** test_unsupported_version_status')
 
+        mock_cafeutils.get_package_version.return_value = "8.11-1.0.321356"
+        mock_get_expressway_version.return_value = "8.11"
+        self.assertTrue(System.get_platform_supported_status())
+
+        mock_cafeutils.get_package_version.return_value = "8.11-1.0.321356"
+        mock_get_expressway_version.return_value = "8.10"
+        self.assertFalse(System.get_platform_supported_status())
+
+        mock_cafeutils.get_package_version.return_value = "8.11-1.0.321356"
         mock_get_expressway_version.return_value = "12.5"
         self.assertTrue(System.get_platform_supported_status())
 
-        mock_get_expressway_version.return_value = "12.4"
-        self.assertFalse(System.get_platform_supported_status())
-
-        mock_get_expressway_version.return_value = "14.0"
-        self.assertTrue(System.get_platform_supported_status())
-
+    @mock.patch('managementconnector.platform.system.CafeXUtils')
     @mock.patch('managementconnector.platform.system.get_expressway_version')
-    def test_penultimate_unsupported_version_status(self, mock_get_expressway_version):
+    def test_penultimate_unsupported_version_status(self, mock_get_expressway_version, mock_cafeutils):
         """
             User Story: US23713: Alert the Admin in case of version soon to be unsupported
-            Purpose: To verify Expressway version w.r.t minimum Expressway supported version.
+            Purpose: To verify Expressway v FMC major_minor version comparisons.
         """
 
         DEV_LOGGER.debug('***TEST*** test_penultimate_unsupported_version_status')
 
-        mock_get_expressway_version.return_value = "12.5"
+        mock_cafeutils.get_package_version.return_value = "8.11-1.0.321356"
+        mock_get_expressway_version.return_value = "8.11"
         self.assertTrue(System.is_penultimate_version())
 
-        mock_get_expressway_version.return_value = "12.0"
+        mock_cafeutils.get_package_version.return_value = "8.11-1.0.321356"
+        mock_get_expressway_version.return_value = "8.10"
         self.assertFalse(System.is_penultimate_version())
 
-        mock_get_expressway_version.return_value = "14.0"
+        mock_cafeutils.get_package_version.return_value = "8.11-1.0.321356"
+        mock_get_expressway_version.return_value = "12.5"
         self.assertFalse(System.is_penultimate_version())
 
     @mock.patch('builtins.open', create=True)
