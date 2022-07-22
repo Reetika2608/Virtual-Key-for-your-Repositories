@@ -1,19 +1,12 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3
 
 # Ignore "C0413(wrong-import-position)" pylint: disable=C0413
 
 """ This module starts ManagementConnector """
-import sys
-
-sys.path.append('/opt/c_mgmt/python/lib/python3.9/lib-dynload/')
-sys.path.append('/opt/c_mgmt/python/lib/python3.9/')
-sys.path.append('/opt/c_mgmt/lib/')
-sys.path.append('/opt/c_mgmt/bin/')
 # Append all required paths to the syspath for library imports.
 from managementconnector.platform.libraryutils import LibraryUtils
 LibraryUtils.append_library_path()
-from managementconnector.platform.taacryptoappender import TaacryptoAppender
-TaacryptoAppender.append_taacrypto_version()
+LibraryUtils.append_python_library_path()
 
 # Initialise logging framework before all other application imports
 import base_platform.expressway.logframework.setup as logging_setup

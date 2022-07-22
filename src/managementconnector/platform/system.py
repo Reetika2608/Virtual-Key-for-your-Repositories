@@ -73,12 +73,13 @@ class System(object):
                     }
         '''
 
-        fileiter = iter(open("/proc/meminfo", "r"))
+        file = open("/proc/meminfo", "r")
+        fileiter = file.readlines()
+        file.close()
 
-        mem_item = split('\s+', fileiter.__next__().strip())
+        mem_item = split('\s+', fileiter[0].strip())
         total_mem = float(mem_item[1])
-        next(fileiter)
-        mem_item = split('\s+', fileiter.__next__().strip())
+        mem_item = split('\s+', fileiter[2].strip())
         available_mem = float(mem_item[1])
 
         memory_percent = (total_mem - available_mem) / total_mem * 100

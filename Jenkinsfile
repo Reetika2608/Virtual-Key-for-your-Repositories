@@ -9,7 +9,8 @@ pipelineProperties(name: 'management-connector',
 DEB_VERSION = ''
 TLP_FILE = ''
 CONNECTOR_TYPES = ['c_ccucmgmt', 'c_mgmt']  // List parameter for Connector Types
-def pythonBuilder = 'containers.cisco.com/hybrid_services_gen/fmc-builder-python-base-ssh-slave:latest'
+
+def pythonBuilder = 'containers.cisco.com/hybrid_services_gen/fmc-builder-python-base-ssh-slave:python3.10.5'
 def builderName = 'local-spark-pythonbuilder-fmc'
 
 timestamps {
@@ -41,7 +42,7 @@ timestamps {
                       junit allowEmptyResults: true, testResults: 'bandit-results.xml'
 
                       // Archive unit tests results
-                      sh("docker exec ${builderName} nosetests tests/managementconnector/ --verbose --with-xunit --xunit-file=test-results.xml")
+                      sh("docker exec ${builderName} nose2 -s tests/managementconnector/ -c tests/.unittest.cfg --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path test-results.xml")
                       sh("docker cp ${builderName}:/home/jenkins/test-results.xml ./")
                       junit allowEmptyResults: true, testResults: 'test-results.xml'
 
@@ -152,11 +153,11 @@ timestamps {
                                          -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
                                          -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
                                          -e LOGS_DIR=${pythonLogsDir} \
-                                         ${builderName} nosetests --with-xunit --xunit-file=unregistered-test-results.xml tests_integration/unregistered_tests""".stripIndent())
+                                         ${builderName} nose2 tests_integration.unregistered_tests.unregistered_test --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path unregistered-test-results.xml""".stripIndent())
 
-                                         sh("docker cp ${builderName}:/home/jenkins/unregistered-test-results.xml ./")
+                                        sh("docker cp ${builderName}:/home/jenkins/unregistered-test-results.xml ./")
 
-                                         junit allowEmptyResults: true, testResults: 'unregistered-test-results.xml'
+                                        junit allowEmptyResults: true, testResults: 'unregistered-test-results.xml'
 
                                     }
                               },
@@ -178,7 +179,7 @@ timestamps {
                                              -e ORG_ADMIN_USER=${org_admin_user} \
                                              -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                              -e LOGS_DIR=${pythonLogsDir} \
-                                             ${builderName} nosetests --with-xunit --xunit-file=api-based-test-results.xml tests_integration/api_based_tests""".stripIndent())
+                                             ${builderName} nose2 tests_integration.api_based_tests.requests_register_test --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path api-based-test-results.xml""".stripIndent())
 
                                              sh("docker cp ${builderName}:/home/jenkins/api-based-test-results.xml ./")
 
@@ -207,7 +208,7 @@ timestamps {
                                                  -e ORG_ADMIN_USER=${org_admin_user} \
                                                  -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                                  -e LOGS_DIR=${pythonLogsDir} \
-                                                 ${builderName} nosetests --with-xunit --xunit-file=ui-based-register-test-results.xml tests_integration/ui_based_tests/basic_register_test.py""".stripIndent())
+                                                 ${builderName} nose2 tests_integration.ui_based_tests.basic_register_test --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path ui-based-register-test-results.xml""".stripIndent())
 
                                                  sh("docker cp ${builderName}:/home/jenkins/ui-based-register-test-results.xml ./")
 
@@ -245,7 +246,7 @@ timestamps {
                                              -e ORG_ADMIN_USER=${org_admin_user} \
                                              -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                              -e LOGS_DIR=${pythonLogsDir} \
-                                             ${builderName} nosetests --with-xunit --xunit-file=registered-test-results.xml tests_integration/registered_tests""".stripIndent())
+                                             ${builderName} nose2 tests_integration.registered_tests.registered_test --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path registered-test-results.xml""".stripIndent())
 
                                              sh("docker cp ${builderName}:/home/jenkins/registered-test-results.xml ./")
 
@@ -277,7 +278,7 @@ timestamps {
                                              -e ORG_ADMIN_USER=${org_admin_user} \
                                              -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                              -e LOGS_DIR=${pythonLogsDir} \
-                                             ${builderName} nosetests --with-xunit --xunit-file=cluster-test-results.xml tests_integration/cluster_tests/""".stripIndent())
+                                             ${builderName} nose2 tests_integration.cluster_tests.cluster_api_test --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path cluster-test-results.xml""".stripIndent())
 
                                              sh("docker cp ${builderName}:/home/jenkins/cluster-test-results.xml ./")
 
@@ -399,7 +400,7 @@ timestamps {
                                                      -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                                      -e LOGS_DIR=${pythonLogsDir} \
                                                      -e BROKEN_CERTS_LOCATION=./tests_against_latest/all_cas_removed.pem \
-                                                     ${builderName} nosetests --with-xunit --xunit-file=bootstrap-latest-test-results.xml tests_against_latest/basic_bootstrap_test.py""".stripIndent())
+                                                     ${builderName} nose2 tests_against_latest.basic_bootstrap_test --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path bootstrap-latest-test-results.xml""".stripIndent())
 
                                                      sh("docker cp ${builderName}:/home/jenkins/bootstrap-latest-test-results.xml ./")
 
@@ -434,7 +435,7 @@ timestamps {
                                                  -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
                                                  -e LOGS_DIR=${pythonLogsDir} \
                                                  -e EXPECTED_VERSION=${DEB_VERSION} \
-                                                 ${builderName} nosetests --with-xunit --xunit-file=upgrade-latest-test-results.xml tests_against_latest/upgrade_test.py""".stripIndent())
+                                                 ${builderName} nose2 tests_against_latest.upgrade_test --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path upgrade-latest-test-results.xml""".stripIndent())
 
                                                  sh("docker cp ${builderName}:/home/jenkins/upgrade-latest-test-results.xml ./")
 

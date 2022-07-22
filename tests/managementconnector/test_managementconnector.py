@@ -1,13 +1,10 @@
-
 import sys
-
 import unittest
 import logging
 import mock
 from .constants import SYS_LOG_HANDLER
 
-# Pre-import a mocked taacrypto
-sys.modules['taacrypto'] = mock.Mock()
+# Pre-import a mocked pyinotify
 sys.modules['pyinotify'] = mock.MagicMock()
 
 logging.getLogger().addHandler(SYS_LOG_HANDLER)
@@ -21,6 +18,7 @@ from managementconnector.config.managementconnectorproperties import ManagementC
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 CERT_ADD_RUN = 0
 CERT_CHANGED = 0
+
 
 class MockConfig():
     """ Mock Config Class """

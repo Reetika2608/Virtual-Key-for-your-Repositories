@@ -20,8 +20,6 @@ import sys
 sys.path.append('/opt/c_mgmt/src/')
 from managementconnector.platform.libraryutils import LibraryUtils
 LibraryUtils.append_library_path()
-from managementconnector.platform.taacryptoappender import TaacryptoAppender
-TaacryptoAppender.append_taacrypto_version()
 from managementconnector.platform.hybridrequesthandler import on_request
 from managementconnector.config.databasehandler import DatabaseHandler
 on_request(DatabaseHandler(), '${contents}')

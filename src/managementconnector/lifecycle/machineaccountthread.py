@@ -9,7 +9,7 @@ import uuid
 import time
 from urllib.error import HTTPError, URLError
 
-import taacrypto
+from base_platform.expressway.taacrypto.taacrypto import encrypt_with_system_key, decrypt_with_system_key
 
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 from managementconnector.platform.http import Http
@@ -111,7 +111,7 @@ class MachineAccountThread(threading.Thread):
     def _store_machine_response_in_db(self, machine_response):
         """ Store Machine Details in the DB """
         # Convert to JSON Dict and write to DB
-        machine_response['password'] = taacrypto.encrypt_with_system_key(machine_response['password'])
+        machine_response['password'] = encrypt_with_system_key(machine_response['password'])
 
         self._config.write_blob(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS, machine_response)
 
@@ -128,7 +128,7 @@ class MachineAccountThread(threading.Thread):
             return None
 
         rtn_value_copy = rtn_value.copy()
-        rtn_value_copy['password'] = taacrypto.decrypt_with_system_key(rtn_value_copy['password'])
+        rtn_value_copy['password'] = decrypt_with_system_key(rtn_value_copy['password'])
 
         return rtn_value_copy
 

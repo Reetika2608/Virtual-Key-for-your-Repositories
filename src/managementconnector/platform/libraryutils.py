@@ -21,3 +21,14 @@ class LibraryUtils(object):
                 full_path = os.path.join(lib_path, lib)
                 if os.path.isdir(full_path):
                     sys.path.append(full_path)
+
+    @staticmethod
+    def append_python_library_path():
+        """ Append all required python libraries to the sys path for library imports """
+        python_lib_path = ManagementConnectorProperties.PYTHON_LIBRARY_PATH
+
+        if os.path.isdir(python_lib_path):
+            for lib in os.listdir(python_lib_path):
+                full_path = os.path.join(python_lib_path, lib)
+                if os.path.isdir(full_path):
+                    sys.path.append(full_path)
