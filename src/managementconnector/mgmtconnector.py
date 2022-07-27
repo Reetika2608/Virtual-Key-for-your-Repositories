@@ -165,6 +165,9 @@ class ManagementConnector(object):
         self.check_for_certs()
         LogArchiver.push_logs_async(self._config, self._deploy.get_oauth())
 
+        # Archive Migration logs asynchronously
+        LogArchiver.archive_logs_async(self._config)
+
         # Currently enabled service
         enabled_services = self._config.read(ManagementConnectorProperties.ENABLED_SERVICES)
 

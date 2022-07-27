@@ -1,5 +1,6 @@
 """ Federation 4.0 - Org Migration """
-
+import uuid
+from datetime import datetime
 from http import HTTPStatus
 
 from managementconnector.config.databasehandler import DatabaseHandler
@@ -210,12 +211,25 @@ class FederationOrgMigration(object):
             fms_migration_state = federation_org_migration_data.get("fms-migration-state", "")
         else:
             fms_migration_state = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
+        # fms_migration_state = 'STARTED'
+        # self.process_migration_data(federation_org_migration_data)
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: migration state=%s"' % fms_migration_state)
+
+        # flag to archive federation org migration logs
+        archive_migration_logs = False
+        # migration start timestamp
+        migration_start_timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]
 
         try:
             if status_code == HTTPStatus.FOUND.value:
                 # if migration is started continue
                 if fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_STARTED:
+                    archive_migration_logs = True
+                    migration_id = self.read_cdb(ManagementConnectorProperties.MIGRATION_ID)
+                    DEV_LOGGER.info(
+                        'Detail="FMC_FederationOrgMigration: '
+                        'migrate: Migration started, migrationId=%s, '
+                        'migration_start_time=%s"' % (migration_id, migration_start_timestamp))
                     # get enabled connectors
                     enabled_connectors = self.get_enabled_connectors()
                     # stop other enabled connectors - disable
@@ -231,15 +245,40 @@ class FederationOrgMigration(object):
                     self.refresh_access_token()
 
                     self.update_config_and_start_connectors(enabled_connectors)
+                    # indicate successful completion of migration
+                    DEV_LOGGER.info(
+                        'Detail="FMC_FederationOrgMigration: '
+                        'migrate: Migration completed successfully, migrationId=%s"' % migration_id)
             elif len(federation_org_migration_data):
                 # update CDB
                 DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: Save migration info to DB"')
                 self.process_migration_data(federation_org_migration_data)
+        except Exception as generic_exception:  # pylint: disable=W0703
+            DEV_LOGGER.error(
+                'Detail="FMC_FederationOrgMigration: '
+                '_process_federation_org_migration: Migration terminated with Exception, '
+                'error=%s, migrationId=%s"' % (generic_exception,
+                                               self.read_cdb(ManagementConnectorProperties.MIGRATION_ID)))
+            raise
         finally:
             # if migration is completed do not process further
             if fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_COMPLETED:
                 stopped_connectors = self.get_stopped_connectors()
                 self.update_config_and_start_connectors(stopped_connectors)
+
+            # if archive_migration_logs == True, archive migration logs
+            if archive_migration_logs:
+                migration_id_from_db = self.read_cdb(ManagementConnectorProperties.MIGRATION_ID)
+                migration_id = migration_id_from_db if migration_id_from_db else "migrationId_NA_" + str(uuid.uuid4())
+                migration_start_at = self.read_cdb(ManagementConnectorProperties.MIGRATION_START_AT)
+                if migration_start_at:
+                    migration_start_timestamp = migration_start_at
+                migration_log_entry = {"migrationId": migration_id,
+                                       "migration_start_timestamp": migration_start_timestamp}
+                # trigger migration log archival
+                self.update_cdb(ManagementConnectorProperties.MIGRATION_LOGGING_IDENTIFIER, migration_log_entry)
+                DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: '
+                                'migrate: Archive Migration logs Requested, migrationId=%s."' % migration_id)
         # exit
         return
 

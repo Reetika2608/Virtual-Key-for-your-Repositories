@@ -31,6 +31,9 @@ PACKAGED_LOGS = HYBRID_SERVICES_LOG_DIR + "packagesd.log*"
 CONNECTORS_TOP_CONFIG_DIR = "/opt/c_mgmt/etc/config/"
 CONNECTORS_CONFIG = CONNECTORS_TOP_CONFIG_DIR + "*.json"
 CONFIGURATION_FILES_DIR = "/tmp/config_files/"  # nosec - /tmp usage validated
+FEDERATION_ORG_MIGRATION_LOG_DIR_NAME = "federation_org_migration/"
+FEDERATION_ORG_MIGRATION_LOG_DIR = HYBRID_SERVICES_LOG_DIR + FEDERATION_ORG_MIGRATION_LOG_DIR_NAME
+FEDERATION_ORG_MIGRATION_LOG_ARCHIVE = FEDERATION_ORG_MIGRATION_LOG_DIR + "hybrid_services_migration_archive_*"
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
@@ -46,6 +49,13 @@ class LogArchiver(object):
         if config.read(ManagementConnectorProperties.FUSED) == "true":
             log_thread = threading.Thread(target=LogArchiver.push_logs, args=(config, AtlasLogger(oauth, config)))
             log_thread.start()
+
+    @staticmethod
+    def archive_logs_async(config):
+        """ Calls archive_logs asynchronously """
+        if config.read(ManagementConnectorProperties.FUSED) == "true":
+            log_archive_thread = threading.Thread(target=LogArchiver.archive_logs, args=(config,))
+            log_archive_thread.start()
 
     @staticmethod
     def push_logs(config, atlas_logger, log_request_id=''):
@@ -174,13 +184,146 @@ class LogArchiver(object):
         return is_valid, log_entry
 
     @staticmethod
-    def build_archive(quantity, serial_number):
+    def archive_logs(config, migration_id=''):
+        """Build and Archive logs"""
+        with LogArchiver.lock:
+            is_valid, log_entry = LogArchiver.validate_migration_log_request(config, migration_id)
+            if is_valid:
+                DEV_LOGGER.debug('Detail="archive_logs: Start archiving logs"')
+                try:
+                    migration_log_quantity = LogArchiver.get_migration_log_file_quantity(
+                        log_entry["migration_start_timestamp"], log_entry['migrationId'])
+                    DEV_LOGGER.info('Detail="archive_logs: Archive quantity=%s"' % migration_log_quantity)
+                    log_archive_res = LogArchiver.build_archive(migration_log_quantity, None, log_entry['migrationId'])
+                    # Return code 0 is fully successful. 1 is successful but logs have rolled underneath during
+                    if log_archive_res[0] in [0, 1]:
+                        log_entry['status'] = 'complete'
+                        log_entry['expiry'] = LogArchiver.get_migration_log_expiry()
+                        LogArchiver.rm_config_files()
+                    else:
+                        log_entry['status'] = 'archive failed'
+                    log_entry['log_file'] = log_archive_res[2]
+                    DEV_LOGGER.debug('Detail="archive_logs: Migration Log Archival Completed, status=%s"' % log_entry)
+                except Exception as e:  # pylint: disable=W0703
+                    log_entry['status'] = 'archive failed'
+                    DEV_LOGGER.debug(
+                        'Detail="archive_logs: Migration Log Archival Failed, status=%s, exc=%s, stacktrace=%s"' % (
+                        log_entry, str(e), traceback.print_exc()))
+                jsonhandler.write_json_file(ManagementConnectorProperties.LAST_KNOWN_MIGRATION_LOG_ID, log_entry)
+
+            return log_entry
+
+    @staticmethod
+    def get_migration_log_file_quantity(timestamp, migration_id):
+        """
+            Get log file index based on search string presence
+            Iterate through the log files upto max 50
+            until primary and secondary
+            search strings are found
+                return the log file index + 1 to archive
+            else
+                return 0 -> Archive default 50 log files sorted descending by time
+        """
+        log_file_quantity = 0
+        try:
+            primary_search_string = "FMC_FederationOrgMigration: migrate: Migration started, migrationId=%s" % \
+                                    migration_id
+            secondary_search_string = '\n' + timestamp[:15] if len(timestamp) > 15 else timestamp
+            log_files = LogArchiver.get_sorted_files()
+            primary_string_exists = False
+            for log_file_path in log_files:
+                log_file_content = LogArchiver.read_file_content(log_file_path)
+                if primary_search_string in log_file_content:
+                    log_file_quantity = LogArchiver.extract_index(log_file_path)
+                    primary_string_exists = True
+                if primary_string_exists:
+                    if secondary_search_string in log_file_content:
+                        log_file_quantity = LogArchiver.extract_index(log_file_path)
+                        break
+        except Exception as e:  # pylint: disable=W0703
+            DEV_LOGGER.error('Detail="get_migration_log_file_quantity: Failed with exc=%s, stack_trace=%s"' % (
+            e, traceback.format_exc()))
+        # Failback to default quantity if search is unsuccessful
+        return int(log_file_quantity) if log_file_quantity \
+            else ManagementConnectorProperties.MIGRATION_LOGGING_QUANTITY_DEFAULT
+
+    @staticmethod
+    def get_sorted_files():
+        return sorted(glob.iglob(HYBRID_SERVICES_LOG), key=os.path.getmtime, reverse=True)[:50]
+
+    @staticmethod
+    def read_file_content(file_path):
+        file = open(file_path, 'r')
+        file_content = file.read()
+        # search_results = re.findall(search_string, file.read())
+        file.close()
+        return file_content
+
+    @staticmethod
+    def extract_index(file_path):
+        file_index = re.findall("\d*?\d+", file_path)
+        if len(file_index) > 0:
+            return int(file_index[0]) + 1
+        else:
+            return 1
+
+    @staticmethod
+    def validate_migration_log_request(config, migration_id):
+        """ Validate a Migration log Archive request """
+        log_entry = {'migrationId': migration_id, 'status': 'starting'}
+        if not migration_id:
+            DEV_LOGGER.debug('Detail="archive_logs: Retrieve the migration log request id from config"')
+            migration_log_request_details = config.read(ManagementConnectorProperties.MIGRATION_LOGGING_IDENTIFIER)
+            if migration_log_request_details:
+                migration_id = migration_log_request_details['migrationId']
+                migration_log_request_details['status'] = 'starting'
+                log_entry = migration_log_request_details
+
+        last_known_migration_id = ''
+        logged = jsonhandler.read_json_file(ManagementConnectorProperties.LAST_KNOWN_MIGRATION_LOG_ID)
+        if logged:
+            try:
+                last_known_migration_id = logged['migrationId']
+            except KeyError:
+                DEV_LOGGER.debug('Detail="archive_logs: There is no migrationId key, contents: %s"', logged)
+
+        DEV_LOGGER.debug('Detail="archive_logs: migration_id=%s, last_known_migration_id=%s"'
+                         % (migration_id, last_known_migration_id))
+
+        is_valid = False
+        if not migration_id:
+            DEV_LOGGER.info('Detail="archive_logs: No migration log request id to process"')
+            log_entry['status'] = 'no_migration_id'
+        elif last_known_migration_id == migration_id:
+            DEV_LOGGER.debug('Detail="archive_logs: No change to migration log request id, nothing to do"')
+            log_entry['status'] = 'migration_id_unchanged'
+        else:
+            is_valid = True
+
+        return is_valid, log_entry
+
+    @staticmethod
+    def get_migration_log_expiry():
+        """ Generate Migration Log Expiry TIme """
+        expiry = datetime.datetime.now() + datetime.timedelta(ManagementConnectorProperties.MIGRATION_LOG_EXPIRY)
+        return expiry.strftime('%Y-%m-%dT%H:%M:%S')
+
+    @staticmethod
+    def build_archive(quantity, serial_number, migration_id=''):
         """ Build an Archive with the hybrid service logs """
 
         cmd_response = 0
         cmd_output = None
 
-        log_file = "/tmp/" + LogArchiver.generate_log_name(serial_number)  # nosec - /tmp usage validated
+        if migration_id:
+            # create an empty log file to enable logrotate handler
+            empty_log_file = FEDERATION_ORG_MIGRATION_LOG_DIR + "hybrid_services_migration_log"
+            # create if file/directory doesn't exist - by default should be taken care by c_mgmt init
+            os.makedirs(os.path.dirname(FEDERATION_ORG_MIGRATION_LOG_DIR), exist_ok=True)
+            open(empty_log_file, mode='a').close()
+            log_file = FEDERATION_ORG_MIGRATION_LOG_DIR + LogArchiver.generate_log_name(None, migration_id)
+        else:
+            log_file = "/tmp/" + LogArchiver.generate_log_name(serial_number, None)  # nosec - /tmp usage validated
 
         files = sorted(glob.iglob(HYBRID_SERVICES_LOG), key=os.path.getmtime, reverse=True)
 
@@ -190,11 +333,16 @@ class LogArchiver(object):
 
         LogArchiver.gather_config_files()
 
+        migration_log_archives = LogArchiver.gather_migration_log_archives()
+
         matching_files = first_x_files + glob.glob(PACKAGED_LOGS) + glob.glob(HYBRID_SERVICES_LOG_DIR + "*.json")
 
         files_to_tar = [os.path.basename(entry) for entry in matching_files]
 
         files_to_tar += glob.glob(CONFIGURATION_FILES_DIR + "*.json")
+
+        files_to_tar += [FEDERATION_ORG_MIGRATION_LOG_DIR_NAME + os.path.basename(archive) for archive in
+                         migration_log_archives]
 
         tar_command = ["tar", "-zcvf", log_file] + files_to_tar + ["--ignore-failed-read"]
 
@@ -213,13 +361,15 @@ class LogArchiver(object):
         return [cmd_response, cmd_output, log_file, end_archive_timer - start_archive_timer]
 
     @staticmethod
-    def generate_log_name(serial_number):
+    def generate_log_name(serial_number, migration_id=''):
         """ Build an Archive with the hybrid service logs """
-
-        meta_file = "hybrid_services_log"
+        if not serial_number and migration_id:
+            meta_file = "hybrid_services_migration_archive"  # Build an archive with migration id in place of serial no.
+        else:
+            meta_file = "hybrid_services_log"
         current_time = datetime.datetime.now().strftime('%d_%b_%Y_%H_%M_%S')
         meta_file += '_' + current_time
-        meta_file += '_' + serial_number
+        meta_file += '_' + (serial_number if serial_number else migration_id)
         meta_file += ".tar.gz"
 
         return meta_file
@@ -338,4 +488,22 @@ class LogArchiver(object):
                 LogArchiver.strip_pii_from_file(config_file, CONFIGURATION_FILES_DIR + os.path.basename(config_file))
         except (OSError, IOError) as ex:
             DEV_LOGGER.debug('Detail="gather_config_files: failed to collect connector configuration files. '
+                             'Exception: %s, Stacktrace: %s"' % (ex, traceback.print_exc()))
+
+    @staticmethod
+    def gather_migration_log_archives():
+        """
+            Gather migration log archives files and store them in a temporary directory
+        """
+        DEV_LOGGER.info('Detail="gather_migration_log_archives: collect the latest migration log archive"')
+        try:
+            if os.path.exists(FEDERATION_ORG_MIGRATION_LOG_DIR):
+                # sort and pick the latest archive
+                files = sorted(glob.iglob(FEDERATION_ORG_MIGRATION_LOG_ARCHIVE), key=os.path.getmtime, reverse=True)
+                if len(files):
+                    return files[:1]
+                else:
+                    return []
+        except (OSError, IOError) as ex:
+            DEV_LOGGER.debug('Detail="gather_migration_log_archives: failed to collect migration log archives. '
                              'Exception: %s, Stacktrace: %s"' % (ex, traceback.print_exc()))

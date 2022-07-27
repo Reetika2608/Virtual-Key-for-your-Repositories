@@ -232,6 +232,15 @@ init_files()
 
     cat ${NEW_FUSION_CERTS_TO_ADD} > ${FUSION_CA}/fusion.pem
     chown -R _c_mgmt:_c_mgmt ${FUSION_CA}/
+
+    #
+    # FEDERATION ORG MIGRATION LOG
+    #
+    FEDERATION_LOG_DIR=/mnt/harddisk/log/federation_org_migration
+
+    mkdir -p ${FEDERATION_LOG_DIR}
+
+    chown -R _c_mgmt:_c_mgmt ${FEDERATION_LOG_DIR}/
 }
 
 #

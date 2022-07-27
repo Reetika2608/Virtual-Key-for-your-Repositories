@@ -468,6 +468,16 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     CONNECTOR_OPERATIONAL_STATE_WAIT_TIME = 180
     CONNECTOR_PERMITTED_OPERATIONAL_STATES = ["true", "operational"]
 
+    # Migration Log Archival
+    MIGRATION_LOGGING_IDENTIFIER = MIGRATION_BASE + "logging_identifier"
+    LAST_KNOWN_MIGRATION_LOG_ID = '/mnt/harddisk/persistent/fusion/log/migration_log_id.json'
+    MIGRATION_LOGGING_QUANTITY_DEFAULT = 50
+    # Max retention period in days
+    MIGRATION_LOG_EXPIRY = 30
+    # also update the same in hybridserviceslog-rotate.conf for "hybrid_services_migration_log",
+    # i.e: -mtime +<number of days> . Please fine sample below.
+    # /usr/bin/find /mnt/harddisk/log/federation_org_migration/ -maxdepth 1 -mtime +30 -type f -iname "*.tar.gz" -delete
+
     # -------------------------------------------------------------------------
     # TAA-CRYPTO SHARED UTILITY PATHS
     # -------------------------------------------------------------------------
