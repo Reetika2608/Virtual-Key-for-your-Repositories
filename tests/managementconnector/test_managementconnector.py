@@ -86,6 +86,7 @@ def config_read_certs_side_effect(*args, **kwargs):
 class ManagementConnectorTest(unittest.TestCase):
     """ Management Connector Test Class """
 
+    @mock.patch('managementconnector.platform.logarchiver.LogArchiver.archive_logs_async')
     @mock.patch('managementconnector.platform.logarchiver.LogArchiver.push_logs_async')
     @mock.patch('managementconnector.mgmtconnector.WatchdogThread')
     @mock.patch('managementconnector.mgmtconnector.FeatureThread')
@@ -99,7 +100,9 @@ class ManagementConnectorTest(unittest.TestCase):
     @mock.patch('managementconnector.mgmtconnector.Deploy')
     @mock.patch('managementconnector.mgmtconnector.Config')
     @mock.patch('managementconnector.config.certhandler.FilesystemManager')
-    def test_on_config_update_c_mgmt(self, mock_fs_manager, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_machine, mock_mercury, mock_u2c,  mock_toggle, mock_thread, mock_watchdog, mock_push_logs_async):
+    def test_on_config_update_c_mgmt(self, mock_fs_manager, mock_config, mock_deploy, mock_manager, mock_request,
+                                     mock_installing, mock_machine, mock_mercury, mock_u2c, mock_toggle, mock_thread,
+                                     mock_watchdog, mock_push_logs_async, mock_archive_logs_async):
         """ Test ManagementConnector on_config_update for c_mgmt"""
 
         # Set Mocks
@@ -125,7 +128,9 @@ class ManagementConnectorTest(unittest.TestCase):
         mc.on_config_update()
         self.assertFalse(mc.deployed)
         mock_push_logs_async.assert_called()
+        mock_archive_logs_async.assert_called()
 
+    @mock.patch('managementconnector.platform.logarchiver.LogArchiver.archive_logs_async')
     @mock.patch('managementconnector.platform.logarchiver.LogArchiver.push_logs_async')
     @mock.patch('managementconnector.platform.serviceutils.CafeXUtils.is_package_installing')
     @mock.patch('managementconnector.mgmtconnector.ServiceUtils.request_service_change')
@@ -133,7 +138,8 @@ class ManagementConnectorTest(unittest.TestCase):
     @mock.patch('managementconnector.mgmtconnector.Deploy')
     @mock.patch('managementconnector.mgmtconnector.Config')
     @mock.patch('managementconnector.config.certhandler.FilesystemManager')
-    def test_on_config_update_c_cal(self, mock_fs_manager, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_push_logs_async):
+    def test_on_config_update_c_cal(self, mock_fs_manager, mock_config, mock_deploy, mock_manager, mock_request,
+                                    mock_installing, mock_push_logs_async, mock_archive_logs_async):
         """ Test ManagementConnector on_config_update for Exchange Calendar """
         service_path = "/configuration/service/name/c_cal"
 
@@ -159,7 +165,9 @@ class ManagementConnectorTest(unittest.TestCase):
         mode = mc._config.read(service_path)
         self.assertTrue(mode['mode'] == "off")
         mock_push_logs_async.assert_called()
+        mock_archive_logs_async.assert_called()
 
+    @mock.patch('managementconnector.platform.logarchiver.LogArchiver.archive_logs_async')
     @mock.patch('managementconnector.platform.logarchiver.LogArchiver.push_logs_async')
     @mock.patch('managementconnector.mgmtconnector.WatchdogThread')
     @mock.patch('managementconnector.mgmtconnector.FeatureThread')
@@ -173,7 +181,10 @@ class ManagementConnectorTest(unittest.TestCase):
     @mock.patch('managementconnector.mgmtconnector.Deploy')
     @mock.patch('managementconnector.mgmtconnector.Config')
     @mock.patch('managementconnector.config.certhandler.FilesystemManager')
-    def test_on_config_update_both_connectors(self, mock_fs_manager, mock_config, mock_deploy, mock_manager, mock_request, mock_installing, mock_machine, mock_mercury, mock_toggle, mock_u2c_thread,  mock_feature_thread, mock_watchdog, mock_push_logs_async):
+    def test_on_config_update_both_connectors(self, mock_fs_manager, mock_config, mock_deploy, mock_manager,
+                                              mock_request, mock_installing, mock_machine, mock_mercury, mock_toggle,
+                                              mock_u2c_thread, mock_feature_thread, mock_watchdog, mock_push_logs_async,
+                                              mock_archive_logs_async):
         """ Test ManagementConnector on_config_update for c_mgmt and c_cal"""
         service_path = "/configuration/service/name/c_cal"
 
@@ -194,6 +205,7 @@ class ManagementConnectorTest(unittest.TestCase):
         self.assertTrue(mock_mercury.start.called, "mercury_runner start was not called when expected, called: %s" % mock_mercury.start.called)
         self.assertTrue(mock_machine.start.called, "machine_runner start was not called when expected, called: %s" % mock_machine.start.called)
         mock_push_logs_async.assert_called()
+        mock_archive_logs_async.assert_called()
 
         mode = mc._config.read(service_path)
         self.assertTrue(mode['mode'] == "on")

@@ -15,6 +15,17 @@ from managementconnector.platform.http import CertificateExceptionInvalidCert
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
 
+def read_file_side_effect(file_path):
+    if file_path == "log_file.3":
+        file_content = "FMC_FederationOrgMigration: migrate: Migration started, migrationId=12345"
+        return file_content
+    elif file_path == "log_file.4":
+        file_content = "dummy log file \n5678"
+        return file_content
+    else:
+        return ''
+
+
 class LogArchiverTest(unittest.TestCase):
     """ Unit test class for LogArchiver """
 
@@ -30,12 +41,35 @@ class LogArchiverTest(unittest.TestCase):
 
     @mock.patch("managementconnector.config.jsonhandler.read_json_file")
     @mock.patch("managementconnector.config.config.Config")
-    def test_validate_request_with_same_last_known_log_id_returns_false(self, mock_config, mock_read_json_file):
+    def test_validate_migration_log_request_with_no_last_known_log_id_returns_true(self, mock_config,
+                                                                                   mock_read_json_file):
+        """ Unit Test to test validate_migration_log_request() """
+        migration_id = "12345"
+        mock_read_json_file.return_value = None
+        expected_log_entry = (True, {"migrationId": migration_id, "status": "starting"})
+        log_entry = LogArchiver.validate_migration_log_request(mock_config, migration_id)
+        self.assertEqual(log_entry, expected_log_entry)
+
+    @mock.patch("managementconnector.config.jsonhandler.read_json_file")
+    @mock.patch("managementconnector.config.config.Config")
+    def test_validate_request_with_same_last_known_log_id_returns_false(self,
+                                                                        mock_config, mock_read_json_file):
         """ User Story: US16645: Add Push Log Command """
         log_request_id = "12345"        
         mock_read_json_file.return_value = {"logsearchId": log_request_id}
         expected_log_entry = (False, {"logsearchId": log_request_id, "status": "log_uuid_unchanged"})
         log_entry = LogArchiver.validate_request(mock_config, log_request_id)
+        self.assertEqual(log_entry, expected_log_entry)
+
+    @mock.patch("managementconnector.config.jsonhandler.read_json_file")
+    @mock.patch("managementconnector.config.config.Config")
+    def test_validate_migration_log_request_with_same_last_known_log_id_returns_false(
+            self, mock_config, mock_read_json_file):
+        """ Unit Test to test validate_migration_log_request() """
+        migration_id = "12345"
+        mock_read_json_file.return_value = {"migrationId": migration_id}
+        expected_log_entry = (False, {"migrationId": migration_id, "status": "migration_id_unchanged"})
+        log_entry = LogArchiver.validate_migration_log_request(mock_config, migration_id)
         self.assertEqual(log_entry, expected_log_entry)
 
     @mock.patch("managementconnector.config.jsonhandler.read_json_file")
@@ -49,6 +83,18 @@ class LogArchiverTest(unittest.TestCase):
         log_entry = LogArchiver.validate_request(mock_config, log_request_id)
         self.assertEqual(log_entry, expected_log_entry)
 
+    @mock.patch("managementconnector.config.jsonhandler.read_json_file")
+    @mock.patch("managementconnector.config.config.Config")
+    def test_validate_migration_log_request_with_no_a_log_request_id_not_passed_or_in_config_returns_false(
+            self, mock_config, mock_read_json_file):
+        """ Unit Test to test validate_migration_log_request() """
+        migration_id = ""
+        mock_read_json_file.return_value = None
+        mock_config.read.return_value = None
+        expected_log_entry = (False, {"migrationId": migration_id, "status": "no_migration_id"})
+        log_entry = LogArchiver.validate_migration_log_request(mock_config, migration_id)
+        self.assertEqual(log_entry, expected_log_entry)
+
     @mock.patch("managementconnector.platform.logarchiver.LogArchiver.validate_request")
     @mock.patch("managementconnector.cloud.atlaslogger.AtlasLogger")
     @mock.patch("managementconnector.config.config.Config")
@@ -59,6 +105,16 @@ class LogArchiverTest(unittest.TestCase):
         mock_validate_request.return_value = False, log_entry
         push_log_response = LogArchiver.push_logs(mock_config, mock_atlas_logger, log_request_id)
         self.assertEqual(log_entry, push_log_response)
+
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.validate_migration_log_request")
+    @mock.patch("managementconnector.config.config.Config")
+    def test_archive_logs_doesnt_archive_log_if_request_is_not_valid(self, mock_config, mock_validate_request):
+        """ User Story: US16645: Add Archive Log Command """
+        migration_id = ""
+        log_entry = {"migrationId": migration_id, "status": "no_migration_uuid"}
+        mock_validate_request.return_value = False, log_entry
+        archive_log_response = LogArchiver.archive_logs(mock_config, migration_id)
+        self.assertEqual(log_entry, archive_log_response)
 
     @mock.patch("managementconnector.platform.logarchiver.time.time")
     @mock.patch("managementconnector.platform.logarchiver.EventSender.post")
@@ -105,6 +161,79 @@ class LogArchiverTest(unittest.TestCase):
                                             "measurementName": "logPushEvent"})
 
         self.assertEqual(log_entry, push_log_response)
+
+    @mock.patch("managementconnector.platform.logarchiver.time.time")
+    @mock.patch("managementconnector.config.jsonhandler.write_json_file")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.rm_config_files")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.get_migration_log_expiry")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.build_archive")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.get_migration_log_file_quantity")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.validate_migration_log_request")
+    @mock.patch("managementconnector.config.config.Config")
+    def test_archive_logs_does_archive_log_if_request_is_valid(self, mock_config, mock_validate_request,
+                                                         mock_get_migration_log_file_quantity, mock_build_archive,
+                                                         mock_get_migration_log_expiry, mock_rm_config,
+                                                         mock_write_json_file,
+                                                         mock_time):
+        """ Unit Test to test archive_logs() """
+        migration_id = "12345"
+        log_entry = {"migrationId": migration_id, "status": "starting",
+                     "migration_start_timestamp": "1234"}
+        mock_validate_request.return_value = True, log_entry
+        mock_get_migration_log_file_quantity.return_value = 15
+        mock_build_archive.return_value = [0, "command output", "log_file_name", 0]
+        mock_time.return_value = 1234
+        mock_get_migration_log_expiry.return_value = "6789"
+
+        archive_log_response = LogArchiver.archive_logs(mock_config, migration_id)
+        log_entry = {"migrationId": migration_id, "status": "complete",
+                     'migration_start_timestamp': '1234',
+                     'expiry': "6789", 'log_file': 'log_file_name'}
+        mock_write_json_file.assert_called_with(ManagementConnectorProperties.LAST_KNOWN_MIGRATION_LOG_ID, log_entry)
+        mock_rm_config.assert_called()
+
+        self.assertEqual(log_entry, archive_log_response)
+
+    @mock.patch("managementconnector.platform.logarchiver.time.time")
+    @mock.patch("managementconnector.config.jsonhandler.write_json_file")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.rm_config_files")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.get_migration_log_expiry")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.build_archive")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.get_migration_log_file_quantity")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.validate_migration_log_request")
+    @mock.patch("managementconnector.config.config.Config")
+    def test_archive_logs_emit_failure_on_exception(self, mock_config, mock_validate_request,
+                                                            mock_get_migration_log_file_quantity, mock_build_archive,
+                                                            mock_get_migration_log_expiry, mock_rm_config,
+                                                            mock_write_json_file,
+                                                            mock_time):
+        """ Unit Test to test archive_logs() """
+        migration_id = "12345"
+        log_entry = {"migrationId": migration_id, "status": "starting",
+                     "migration_start_timestamp": "1234"}
+        mock_validate_request.return_value = True, log_entry
+        mock_get_migration_log_file_quantity.return_value = 15
+        mock_build_archive.return_value = Exception
+        mock_time.return_value = 1234
+        mock_get_migration_log_expiry.return_value = 6789
+
+        archive_log_response = LogArchiver.archive_logs(mock_config, migration_id)
+        log_entry = {"migrationId": migration_id, "status": "archive failed", "migration_start_timestamp": "1234"}
+        mock_write_json_file.assert_called_with(ManagementConnectorProperties.LAST_KNOWN_MIGRATION_LOG_ID, log_entry)
+
+        self.assertEqual(log_entry, archive_log_response)
+
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.read_file_content")
+    @mock.patch("managementconnector.platform.logarchiver.LogArchiver.get_sorted_files")
+    def test_get_migration_log_file_quantity(self, mock_get_sorted_files, mock_read_file_content):
+        mock_get_sorted_files.return_value = ["log_file", "log_file.1", "log_file.2", "log_file.3", "log_file.4",
+                                              "log_file.5"]
+        mock_read_file_content.side_effect = read_file_side_effect
+        migration_id = 12345
+        timestamp = '5678'
+        expected_quantity = 5
+        quantity = LogArchiver.get_migration_log_file_quantity(timestamp, migration_id)
+        self.assertEqual(quantity, expected_quantity)
 
     @mock.patch("os.path.getsize")
     @mock.patch("managementconnector.platform.logarchiver.time.time")
