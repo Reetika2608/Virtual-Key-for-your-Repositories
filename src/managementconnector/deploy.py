@@ -304,19 +304,6 @@ class Deploy(object):
 
                 return
 
-            # response['orgMigration'] = {
-            #                             "org-id": "690ab55a4-ab5b-4ac8-9a40-cf298c6edaf2",
-            #                             "migration-id": "14d09ef-bc33-4c91-b1db-7fd8acfd1b6c",
-            #                             "identity-source": "urn:IDENTITY:PF84",
-            #                             "identity-target": "urn:IDENTITY:PE93",
-            #                             "teams-source": "urn:TEAM:us-east-1_int13",
-            #                             "teams-target": "urn:TEAM:us-west-2_int24",
-            #                             "meetings-source": "urn:MEETING:prod-dwwd",
-            #                             "meetings-target": "urn:MEETING:prod-vvwd",
-            #                             "start-at": "2022-07-24T21:10:00.000Z",
-            #                             "workstream-startedAt": "2022-01-12T15:49:23.139327Z",
-            #                             "fms-migration-state": "STARTED"
-            #                             }
             # proceed with migration workflow if migration is scheduled else resume normal workflow
             self._process_federation_org_migration(response)
 
@@ -461,7 +448,6 @@ class Deploy(object):
         if response is None:
             response = {}
         try:
-            # status_code = 302
             if response.get('orgMigration') or status_code == HTTPStatus.FOUND.value:
                 federation_org_migration_data = response.get('orgMigration') or {}  # assign empty dict if not found
                 DEV_LOGGER.info(

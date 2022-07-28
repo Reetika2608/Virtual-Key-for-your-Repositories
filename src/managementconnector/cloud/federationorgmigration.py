@@ -211,8 +211,6 @@ class FederationOrgMigration(object):
             fms_migration_state = federation_org_migration_data.get("fms-migration-state", "")
         else:
             fms_migration_state = self._config.read(ManagementConnectorProperties.FMS_MIGRATION_STATE)
-        # fms_migration_state = 'STARTED'
-        # self.process_migration_data(federation_org_migration_data)
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: migrate: migration state=%s"' % fms_migration_state)
 
         # flag to archive federation org migration logs
