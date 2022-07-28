@@ -216,13 +216,14 @@ class LogArchiver(object):
     @staticmethod
     def get_migration_log_file_quantity(timestamp, migration_id):
         """
+            X = ManagementConnectorProperties.MIGRATION_LOGGING_QUANTITY_DEFAULT # configurable
             Get log file index based on search string presence
-            Iterate through the log files upto max 50
+            Iterate through the log files upto max X
             until primary and secondary
             search strings are found
                 return the log file index + 1 to archive
             else
-                return 0 -> Archive default 50 log files sorted descending by time
+                return 0 -> Archive default X log files sorted descending by time
         """
         log_file_quantity = 0
         try:
@@ -249,7 +250,8 @@ class LogArchiver(object):
 
     @staticmethod
     def get_sorted_files():
-        return sorted(glob.iglob(HYBRID_SERVICES_LOG), key=os.path.getmtime, reverse=True)[:50]
+        max_files = ManagementConnectorProperties.MIGRATION_LOGGING_QUANTITY_DEFAULT
+        return sorted(glob.iglob(HYBRID_SERVICES_LOG), key=os.path.getmtime, reverse=True)[:max_files]
 
     @staticmethod
     def read_file_content(file_path):
@@ -333,16 +335,16 @@ class LogArchiver(object):
 
         LogArchiver.gather_config_files()
 
-        migration_log_archives = LogArchiver.gather_migration_log_archives()
-
         matching_files = first_x_files + glob.glob(PACKAGED_LOGS) + glob.glob(HYBRID_SERVICES_LOG_DIR + "*.json")
 
         files_to_tar = [os.path.basename(entry) for entry in matching_files]
 
         files_to_tar += glob.glob(CONFIGURATION_FILES_DIR + "*.json")
 
-        files_to_tar += [FEDERATION_ORG_MIGRATION_LOG_DIR_NAME + os.path.basename(archive) for archive in
-                         migration_log_archives]
+        if not migration_id:
+            migration_log_archives = LogArchiver.gather_migration_log_archives()
+            files_to_tar += [FEDERATION_ORG_MIGRATION_LOG_DIR_NAME + os.path.basename(archive) for archive in
+                             migration_log_archives]
 
         tar_command = ["tar", "-zcvf", log_file] + files_to_tar + ["--ignore-failed-read"]
 
@@ -493,7 +495,7 @@ class LogArchiver(object):
     @staticmethod
     def gather_migration_log_archives():
         """
-            Gather migration log archives files and store them in a temporary directory
+            Gather migration log archive list
         """
         DEV_LOGGER.info('Detail="gather_migration_log_archives: collect the latest migration log archive"')
         try:

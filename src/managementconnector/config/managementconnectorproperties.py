@@ -471,7 +471,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     # Migration Log Archival
     MIGRATION_LOGGING_IDENTIFIER = MIGRATION_BASE + "logging_identifier"
     LAST_KNOWN_MIGRATION_LOG_ID = '/mnt/harddisk/persistent/fusion/log/migration_log_id.json'
-    MIGRATION_LOGGING_QUANTITY_DEFAULT = 50
+    MIGRATION_LOGGING_QUANTITY_DEFAULT = 25
     # Max retention period in days
     MIGRATION_LOG_EXPIRY = 30
     # also update the same in hybridserviceslog-rotate.conf for "hybrid_services_migration_log",
