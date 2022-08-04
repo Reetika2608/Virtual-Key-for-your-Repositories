@@ -189,11 +189,11 @@ class LogArchiver(object):
         with LogArchiver.lock:
             is_valid, log_entry = LogArchiver.validate_migration_log_request(config, migration_id)
             if is_valid:
-                DEV_LOGGER.debug('Detail="archive_logs: Start archiving logs"')
+                DEV_LOGGER.info('Detail="archive_logs: Start archiving logs"')
                 try:
                     migration_log_quantity = LogArchiver.get_migration_log_file_quantity(
                         log_entry["migration_start_timestamp"], log_entry['migrationId'])
-                    DEV_LOGGER.info('Detail="archive_logs: Archive quantity=%s"' % migration_log_quantity)
+                    DEV_LOGGER.debug('Detail="archive_logs: Archive quantity=%s"' % migration_log_quantity)
                     log_archive_res = LogArchiver.build_archive(migration_log_quantity, None, log_entry['migrationId'])
                     # Return code 0 is fully successful. 1 is successful but logs have rolled underneath during
                     if log_archive_res[0] in [0, 1]:
@@ -203,10 +203,10 @@ class LogArchiver(object):
                     else:
                         log_entry['status'] = 'archive failed'
                     log_entry['log_file'] = log_archive_res[2]
-                    DEV_LOGGER.debug('Detail="archive_logs: Migration Log Archival Completed, status=%s"' % log_entry)
+                    DEV_LOGGER.info('Detail="archive_logs: Migration Log Archival Completed, status=%s"' % log_entry)
                 except Exception as e:  # pylint: disable=W0703
                     log_entry['status'] = 'archive failed'
-                    DEV_LOGGER.debug(
+                    DEV_LOGGER.error(
                         'Detail="archive_logs: Migration Log Archival Failed, status=%s, exc=%s, stacktrace=%s"' % (
                         log_entry, str(e), traceback.print_exc()))
                 jsonhandler.write_json_file(ManagementConnectorProperties.LAST_KNOWN_MIGRATION_LOG_ID, log_entry)
