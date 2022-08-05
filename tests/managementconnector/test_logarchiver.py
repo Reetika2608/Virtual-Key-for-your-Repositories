@@ -16,6 +16,12 @@ DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
 
 def read_file_side_effect(file_path):
+    """
+        Side Effect method for read_file()
+        This method mocks the real world behaviour of reading log files from disk
+
+        Please check test_get_migration_log_file_quantity() for more info.
+    """
     if file_path == "log_file.3":
         file_content = "FMC_FederationOrgMigration: migrate: Migration started, migrationId=12345"
         return file_content
@@ -226,6 +232,18 @@ class LogArchiverTest(unittest.TestCase):
     @mock.patch("managementconnector.platform.logarchiver.LogArchiver.read_file_content")
     @mock.patch("managementconnector.platform.logarchiver.LogArchiver.get_sorted_files")
     def test_get_migration_log_file_quantity(self, mock_get_sorted_files, mock_read_file_content):
+        """
+            This test is to check the functionality of LogArchiver.get_migration_log_file_quantity()
+
+            read_file_side_effect() => Our requirement here is
+            to mock the scenario where log files are searched starting from log_file,
+            log_file.1,... till log_file.5 for the two search strings(primary/migration
+            start string and secondary/migration start timestamp).
+
+            our expected_quantity is '5',
+            in ideal scenario this would be returned only if either one or
+            both the search strings are found within the first 5 log files.
+        """
         mock_get_sorted_files.return_value = ["log_file", "log_file.1", "log_file.2", "log_file.3", "log_file.4",
                                               "log_file.5"]
         mock_read_file_content.side_effect = read_file_side_effect
