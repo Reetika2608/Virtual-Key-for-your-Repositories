@@ -235,14 +235,17 @@ class LogArchiverTest(unittest.TestCase):
         """
             This test is to check the functionality of LogArchiver.get_migration_log_file_quantity()
 
-            read_file_side_effect() => Our requirement here is
-            to mock the scenario where log files are searched starting from log_file,
-            log_file.1,... till log_file.5 for the two search strings(primary/migration
-            start string and secondary/migration start timestamp).
+            Our requirement here is to mock the scenario where log files are searched
+            starting from log_file, log_file.1,... till log_file.5 for the two search
+            strings(primary/migration start string and secondary/migration start timestamp).
 
             our expected_quantity is '5',
             in ideal scenario this would be returned only if either one or
             both the search strings are found within the first 5 log files.
+
+            read_file_side_effect() => this side effect method serves the purpose for testing the
+                                     scenario mentioned above by returning primary and secondary search strings
+                                     on fourth and fifth log files respectively.
         """
         mock_get_sorted_files.return_value = ["log_file", "log_file.1", "log_file.2", "log_file.3", "log_file.4",
                                               "log_file.5"]
