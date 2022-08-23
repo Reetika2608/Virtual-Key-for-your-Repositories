@@ -42,9 +42,7 @@ def config_empty_read_side_effect(*args, **kwargs):
 
 def config_blacklist_read_side_effect(*args, **kwargs):
     if args[0] == ManagementConnectorProperties.INSTALL_BLACK_LIST:
-        return {"c_ucmc": {"url": "http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.337.tlp",
-                           "version": "8.6-1.0.337"},
-                "c_cal": {
+        return {"c_cal": {
                     "url": "https://sqfusion-jenkins.cisco.com/job/PIPELINE_CALCLOUD_PROMOTED/lastSuccessfulBuild/artifact/c_cal_8.6-1.0.933.tlp",
                     "version": "8.6-1.0.933"}}
 
@@ -105,47 +103,33 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
                               'enabled': 'false', 'connector_type': 'c_cal', 'version': '8.6-1.0.933'},
                              {'display_name': 'Fusion Management', 'name': 'c_mgmt',
                               'url': 'http://somwhere/c_mgmt_8.6-1.0.001.tlp', 'enabled': 'false',
-                              'connector_type': 'c_mgmt', 'version': '8.6-1.0.001'},
-                             {'display_name': 'UCM Service', 'name': 'c_ucmc',
-                              'url': 'http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.337.tlp',
-                              'enabled': 'false', 'connector_type': 'c_ucmc', 'version': '8.6-1.0.337'}]
+                              'connector_type': 'c_mgmt', 'version': '8.6-1.0.001'}]
 
         mock_config.read.side_effect = config_empty_read_side_effect
         mock_previous.return_value = {}
 
         deploy._overlay_blacklist(connectors_config)
 
-        self.assertEqual(connectors_config[2]['url'],
-                         'http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.337.tlp')
-        self.assertEqual(connectors_config[2]['version'], '8.6-1.0.337')
         self.assertFalse(mock_alarm.is_raised("a2a259b5-93a6-4a1a-b03d-36ac0987e6db"))
 
         #
-        # cal and ucm black listed
+        # cal black listed
         #
         connectors_config = [{'display_name': 'Calendar Service', 'name': 'c_cal',
                               'url': 'https://sqfusion-jenkins.cisco.com/job/PIPELINE_CALCLOUD_PROMOTED/lastSuccessfulBuild/artifact/c_cal_8.6-1.0.933.tlp',
                               'enabled': 'false', 'connector_type': 'c_cal', 'version': '8.6-1.0.933'},
                              {'display_name': 'Fusion Management', 'name': 'c_mgmt',
                               'url': 'http://somwhere/c_mgmt_8.6-1.0.001.tlp', 'enabled': 'false',
-                              'connector_type': 'c_mgmt', 'version': '8.6-1.0.001'},
-                             {'display_name': 'UCM Service', 'name': 'c_ucmc',
-                              'url': 'http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.337.tlp',
-                              'enabled': 'false', 'connector_type': 'c_ucmc', 'version': '8.6-1.0.337'}]
+                              'connector_type': 'c_mgmt', 'version': '8.6-1.0.001'}]
 
         mock_config.read.side_effect = config_blacklist_read_side_effect
         mock_previous.return_value = {
-            "c_ucmc": {"url": "http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.300.tlp",
-                       "version": "8.6-1.0.300"},
             "c_cal": {
                 "url": "https://sqfusion-jenkins.cisco.com/job/PIPELINE_CALCLOUD_PROMOTED/lastSuccessfulBuild/artifact/c_cal_8.6-1.0.900.tlp",
                 "version": "8.6-1.0.900"}}
 
         deploy._overlay_blacklist(connectors_config)
 
-        self.assertEqual(connectors_config[2]['url'],
-                         'http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.300.tlp')
-        self.assertEqual(connectors_config[2]['version'], '8.6-1.0.300')
         self.assertEqual(connectors_config[0]['url'],
                          'https://sqfusion-jenkins.cisco.com/job/PIPELINE_CALCLOUD_PROMOTED/lastSuccessfulBuild/artifact/c_cal_8.6-1.0.900.tlp')
         self.assertEqual(connectors_config[0]['version'], '8.6-1.0.900')
@@ -159,19 +143,13 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
                               'enabled': 'false', 'connector_type': 'c_cal', 'version': '8.6-1.0.933'},
                              {'display_name': 'Fusion Management', 'name': 'c_mgmt',
                               'url': 'http://somwhere/c_mgmt_8.6-1.0.001.tlp', 'enabled': 'false',
-                              'connector_type': 'c_mgmt', 'version': '8.6-1.0.001'},
-                             {'display_name': 'UCM Service', 'name': 'c_ucmc',
-                              'url': 'http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.337.tlp',
-                              'enabled': 'false', 'connector_type': 'c_ucmc', 'version': '8.6-1.0.337'}]
+                              'connector_type': 'c_mgmt', 'version': '8.6-1.0.001'}]
 
         mock_config.read.side_effect = config_empty_read_side_effect
         mock_previous.return_value = {}
 
         deploy._overlay_blacklist(connectors_config)
 
-        self.assertEqual(connectors_config[2]['url'],
-                         'http://jebaraj-lnx.cisco.com:8080/ucmc-tlp/c_ucmc_8.6-1.0.337.tlp')
-        self.assertEqual(connectors_config[2]['version'], '8.6-1.0.337')
         self.assertFalse(mock_alarm.is_raised("a2a259b5-93a6-4a1a-b03d-36ac0987e6db"))
 
     @mock.patch("managementconnector.service.eventsender.EventSender")

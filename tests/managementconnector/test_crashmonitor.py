@@ -32,8 +32,7 @@ def config_read(path, alarm_list):
         return "org%sid%s"
     elif path == ManagementConnectorProperties.ENTITLED_SERVICES:
         return [{"display_name": "Management Connector", "name": "c_mgmt"},
-                {"display_name": "Calendar Connector", "name": "c_cal"},
-                {"display_name": "Call Connector", "name": "c_ucmc"}]
+                {"display_name": "Calendar Connector", "name": "c_cal"}]
 
     return "config_value"
 
@@ -45,22 +44,6 @@ def get_test_time(subtract=0):
     current_time = int((date_time - datetime.datetime(1970, 1, 1)).total_seconds()) - subtract
 
     return current_time
-
-
-def config_new_crash_read(path):
-    """ config class mock """
-    # Simulate Alarm within last hearbeat
-    alarm_list = [{'severity': 'error', 'parameters': ['/opt/c_ucmc/bin/c_ucmc.sh /var/run/c_ucmc/c_ucmc.pid', 1], 'last_reported': get_test_time(0), 'solution_links': 'restartoptions?restart', 'first_reported': '1493220035', 'id': '15019', 'uuid': '1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
-
-    return config_read(path, alarm_list)
-
-
-def config_old_crash_read(path):
-    """ config class mock """
-    # Simulate Alarm outside last hearbeat
-    alarm_list = [{'severity': 'error', 'parameters': ['/opt/c_ucmc/bin/c_ucmc.sh /var/run/c_ucmc/c_ucmc.pid', 1], 'last_reported': get_test_time(120), 'solution_links': 'restartoptions?restart', 'first_reported': '1493220035', 'id': '15019', 'uuid': '1a18bfa6-f822-11e1-b0db-c35cb1b8e3e5'}]
-
-    return config_read(path, alarm_list)
 
 
 def config_no_platform_crash_read(path):
@@ -121,25 +104,6 @@ class CrashMonitorTest(unittest.TestCase):
         CrashMonitor(self.config_mock).crash_check(self.header, self.config_mock)
         self.assertFalse(mock_post.called, 'Event post is called.')
 
-    @mock.patch('managementconnector.service.crashmonitor.jsonhandler')
-    @mock.patch('managementconnector.service.eventsender.EventSender.post')
-    def test_crash_not_reported_if_it_happened_before_last_heartbeat(self, mock_post, mock_json):
-        """ User Story: US15777: Metrics: Pass Connector Crash Info to new Events API"""
-        #  Mock Config Object has platform alarms, but they happened before last heartbeat
-        self.config_mock.read.side_effect = config_old_crash_read
-        mock_json.get_last_modified_timestamp.return_value = get_test_time(60)
-        CrashMonitor(self.config_mock).crash_check(self.header, self.config_mock)
-        self.assertFalse(mock_post.called, 'Event post is called.')
-
-    @mock.patch('managementconnector.service.crashmonitor.jsonhandler')
-    @mock.patch('managementconnector.service.eventsender.EventSender.post')
-    def test_crash_reported_if_it_happened_after_last_heartbeat(self, mock_post, mock_json):
-        """ User Story: US15777: Metrics: Pass Connector Crash Info to new Events API"""
-        #  Mock Config Object has platform alarms, but they happened since last heartbeat
-        self.config_mock.read.side_effect = config_new_crash_read
-        mock_json.get_last_modified_timestamp.return_value = get_test_time(60)
-        CrashMonitor(self.config_mock).crash_check(self.header, self.config_mock)
-        self.assertTrue(mock_post.called, 'Event post is not called.')
 
     @mock.patch('managementconnector.service.crashmonitor.jsonhandler')
     @mock.patch('managementconnector.service.eventsender.EventSender.post')

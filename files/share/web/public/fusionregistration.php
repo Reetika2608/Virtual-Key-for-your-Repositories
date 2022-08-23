@@ -36,7 +36,7 @@ class CafePage extends ApplicationPage
     const WAIT_TIME_FOR_CERTS_TO_BE_ADDED = 2;
 
     // This would be better taken from the manifest
-    private $help_doc_map = array("c_cal" => "hybrid-services-calendar", "c_ucmc" => "hybrid-services-call");
+    private $help_doc_map = array("c_cal" => "hybrid-services-calendar");
 
     function generate_safe_key($key_length=30)
     {

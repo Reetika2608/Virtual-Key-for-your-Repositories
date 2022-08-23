@@ -405,16 +405,13 @@ class LogArchiverTest(unittest.TestCase):
         """ User Story: US25210: Add Connector JSON (config) files to the Send Log Output """
 
         mock_glob.return_value = ['/opt/c_mgmt/etc/config/c_mgmt.json',
-                                  '/opt/c_mgmt/etc/config/dummy.json',
-                                  '/opt/c_mgmt/etc/config/c_ucmc.json']
+                                  '/opt/c_mgmt/etc/config/dummy.json']
 
         def get_basename(filepath):
             if filepath == '/opt/c_mgmt/etc/config/c_mgmt.json':
                 return 'c_mgmt.json'
-            elif filepath == '/opt/c_mgmt/etc/config/dummy.json':
-                return 'dummy.json'
             else:
-                return 'c_ucmc.json'
+                return 'dummy.json'
 
         mock_basename.side_effect = get_basename
 
@@ -426,8 +423,7 @@ class LogArchiverTest(unittest.TestCase):
         mock_makedirs.assert_called_with('/tmp/config_files/')
 
         mock_pii.assert_has_calls([mock.call('/opt/c_mgmt/etc/config/c_mgmt.json', '/tmp/config_files/c_mgmt.json'),
-                                   mock.call('/opt/c_mgmt/etc/config/dummy.json', '/tmp/config_files/dummy.json'),
-                                   mock.call('/opt/c_mgmt/etc/config/c_ucmc.json', '/tmp/config_files/c_ucmc.json')],
+                                   mock.call('/opt/c_mgmt/etc/config/dummy.json', '/tmp/config_files/dummy.json')],
                                   any_order=True)
 
         # Test 2: tmp directory already exists
@@ -439,8 +435,7 @@ class LogArchiverTest(unittest.TestCase):
         mock_makedirs.assert_not_called()
 
         mock_pii.assert_has_calls([mock.call('/opt/c_mgmt/etc/config/c_mgmt.json', '/tmp/config_files/c_mgmt.json'),
-                                   mock.call('/opt/c_mgmt/etc/config/dummy.json', '/tmp/config_files/dummy.json'),
-                                   mock.call('/opt/c_mgmt/etc/config/c_ucmc.json', '/tmp/config_files/c_ucmc.json')],
+                                   mock.call('/opt/c_mgmt/etc/config/dummy.json', '/tmp/config_files/dummy.json')],
                                   any_order=True)
 
     @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")

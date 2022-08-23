@@ -58,8 +58,6 @@ class CrashMonitor(object):
             connectors[service] = [service]
 
         # Override known connectors with extra keywords
-        if 'c_ucmc' in connectors:
-            connectors['c_ucmc'] = ["c_ucmc", "CSI"]
         if 'c_cal' in connectors:
             connectors['c_cal'] = ["c_cal", "calendar-connector", "java", "d_openj"]
 

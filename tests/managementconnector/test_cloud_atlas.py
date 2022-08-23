@@ -280,12 +280,11 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
 
         c_cal = {"connector_type": "c_cal",'display_name': "Calendar Connector", 'name': "c_cal"}
         c_mgmt = {"connector_type": "c_mgmt",'display_name': "Management Connector", 'name': "c_mgmt"}
-        c_ucmc = {"connector_type": "c_ucmcl",'display_name': "Call Connector", 'name': "c_cal"}
 
-        expected = [c_mgmt, c_cal, c_ucmc]
+        expected = [c_mgmt, c_cal]
 
         DEV_LOGGER.info("***TEST*** Step 1. ")
-        to_be_ordered = [c_cal, c_ucmc, c_mgmt]
+        to_be_ordered = [c_cal, c_mgmt]
 
         Atlas._order_connectors(to_be_ordered)
         # Compare by zipping the expected and ordered list if the elements are equal,
@@ -296,8 +295,8 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
         self.assertTrue(len(same) == len(to_be_ordered), "did not match: actual: %s expected: %s" % (same, expected))
 
         DEV_LOGGER.info("***TEST*** Step 3. ")
-        expected = [c_cal, c_ucmc]
-        not_there = [c_cal, c_ucmc]
+        expected = [c_cal]
+        not_there = [c_cal]
         ordered_not_there = Atlas._order_connectors(not_there)
         self.assertTrue(not_there == expected)
         self.assertTrue(c_mgmt not in not_there)

@@ -71,52 +71,6 @@ class EventSenderTest(unittest.TestCase):
         EventSender.post(oauth, config, EventSender.CRASH)
         self.assertTrue(mock_post.called, "Http post is not called.")
 
-    @mock.patch('managementconnector.platform.serviceutils.ServiceUtils.get_release_channel')
-    @mock.patch("managementconnector.config.jsonhandler.read_json_file")
-    @mock.patch("managementconnector.config.jsonhandler.write_json_file")
-    @mock.patch("cafedynamic.cafexutil.CafeXUtils.get_package_version")
-    @mock.patch("managementconnector.service.eventsender.Http.post")
-    def test_upgrade_event_sent(self, mock_post, mock_get_package_version, mock_write, mock_read,
-                                mock_get_release_channel):
-        """
-            SPARK-1983: Make fms-connector-upgrades dashboard useable
-            Upgrade success event sent when not previously sent
-        """
-        oauth = mock.Mock()
-        config = mock.Mock()
-        config.read.side_effect = config_read
-        mock_get_package_version.return_value = "1.2.3"
-        mock_read.return_value = {"c_mgmt": "12345", "c_ucmc": "12345"}
-        mock_get_release_channel.return_value = "stable"
-
-        dampener = EventDampener()
-
-        service = config.read(ManagementConnectorProperties.SERVICE_NAME)
-        event_success = config.read(ManagementConnectorProperties.EVENT_SUCCESS)
-
-        upgrade_event = UpgradeEvent(
-            event_success,
-            "c_ucmc",
-            "download_duration",
-            "install_duration",
-            "downloaded_file_size",
-            "url",
-            "1.2.3",
-            "X12.0",
-            None,
-            None)
-
-        EventSender.post(oauth,
-                         config,
-                         EventSender.UPGRADE,
-                         service,
-                         int(time.time()),
-                         upgrade_event.get_detailed_info(),
-                         dampener=dampener)
-
-        self.assertTrue(mock_post.called, "Http post is not called.")
-        mock_write.assert_called_with("/var/run/c_mgmt/upgrade_events.json",
-                                      {"c_mgmt": "12345", "c_ucmc": "1.2.3"})
 
     @mock.patch('managementconnector.platform.serviceutils.ServiceUtils.get_release_channel')
     @mock.patch("managementconnector.config.jsonhandler.read_json_file")
@@ -338,34 +292,6 @@ class EventSenderTest(unittest.TestCase):
         self.assertEqual(2, mock_post.call_count)
         self.assertEqual(2, mock_write.call_count)
 
-    def test_get_connector_type_and_version_from_detailed_info(self):
-        """
-        SPARK-1983: Make fms-connector-upgrades dashboard useable
-        Get the connectorVersion and type from the event detailed info
-        """
-        # Test get does not blow up with a none value
-        actual_type, actual_version = EventSender.get_connector_type_and_version(None)
-        self.assertEqual(None, actual_type)
-        self.assertEqual(None, actual_version)
-
-        # Try and real event now with type and version
-        expected_type = "c_ucmc"
-        expected_version = "1.2.3"
-        upgrade_event = UpgradeEvent(
-            ManagementConnectorProperties.EVENT_SUCCESS,
-            expected_type,
-            None,
-            None,
-            None,
-            "https://someurl",
-            expected_version,
-            "X8.11PreAlpha10",
-            None,
-            None)
-
-        actual_type, actual_version = EventSender.get_connector_type_and_version(upgrade_event.get_detailed_info())
-        self.assertEqual(expected_type, actual_type)
-        self.assertEqual(expected_version, actual_version)
 
     def test_get_connector_type_and_version_does_not_blow_up(self):
         """

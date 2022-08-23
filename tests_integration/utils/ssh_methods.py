@@ -236,9 +236,9 @@ def get_connector_status(hostname, root_user, root_pass, connector):
 
 def get_process_count(hostname, root_user, root_pass, connector):
     process_dict = {'c_cal': 'java',
-                    'c_ucmc': 'CSI',
                     'c_mgmt': 'managementconnectormain',
-                    'c_imp': 'java'}
+                    'c_imp': 'java',
+                    'c_serab': 'python3'}
     connector_binary = process_dict[connector]
     cmd = "ps aux | grep %s | grep %s | grep -v grep" % (connector, connector_binary)
     result = run_ssh_command(hostname, root_user, root_pass, cmd)

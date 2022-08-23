@@ -27,10 +27,9 @@ def config_read(path):
     DEV_LOGGER.debug("ConfigMock: read path %s" % path)
 
     if path == ManagementConnectorProperties.ENABLED_SERVICES_STATE:
-        return {"c_cal": "true", "c_ucmc": "true", "c_mgmt": "true"}
+        return {"c_cal": "true", "c_mgmt": "true"}
     elif path == ManagementConnectorProperties.ENTITLED_SERVICES:
-        return [{"display_name": "Call Connector", "name": "c_ucmc"},
-                {"display_name": "Management Connector", "name": "c_mgmt"},
+        return [{"display_name": "Management Connector", "name": "c_mgmt"},
                 {"display_name": "Calendar Connector", "name": "c_cal"}]
     elif path == ManagementConnectorProperties.LOGGING_QUANTITY:
         return "50"
@@ -230,7 +229,7 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
 
         # Test enable can be called on two params
         self.command['data']['command']['action'] = 'enable'
-        self.command['data']['command']['parameters'] = ["c_cal", "c_ucmc"]
+        self.command['data']['command']['parameters'] = ["c_cal"]
 
         RemoteDispatcher.handle_command(self.command)
         mock_send_result.assert_called_with('complete', self.command['data']['command']['commandId'], {})
@@ -332,7 +331,7 @@ class RemoteDispatcherTest(fake_filesystem_unittest.TestCase):
         # scenario doesn't make sense to enable a peer even if master is down
         # start or stop or restart would make more sense
         self.command['data']['command']['action'] = 'enable'
-        self.command['data']['command']['parameters'] = ["c_cal", "c_ucmc"]
+        self.command['data']['command']['parameters'] = ["c_cal"]
 
         RemoteDispatcher.handle_command(self.command)
         mock_send_result.assert_called_with('complete', self.command['data']['command']['commandId'],

@@ -84,7 +84,7 @@ class XStatusTest(fake_filesystem_unittest.TestCase):
         def alarms():
             DEV_LOGGER.info('***TEST*** XStatusTest start')
 
-            xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}, {"display_name": "UCM Service", "name": "c_ucmc"}]', 'name': 'c_mgmt_entitled_services'}],
+            xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}]', 'name': 'c_mgmt_entitled_services'}],
                       MockConfigNoAlarms(),
                       MockServiceManifest)
 
@@ -94,7 +94,7 @@ class XStatusTest(fake_filesystem_unittest.TestCase):
 
             DEV_LOGGER.info('***TEST*** XStatusTest, finished first test')
 
-            xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}, {"display_name": "UCM Service", "name": "c_ucmc"}]', 'name': 'c_mgmt_entitled_services'}],
+            xstatus = c_mgmt._get_status([{'uuid': 'e53229c3-c64f-4408-9ef1-319951e07a30', 'value': '[{"display_name": "Calendar Service", "name": "c_cal"}, {"display_name": "Fusion Management", "name": "c_mgmt"}]', 'name': 'c_mgmt_entitled_services'}],
                                       MockConfig2Alarms(),
                                       MockServiceManifest)
 

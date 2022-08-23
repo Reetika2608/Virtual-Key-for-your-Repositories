@@ -4,23 +4,9 @@ import requests
 
 
 c_cal_config_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_cal_exchange_lookup_servers/"
-c_ucmc_config_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_ucmc_ucm_servers/"
 configured_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_system_configuredServicesState"
-configured = {"c_ucmc": "true", "c_cal": "true"}
+configured = {"c_cal": "true"}
 
-
-fake_c_ucmc_config = [
-    {
-        "ctird_location": "29c5c1c4-8871-4d1e-8394-0b9181e8c54d",
-        "ctird_rrcss": "",
-        "ctird_config_type": "automatic",
-        "axl_password": "{cipher}YxSkC2PDTL/XUWFha9fsYA==",
-        "ctird_device_pool": "1b1b9eb6-7803-11d3-bdf0-00108302ead1",
-        "host_or_ip": "111.27.25.236",
-        "axl_username": "SP",
-        "ctird_css": ""
-    }
-]
 
 fake_c_cal_config = [
     {
@@ -59,7 +45,6 @@ hostname = sys.argv[1]
 admin_user = "admin"
 admin_pass = "x"
 
-set_cdb_entry(hostname, admin_user, admin_pass, c_ucmc_config_path, fake_c_ucmc_config)
 set_cdb_entry(hostname, admin_user, admin_pass, c_cal_config_path, fake_c_cal_config)
 set_cdb_entry(hostname, admin_user, admin_pass, configured_path, configured)
 

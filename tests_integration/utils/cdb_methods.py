@@ -51,44 +51,14 @@ def get_entitled_list_from_expressway(hostname, username, password):
 def configure_connectors(exp_hostname, admin_user, admin_pass, root_user, root_password):
     """ Wrapper for connector configuration """
     configured_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_mgmt_system_configuredServicesState/"
-    configured = {"c_ucmc": "true", "c_cal": "true", "c_imp": "true"}
+    configured = {"c_cal": "true", "c_imp": "true", "c_serab": "true"}
     set_cdb_entry(
         exp_hostname,
         admin_user,
         admin_pass,
         configured_path,
         configured)
-    set_cal_exchange_lookup(exp_hostname, admin_user, admin_pass, root_user, root_password)
-    set_ucm_server(exp_hostname, admin_user, admin_pass, root_user, root_password)
-
-
-def set_ucm_server(exp_hostname, admin_user, admin_pass, root_user, root_password):
-    """ Sets some junk content for c_ucmc to stay running. """
-
-    ucm_path = "/api/management/configuration/cafe/cafeblobconfiguration/name/c_ucmc_ucm_servers/"
-    junk_ucm = {
-        "username": "SP",
-        "password": "SP",
-        "address": "111.27.25.236",
-        "ctird_config_type": "automatic",
-        "ctird_device_pool": "1b1b9eb6-7803-11d3-bdf0-00108302ead1",
-        "ctird_location": "29c5c1c4-8871-4d1e-8394-0b9181e8c54d",
-        "ctird_css": "",
-        "ctird_rrcss": ""
-    }
-
-    set_cdb_entry(
-        exp_hostname,
-        admin_user,
-        admin_pass,
-        ucm_path,
-        junk_ucm)
-    run_ssh_command(
-        exp_hostname,
-        root_user,
-        root_password,
-        "touch /tandberg/persistent/fusion/status/c_ucmc.configured")
-
+    set_cal_exchange_lookup(exp_hostname, admin_user, admin_pass, root_user, root_password)    
 
 def set_cal_exchange_lookup(exp_hostname, admin_user, admin_pass, root_user, root_password):
     """ Sets some junk content for c_cal to stay running. """

@@ -37,9 +37,7 @@ class DatabaseHandlerTest(unittest.TestCase):
         DEV_LOGGER.info("*** test_get_service_records ***")
 
         mock_get_records.return_value = [{"name": "c_cal_first", "value": "one", "uuid": "1"},
-                                         {"name": "c_ucmc_first", "value": "one", "uuid": "2"},
-                                         {"name": "c_cal_second", "value": "two", "uuid": "3"},
-                                         {"name": "c_ucmc_second", "value": "two", "uuid": "4"}]
+                                         {"name": "c_cal_second", "value": "two", "uuid": "3"}]
 
         mock_properties.DATABASE_TABLES = ["table1", "table2"]
 
@@ -54,17 +52,6 @@ class DatabaseHandlerTest(unittest.TestCase):
         mock_get_records.assert_called()
         self.assertEqual(cal_records, expected_cal, "Actual: %s did not match Expected: %s"
                           % (cal_records, expected_cal))
-
-        # Assert for c_ucmc
-        expected_c_ucm = {"table1": {"c_ucmc_first": "one", "c_ucmc_second": "two"},
-                          "table2": {"c_ucmc_first": "one", "c_ucmc_second": "two"}}
-
-        c_ucmc_records = database_handler.get_service_database_records("c_ucmc")
-
-        mock_get_records.assert_called()
-        self.assertEqual(c_ucmc_records, expected_c_ucm, "Actual: %s did not match Expected: %s"
-                          % (c_ucmc_records, expected_c_ucm))
-
 
 
     @mock.patch("managementconnector.config.databasehandler.ManagementConnectorProperties")
@@ -165,7 +152,7 @@ class DatabaseHandlerTest(unittest.TestCase):
     @mock.patch('managementconnector.config.databasehandler.register_default_loggers')
     def test_register_all_default_loggers_happy(self, mock_register, mock_installed):
         """
-        Defect: DE3119 - c_cal and c_ucmc require default entries to be created for Hybrid Services Log Levels on startup
+        Defect: DE3119 - c_cal require default entries to be created for Hybrid Services Log Levels on startup
         Purpose: To verfiy that register all default loggers sanitises the list correctly
         Note:
         Steps:
@@ -176,11 +163,10 @@ class DatabaseHandlerTest(unittest.TestCase):
 
         # Path 1: Happy Expected path
         expected_call = [ManagementConnectorProperties.HYBRID_PREFIX + "c_cal",
-                         ManagementConnectorProperties.HYBRID_PREFIX + "c_ucmc",
                          ManagementConnectorProperties.HYBRID_LOGGER_NAME,
                          ManagementConnectorProperties.CAFE_LOGGER_NAME]
 
-        mock_installed.return_value = ["c_mgmt", "c_cal", "c_ucmc"]
+        mock_installed.return_value = ["c_mgmt", "c_cal"]
         register_all_default_loggers()
         mock_register.assert_called_once_with(expected_call)
 
@@ -188,7 +174,7 @@ class DatabaseHandlerTest(unittest.TestCase):
     @mock.patch('managementconnector.config.databasehandler.register_default_loggers')
     def test_register_all_default_loggers_c_mgmt_only(self, mock_register, mock_installed):
         """
-        Defect: DE3119 - c_cal and c_ucmc require default entries to be created for Hybrid Services Log Levels on startup
+        Defect: DE3119 - c_cal require default entries to be created for Hybrid Services Log Levels on startup
         Purpose: To verfiy that register all default loggers sanitises the list correctly
         Note:
         Steps:
@@ -210,7 +196,7 @@ class DatabaseHandlerTest(unittest.TestCase):
     @mock.patch('managementconnector.config.databasehandler.register_default_loggers')
     def test_register_all_default_loggers_error(self, mock_register, mock_installed, mock_logger):
         """
-        Defect: DE3119 - c_cal and c_ucmc require default entries to be created for Hybrid Services Log Levels on startup
+        Defect: DE3119 - c_cal require default entries to be created for Hybrid Services Log Levels on startup
         Purpose: To verfiy that register all default loggers sanitises the list correctly
         Note:
         Steps:

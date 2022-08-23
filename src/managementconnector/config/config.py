@@ -95,7 +95,7 @@ class Config(object):
     def update_blob_entries(self, path, entries, value):
         """
             updates blob entries with a value
-            i,e {"c_cal": "true", "c_ucmc": "true" }
+            i,e {"c_cal": "true"}
             for a path c_mgmt_system_enabledServicesState
         """
         self._database_handler.update_blob_entries(path, entries, value)

@@ -111,7 +111,7 @@ def provision_cluster(org_id, cluster_id, fms_server, connectors, token):
     """
     LOG.info("provision_cluster: org_id=%s, cluster_id=%s", org_id, cluster_id)
 
-    # Provision c_cal and c_ucmc
+    # Provision c_cal
     provision_url = "https://" + fms_server + \
                     "/hercules/api/v2/organizations/{}/clusters/{}/provisioning/actions/add/invoke?connectorType={}"
 

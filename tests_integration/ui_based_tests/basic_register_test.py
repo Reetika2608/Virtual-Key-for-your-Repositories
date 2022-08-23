@@ -50,11 +50,15 @@ class BasicRegisterTest(unittest.TestCase):
                             create_screenshotting_retrying_web_driver(log_dir=cls.log_directory, max_retries=20))
 
         for connector in cls.config.expected_connectors():
-            assert wait_until_true(is_connector_installed, 420, 10,
+            LOG.info("Check if {0} connector is installed or not".format(connector))
+            try:
+                assert wait_until_true(is_connector_installed, 420, 10,
                                    *(cls.config.exp_hostname_primary(),
                                      cls.config.exp_root_user(),
                                      cls.config.exp_root_pass(),
                                      connector))
+            except:
+                LOG.info("{0} connector failed to install".format(connector))
 
         # Get cluster id
         cls.cluster_id = get_cluster_id_from_expressway(cls.config.exp_hostname_primary(),

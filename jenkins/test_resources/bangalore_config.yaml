@@ -4,7 +4,7 @@ urls:
   ci_broker_server: idbrokerbts.webex.com
   control_hub: int-admin.webex.com
 connectors:
-  expected_connectors: {c_mgmt: 'Management Connector', c_cal: 'Calendar Connector', c_imp: 'Message Connector'}
+  expected_connectors: {c_mgmt: 'Management Connector', c_cal: 'Calendar Connector', c_imp: 'Message Connector', c_serab: 'Serviceability Connector'}
 misc:
   # TODO: Get a client, this is e2e's one
   client_id: Ca779cc7acab70dade83b616c5d35a88909355ffe3090a6644d0fac4cf1fdb317

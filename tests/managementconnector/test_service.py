@@ -234,11 +234,7 @@ class ServiceTest(fake_filesystem_unittest.TestCase):
     @mock.patch('managementconnector.config.config.Config')
     def test_related_external_alarm(self, mock_config):
         mock_config.read.return_value = [{'display_name': 'c_mgmt', 'name': 'c_mgmt'},
-                                         {'display_name': 'c_Cal', 'name': 'c_cal'},
-                                         {'display_name': 'c_ucmc', 'name': 'c_ucmc'}]
-
-        alarm = {"parameters": ["/path/to/c_ucmc", 1234]}
-        self.assertTrue(Service.is_related_external_alarm(alarm, mock_config), "This is a related external alarm.")
+                                         {'display_name': 'c_Cal', 'name': 'c_cal'}]
 
         alarm = {"parameters": ["something_happened_to_some_other_process", 1234]}
         self.assertFalse(Service.is_related_external_alarm(alarm, mock_config), "This is a not related external alarm.")
@@ -271,7 +267,7 @@ class ServiceTest(fake_filesystem_unittest.TestCase):
         mock_uninstall.return_value = True
         mock_disable.return_value = True
         mock_download.return_value = "path", "fileSize", "downloadDuration"
-        mock_config.return_value = ['c_xyz','c_ucmc']
+        mock_config.return_value = ['c_xyz']
         mock_serviceutils.is_supported_extension.return_value = True
 
         upgrade_disabled_from_fms = False
@@ -305,20 +301,6 @@ class ServiceTest(fake_filesystem_unittest.TestCase):
         self.assertFalse(mock_install.called, "Install should not have been called.")
         self.assertFalse(mock_cafeutils.is_backup_restore_occurring.called, "Backup occurring should have been called.")
         mock_serviceutils.is_supported_extension.return_value = True
-
-        # Connectors prevented list not empty but current connector not in list
-        mock_config.return_value = 'c_ucmc'
-        service.configure("some_url", "3.0", upgrade_disabled_from_fms)
-        self.assertTrue(mock_install.called, "Install should have been called.")
-        self.assertTrue(mock_cafeutils.is_backup_restore_occurring.called, "Backup occurring should have been called.")
-        self.assertTrue(mock_serviceutils.request_service_change.called, "Backup occurring should have been called.")
-
-        # Connectors prevented list not empty but current connector not in list
-        mock_config.return_value = ['c_ucmc']
-        service.configure("some_url", "3.0", upgrade_disabled_from_fms)
-        self.assertTrue(mock_install.called, "Install should have been called.")
-        self.assertTrue(mock_cafeutils.is_backup_restore_occurring.called, "Backup occurring should have been called.")
-        self.assertTrue(mock_serviceutils.request_service_change.called, "Backup occurring should have been called.")
 
 
 if __name__ == "__main__":
