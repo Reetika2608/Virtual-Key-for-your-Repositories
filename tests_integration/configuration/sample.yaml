@@ -5,6 +5,10 @@ expressway:
   exp_admin_pass: x
   exp_root_user: root
   exp_root_pass: x
+  proxy_host: '10.196.5.235'
+  proxy_port: '3128'
+  proxy_user: cisco
+  proxy_pass: 12txbu!@
 org:
   org_id: bb9e6b5d-1383-40ed-938a-cbefc6d5b868
   org_admin_user: admin@marneweltest.int

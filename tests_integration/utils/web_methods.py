@@ -149,6 +149,48 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
         if close_web_driver:
             web_driver.quit()
 
+def run_iptables_script(exp_hostname, root_user, root_pass):
+    os.system("ssh-keygen -R {hostname}".format(hostname=exp_hostname))
+    os.system("sshpass -p {root_pass} scp -o StrictHostKeyChecking=no set_vcs_iptables_bangalore.sh root@{exp_hostname}:"
+              .format(root_user=root_user, root_pass=root_pass, exp_hostname=exp_hostname))
+    os.system("sshpass -p {root_pass} ssh -o StrictHostKeyChecking=no {root_user}@{exp_hostname} \"chmod +x set_vcs_iptables_bangalore.sh && set_vcs_iptables_bangalore.sh {exp_hostname}\""
+              .format(root_user=root_user, root_pass=root_pass, exp_hostname=exp_hostname))
+
+def set_hybrid_proxy(exp_hostname, admin_user, admin_pass, proxy_host, proxy_port, proxy_user, proxy_pass):
+    close_web_driver = True
+    web_driver = create_web_driver()
+
+    try:
+        LOG.info("set proxy")
+        web_driver.get('https://' + exp_hostname)
+        web_driver.find_element_by_name('username').send_keys(admin_user)
+        web_driver.find_element_by_name('password').send_keys(admin_pass)
+        web_driver.find_element_by_name('formbutton').click()
+        time.sleep(10)
+        test = "Cisco Webex Hybrid Services"
+        if test in web_driver.page_source:
+            LOG.info("page available")
+        navigate_expressway_menus(web_driver, ["Applications", "Hybrid Services", "Connector Proxy"])
+        Select(web_driver.find_element_by_id("enabled")).select_by_visible_text("Yes")
+        LOG.info("Set enabled to yes")
+        wait_until_true(is_visible, 20, 2, *(web_driver, '//div[@id="addressPeer"]'))
+
+        def clear_and_send_keys(element_id, new_contents):
+            el = web_driver.find_element_by_id(element_id)
+            el.clear()
+            el.send_keys(new_contents)
+
+        clear_and_send_keys("address", proxy_host)
+        clear_and_send_keys("port", proxy_port)
+        clear_and_send_keys("username", proxy_user)
+        clear_and_send_keys("password", proxy_pass)
+        web_driver.find_element_by_id("save_button").click()
+
+        wait_until_true(is_in_page_source, 20, 2, *(web_driver, ": Saved"))
+        LOG.info("Proxy settings saved")
+    finally:
+        if close_web_driver:
+            web_driver.quit()
 
 def create_web_driver(driver_class=webdriver.Chrome):
     """ Create a web_driver """
@@ -306,19 +348,10 @@ def login_expressway(web_driver, exp_hostname, admin_user, admin_pass):
 def navigate_expressway_menus(web_driver, menus):
     """ Navigate the menus of the Expressway through the browser. The Expressway must be logged in. """
     LOG.info("Navigate through the menus %s", menus)
-    close_web_driver = False
-    if not web_driver:
-        close_web_driver = True
-        web_driver = create_web_driver()
-
     for menu in menus:
+        LOG.info(menu)
         ActionChains(web_driver).move_to_element(web_driver.find_element_by_partial_link_text(menu)).perform()
-
     ActionChains(web_driver).click().perform()
-
-    if close_web_driver:
-        # If we created the web driver we should close it again.
-        web_driver.quit()
 
 
 def enable_expressway_connector(web_driver, exp_hostname, admin_user, admin_pass, connector):

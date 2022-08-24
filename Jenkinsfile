@@ -304,7 +304,56 @@ timestamps {
                 }
             }
         }
+        stage('Proxy test') {
+            checkpoint("Let's run proxy tests.")
+            node('SPARK_BUILDER') {
+                checkout scm
 
+                // # Remove any previous unremoved containers,if they weren't removed earlier
+                sh("docker ps -aq --filter name=${builderName} | grep -q . && echo Found ERRANT_CONTAINERS, Removing && docker rm --force ${builderName} || echo No ERRANT_CONTAINERS")
+
+                def container_builder = docker.image(pythonBuilder).run("-t --name $builderName")
+                sh("docker cp ./ ${builderName}:/home/jenkins")
+                sh("docker exec ${builderName} pwd")
+
+                def logsDir = "logs/" + new Date().format("YYYYMMdd-HHmmss")
+                def pythonLogsDir = "./"  + logsDir + "/"
+                print("directory set for logs")
+                def resources = getResources('./jenkins/test_resources/bangalore_resources.yaml')
+
+                unstash('tlp')
+                sh("docker cp ${TLP_FILE} ${builderName}:/home/jenkins")
+                sleep(10)
+                lock(resource: resources.exp_hostname_unreg_2) {
+                    print("Installing .tlp for proxy tests")
+                    sh("docker cp ${TLP_FILE} ${builderName}:/home/jenkins")
+                    sh("docker exec ${builderName} ./build_and_upgrade.sh -c install_prebuilt -t ${resources.exp_hostname_unreg_2} -w ${TLP_FILE}")
+
+                    print("Performing UI tests")
+                    withCredentials([usernamePassword(credentialsId: config.org.org_admin_credentials_id, usernameVariable: 'org_admin_user', passwordVariable: 'org_admin_pass')]) {
+                        sh("""docker exec -e EXP_HOSTNAME_PRIMARY=${resources.exp_hostname_unreg_2} \
+                            -e EXP_ADMIN_USER=${config.expressway.exp_admin_user} \
+                            -e EXP_ADMIN_PASS=${config.expressway.exp_admin_pass} \
+                            -e EXP_ROOT_USER=${config.expressway.exp_root_user} \
+                            -e EXP_ROOT_PASS=${config.expressway.exp_root_pass} \
+                            -e PROXY_HOST=${config.expressway.proxy_host} \
+                            -e PROXY_PORT=${config.expressway.proxy_port} \
+                            -e PROXY_USER=${config.expressway.proxy_user} \
+                            -e PROXY_PASS=${config.expressway.proxy_pass} \
+                            -e CONFIG_FILE=jenkins/test_resources/bangalore_config.yaml \
+                            -e ORG_ID=${config.org.org_id} \
+                            -e ORG_ADMIN_USER=${org_admin_user} \
+                            -e ORG_ADMIN_PASSWORD=${org_admin_pass} \
+                            -e LOGS_DIR=${pythonLogsDir} \
+                            ${builderName} nose2 tests_integration.proxy_test.enable_proxy_test --plugin nose2.plugins.junitxml --verbose -X --junit-xml-path proxy-test-results.xml""".stripIndent())
+
+                            sh("docker cp ${builderName}:/home/jenkins/proxy-test-results.xml ./")
+
+                            junit allowEmptyResults: true, testResults: 'proxy-test-results.xml'
+                    }    
+                }  
+            } 
+        }
         // Only allow Deploy Stages from the master
         if (env.BRANCH_NAME == 'master') {
 

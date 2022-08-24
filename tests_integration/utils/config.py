@@ -16,6 +16,10 @@ class Config(object):
     _exp_admin_pass = None
     _exp_root_user = None
     _exp_root_pass = None
+    _proxy_host = None
+    _proxy_port = None
+    _proxy_user = None
+    _proxy_pass = None
     _org_id = None
     _org_admin_user = None
     _org_admin_password = None
@@ -50,6 +54,10 @@ class Config(object):
         self._exp_admin_pass = self.get_if_present("exp_admin_pass")
         self._exp_root_user = self.get_if_present("exp_root_user")
         self._exp_root_pass = self.get_if_present("exp_root_pass")
+        self._proxy_host = self.get_if_present("proxy_host")
+        self._proxy_port = self.get_if_present("proxy_port")
+        self._proxy_user = self.get_if_present("proxy_user")
+        self._proxy_pass = self.get_if_present("proxy_pass")
         self._org_id = self.get_if_present("org_id")
         self._org_admin_user = self.get_if_present("org_admin_user")
         self._org_admin_password = self.get_if_present("org_admin_password")
@@ -123,6 +131,46 @@ class Config(object):
             return self._exp_root_pass
         else:
             LOG.error("Config item (exp_root_pass) to run test was not found in config file")
+            assert False
+    
+    def proxy_host(self):
+        proxy_host = os.environ.get("PROXY_HOST")
+        if proxy_host:
+            return proxy_host
+        elif self._proxy_host:
+            return self._proxy_host
+        else:
+            LOG.error("Config item (proxy_host) to run test was not found in config file")
+            assert False
+        
+    def proxy_port(self):
+        proxy_port = os.environ.get("PROXY_PORT")
+        if proxy_port:
+            return proxy_port
+        elif self._proxy_port:
+            return self._proxy_port
+        else:
+            LOG.error("Config item (proxy_port) to run test was not found in config file")
+            assert False
+
+    def proxy_user(self):
+        proxy_user = os.environ.get("PROXY_USER")
+        if proxy_user:
+            return proxy_user
+        elif self._proxy_user:
+            return self._proxy_user
+        else:
+            LOG.error("Config item (proxy_user) to run test was not found in config file")
+            assert False
+
+    def proxy_pass(self):
+        proxy_pass = os.environ.get("PROXY_PASS")
+        if proxy_pass:
+            return proxy_pass
+        elif self._proxy_pass:
+            return self._proxy_pass
+        else:
+            LOG.error("Config item (proxy_pass) to run test was not found in config file")
             assert False
 
     def org_id(self):

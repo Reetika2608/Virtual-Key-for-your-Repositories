@@ -11,6 +11,10 @@ expressway:
   exp_admin_pass: x
   exp_root_user: root
   exp_root_pass: x
+  proxy_host: '10.196.5.235'
+  proxy_port: '3128'
+  proxy_user: cisco
+  proxy_pass: 12txbu!@
 org:
   org_id: c8ab02a4-5629-4b57-8e27-7d6df2e7f370
   org_admin_credentials_id: bangalore-test-org-admin
