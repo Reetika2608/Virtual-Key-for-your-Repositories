@@ -144,7 +144,7 @@ install_external_dependencies(){
     pip install pyratemp==0.3.2 --target=debian/data/opt/c_mgmt/lib/pyratemp/ --no-dependencies
     pip install jsonschema==4.6.0 --target=debian/data/opt/c_mgmt/lib/jsonschema/
     pip install idna==3.3 --target=debian/data/opt/c_mgmt/lib/idna/ --no-dependencies
-    pip install cryptography==37.0.2 --target=debian/data/opt/c_mgmt/lib/cryptography/
+    pip install cryptography==37.0.4 --target=debian/data/opt/c_mgmt/lib/cryptography/
     pip install defusedxml==0.7.1 --target=debian/data/opt/c_mgmt/lib/defusedxml/ --no-dependencies
 }
 
