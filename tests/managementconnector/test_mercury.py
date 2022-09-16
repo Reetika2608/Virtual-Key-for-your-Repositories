@@ -317,9 +317,10 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
 
     @mock.patch('managementconnector.cloud.mercury.Metrics.send_mercury_error_metrics')
     @mock.patch('managementconnector.cloud.oauth.OAuth')
+    @mock.patch('managementconnector.cloud.mercury.MCAlarm')
     @mock.patch('managementconnector.config.config.Config')
     @mock.patch('managementconnector.cloud.mercury.RemoteDispatcher.handle_command')
-    def test_mercury_on_message(self, mock_handle, mock_config, mock_oauth, mock_send_err):
+    def test_mercury_on_message(self, mock_handle, mock_config, mock_alarm, mock_oauth, mock_send_err):
         """
         User Story: US12401 - Implement (start/stop/restart) command processing support in FMC
         Notes:
@@ -334,6 +335,10 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         mock_handle.assert_not_called()
         test_uuid = "43800ef2-217d-483c-8412-9cbfdade19a8"
 
+        self.assertTrue(mock_alarm.clear_alarm.called_with(test_uuid),
+                        "mock_alarm clear_alarm not called with %s, called: %s"
+                        % (test_uuid, mock_alarm.clear_alarm.called_with))
+
         # Assert missing sig or eventType in the mercury message doesn't call
         # handle_command when a json schema validation error occurs
 
@@ -345,6 +350,26 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         good_command = '{"data": {"command": {"action": "start", "commandId": "12345", "parameters": ["param1", "param2"], "dispatcher": "me"}, "eventType": "type", "signature": "%s"}, "trackingId": "NA_6cc9c187-cd7f-4da0-9086-3557bedecdc1"}' % sig
         mercury.on_message(None, good_command)
         mock_handle.assert_called_with(json.loads(good_command))
+
+    @mock.patch('managementconnector.cloud.mercury.Metrics')
+    @mock.patch('managementconnector.cloud.oauth.OAuth')
+    @mock.patch('managementconnector.cloud.mercury.MCAlarm')
+    @mock.patch('managementconnector.config.config.Config')
+    def test_mercury_on_error(self, mock_config, mock_oauth, mock_alarm, mock_send_err):
+        """
+        User Story: Add Mercury Connection Failure Alarm
+        Notes:
+        """
+        mercury = Mercury(mock_config, mock_oauth)
+
+        empty = "{}"
+        mercury.on_error(None, empty)
+        test_uuid = "43800ef2-217d-483c-8412-9cbfdade19a8"
+
+        self.assertTrue(mock_alarm.raise_alarm.called_with(test_uuid),
+                        "mock_alarm raise_alarm not called with %s, called: %s"
+                        % (test_uuid, mock_alarm.raise_alarm.called_with))
+        self.assertTrue(mercury._restart_needed, "Mercury restartNeeded is True")
 
     @mock.patch('managementconnector.cloud.mercury.Metrics')
     @mock.patch('managementconnector.cloud.mercury.Mercury.get_device_url')

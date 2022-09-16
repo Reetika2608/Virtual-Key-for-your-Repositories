@@ -118,7 +118,7 @@ class UnregisteredTest(unittest.TestCase):
         LOG.info("Running test: %s", self._testMethodName)
         LOG.info(self.test_alarm_onboarding.__doc__)
 
-        alarm_id_limit = 60073
+        alarm_id_limit = 60074
 
         LOG.debug('***TEST Start***')
         c_mgmt_alarm_range = list(range(60050, 60099 + 1))
