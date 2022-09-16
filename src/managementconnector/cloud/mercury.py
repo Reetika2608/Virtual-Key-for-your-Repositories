@@ -132,7 +132,7 @@ class Mercury(threading.Thread):
         Monkey patch for WebSocketApp._callback(), since
         WebSocketApp does not callback on_error in case of Exceptions.
         """
-        DEV_LOGGER.info('Detail="FMC_Websocket Callback patch"')
+        DEV_LOGGER.debug('Detail="FMC_Websocket Callback patch"')
         if callback is not None:
             callback(self._ws, *args)
 
