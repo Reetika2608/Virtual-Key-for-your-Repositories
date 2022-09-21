@@ -327,6 +327,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         """
         mercury = Mercury(mock_config, mock_oauth)
         sig = "DJncdDpoYSmYG1f3ssFjNKdYRST5/Nm4igF6JHZSo2EO5s1pezv2pFJudXIPb4P95wFcM7bwolbWTwMuZABGr2fB7PEeqRqzHtYUSV+mC2p6HOuMU3FiT1N9vsOLU9nTB6zm+u2ov5Ab08VpH2kueQ+eVxavshVHrMGXdZUk7HI8WEJmgNFle1xEZaLRF0VALT5bx+Z5TpPiLvbmpMjFzN2a00JTORgwaCvwGS0AfndlEPjoLQMsau1AouZLQaSipM2KLUv51hrUtZ0ZLXODaaaFgiIw4L1YgUpCzTJkS0pWRDg3yHzS6myeMFERRSGG89rc3wh3yObuBnyV+NPzXg=="
+        mock_alarm.clear_alarm = mock.MagicMock()
 
         # Assert missing data in the mercury message doesn't call
         # handle_command when a json schema validation error occurs
@@ -361,6 +362,7 @@ class MercuryTest(fake_filesystem_unittest.TestCase):
         Notes:
         """
         mercury = Mercury(mock_config, mock_oauth)
+        mock_alarm.raise_alarm = mock.MagicMock()
 
         empty = "{}"
         mercury.on_error(None, empty)

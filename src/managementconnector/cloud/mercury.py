@@ -116,7 +116,6 @@ class Mercury(threading.Thread):
                                                   on_close=self.on_close)
 
                 self._ws.on_open = self.on_open
-                self._ws._callback = self.callback_patch
 
                 threading.Thread(target=self.run).start()
 
@@ -124,17 +123,6 @@ class Mercury(threading.Thread):
                 # If there is a problem tear down registration, it will be recreated in next heartbeat
                 self.shutdown()
                 raise wdm_error
-
-    # -------------------------------------------------------------------------
-
-    def callback_patch(self, callback, *args):
-        """
-        Monkey patch for WebSocketApp._callback(), since
-        WebSocketApp does not callback on_error in case of Exceptions.
-        """
-        DEV_LOGGER.debug('Detail="FMC_Websocket Callback patch"')
-        if callback is not None:
-            callback(self._ws, *args)
 
     # -------------------------------------------------------------------------
 
