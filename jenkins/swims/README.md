@@ -2,7 +2,8 @@
 The files in this folder are utilised as part of the FMC build pipeline's interaction with SWIMs.
 
 * [code_sign_2.1j](code_sign_2.1j) is the SWIMs tool used in both ticket creation and TLP creation. (_Note that this a 64bit binary._)
-* [code_sign_2.5](code_sign_2.5) is the Latest SWIMs tool used in both ticket creation and TLP creation. This supports and requires DUO. (_Note that this a 64bit binary._)
+* [code_sign_2.5](code_sign_2.5) is the SWIMs tool used in both ticket creation and TLP creation. This supports and requires DUO. (_Note that this a 64bit binary._)
+* [code_sign_2.7.4](code_sign_2.7.4) is the Latest SWIMs tool used in both ticket creation and TLP creation. This supports and requires DUO. (_Note that this a 64bit binary._)
 * [swims-ticket.jenkinsfile](swims-ticket.jenkinsfile) is the pipeline file used to create a SWIMs ticket
 
 ## Pipeline Stages

@@ -301,7 +301,7 @@ sign_debian() {
     DEBIAN=$1
     TICKET=$2
 
-    ./jenkins/swims/code_sign_2.5 raw-sign -verbose -logLevel DEBUG -host swims-rtp.cisco.com --image_location ${DEBIAN} -p "Fusion_Management_Connector" -k RELEASE -K "FMC_KEY" -I "SW-VCS-8.X-K9" -A Ticket -T ${TICKET} -N "FMC signing"
+    ./jenkins/swims/code_sign_2.7.4 raw-sign -verbose -logLevel DEBUG -host swims-rtp.cisco.com --image_location ${DEBIAN} -p "Fusion_Management_Connector" -k RELEASE -K "FMC_KEY" -I "SW-VCS-8.X-K9" -A Ticket -T ${TICKET} -N "FMC signing"
 }
 
 tidyup_tlp() {
