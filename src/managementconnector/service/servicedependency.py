@@ -38,6 +38,11 @@ class ServiceDependency(Service):
 
         DEV_LOGGER.info('Detail="configure: ServiceDependency: %s, url: %s, version: %s, upgrade_disabled_from_fms:%s"' % (self._install_details, url, version, upgrade_disabled_from_fms))
 
+        prevented_upgrade_services = self._config.read(ManagementConnectorProperties.PREVENT_DEPENDENCY_UPGRADE)
+        if prevented_upgrade_services is not None and self._name in prevented_upgrade_services:
+            DEV_LOGGER.info('Detail="FMC_Lifecycle configure dpendency: upgrade prevented for %s"' % (self._name))
+            return True
+
         if upgrade_disabled_from_fms:
             DEV_LOGGER.info('Detail="configure dependency: noop from FMS, ignore upgrade and return true %s"' % (self._name))
             return True

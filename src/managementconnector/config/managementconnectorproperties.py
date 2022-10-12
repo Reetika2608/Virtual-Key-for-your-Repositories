@@ -110,6 +110,8 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
 
     DEPENDENCY_MAP = {"Calendar Connector": ["d_openj"]}
 
+    ALLOWED_DEPENDENCIES= {'d_openj'}
+
     HTTP_TIMEOUT = 15
     WS_PING_TIMEOUT = 10
     WS_PING_INTERVAL = 30
@@ -273,6 +275,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
 
     PREVENT_MGMT_CONN_UPGRADE = CONFIG + "preventMgmtConnUpgrade"
     PREVENT_CONN_UPGRADE = CONFIG + "preventConnUpgrade"
+    PREVENT_DEPENDENCY_UPGRADE = CONFIG + "preventDependencyUpgrade"
 
     CERT = "certs_"
     FUSION_CA = CERT + "ca"

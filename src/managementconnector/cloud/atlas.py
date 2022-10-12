@@ -44,14 +44,15 @@ class Atlas(object):
 
         if 'dependencies' in register_response:
             for dependency in register_response['dependencies']:
-                version = dependency['version']
-                name = dependency['dependencyType']
-                url = dependency['tlpUrl']
-                packages_exist = url is not None and len(url.strip()) > 0
+                if dependency['dependencyType'] in ManagementConnectorProperties.ALLOWED_DEPENDENCIES:
+                    version = dependency['version']
+                    name = dependency['dependencyType']
+                    url = dependency['tlpUrl']
+                    packages_exist = url is not None and len(url.strip()) > 0
 
-                # Added Display Name for Alarm Handling, Dependency is just to distinguish for connector config
-                dependency_config.append({'version': version, 'name': name, 'display_name': name, 'url': url,
-                                          'dependency': 'true', 'allow_upgrade': packages_exist})
+                    # Added Display Name for Alarm Handling, Dependency is just to distinguish for connector config
+                    dependency_config.append({'version': version, 'name': name, 'display_name': name, 'url': url,
+                                            'dependency': 'true', 'allow_upgrade': packages_exist})
 
         DEV_LOGGER.debug('Detail="parse_dependency_config: dependency_config=%s"', dependency_config)
 
