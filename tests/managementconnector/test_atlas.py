@@ -110,12 +110,12 @@ class AtlasTest(fake_filesystem_unittest.TestCase):
         """ Test Parse Dependency Config"""
 
         DEV_LOGGER.info('test_parse_dependency_config: start')
-        connectors = {"dependencies":[{"tlpUrl": "ftp://10.53.63.198/Edge/Blend/java_8.5-1.0.322.tlp",
-                                       "version": "8.5-1.0.322", "dependencyType": "java"}]}
+        connectors = {"dependencies":[{"tlpUrl": "ftp://10.53.63.198/Edge/Blend/d_openj_8.5-1.0.322.tlp",
+                                       "version": "8.5-1.0.322", "dependencyType": "d_openj"}]}
         response_config = self.atlas.parse_dependency_config(connectors)
 
         self.assertTrue(len(response_config) == 1)
-        self.assertTrue(response_config[0]['name'] == "java")
+        self.assertTrue(response_config[0]['name'] == "d_openj")
         self.assertTrue(response_config[0]['version'] == "8.5-1.0.322")
 
         # Some negative tests

@@ -410,7 +410,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
         deploy._config = mock_config
 
         deploy._service_manager = mock_servicemanager
-        mock_cafexutils.get_installed_connectors.return_value = ['c_mgmt', 'c_cal', 'c_ucc', 'd_java']
+        mock_cafexutils.get_installed_connectors.return_value = ['c_mgmt', 'c_cal', 'c_ucc', 'd_openj']
         mock_config.read.side_effect = config_read_side_effect
         mock_service.configure.side_effect = None
 
@@ -424,14 +424,14 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
                  'packages': [{'tlp_url': 'https://foo/c_ucc.tlp'}]}
             ],
             "dependencies": [
-                {'dependencyType': 'd_java', 'display_name': 'Java', 'version': '8.6-1.0.318968',
-                 'tlpUrl': 'https://foo/d_java.tlp'}
+                {'dependencyType': 'd_openj', 'display_name': 'd_openj', 'version': '8.6-1.0.318968',
+                 'tlpUrl': 'https://foo/d_openj.tlp'}
             ]
         }
 
         config_return = deploy._get_config(mc_typical_provisioning)
         # sample config return
-        # [{'url': 'https://foo/d_java.tlp', 'dependency': 'true', 'version': '8.6-1.0.318968', 'display_name': 'd_java', 'name': 'd_java'}, 
+        # [{'url': 'https://foo/d_openj.tlp', 'dependency': 'true', 'version': '8.6-1.0.318968', 'display_name': 'd_openj', 'name': 'd_openj'}, 
         # {'display_name': 'Management Connector', 'name': 'c_mgmt', 'url': 'https://foo/c_mgmt.tlp', 'enabled': 'false', 'connector_type': 'c_mgmt', 'version': '8.6-1.0.318968'}, 
         # {'display_name': 'Calendar Connector', 'name': 'c_cal', 'url': 'https://foo/c_cal.tlp', 'enabled': 'false', 'connector_type': 'c_cal', 'version': '8.6-1.0.318000'}, 
         # {'display_name': 'UC Connector', 'name': 'c_ucc', 'url': 'https://foo/c_ucc.tlp', 'enabled': 'false', 'connector_type': 'c_ucc', 'version': '8.6-1.0.318000'}]
@@ -443,8 +443,8 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
         indices = {}
         for config in config_return:
             i = i + 1
-            if config['name'] == 'd_java':
-                indices['d_java'] = i
+            if config['name'] == 'd_openj':
+                indices['d_openj'] = i
             elif config['name'] == 'c_mgmt':
                 indices['c_mgmt'] = i
             elif config['name'] == 'c_cal':
@@ -452,12 +452,12 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
             elif config['name'] == 'c_ucc':
                 indices['c_ucc'] = i
 
-        self.assertEqual('d_java', config_return[indices['d_java']]['name'])
+        self.assertEqual('d_openj', config_return[indices['d_openj']]['name'])
         self.assertEqual('c_mgmt', config_return[indices['c_mgmt']]['name'])
         self.assertEqual('c_cal', config_return[indices['c_cal']]['name'])
         self.assertEqual('c_ucc', config_return[indices['c_ucc']]['name'])
 
-        self.assertEqual(True, config_return[indices['d_java']]['allow_upgrade'])
+        self.assertEqual(True, config_return[indices['d_openj']]['allow_upgrade'])
         self.assertEqual(True, config_return[indices['c_mgmt']]['allow_upgrade'])
         self.assertEqual(True, config_return[indices['c_cal']]['allow_upgrade'])
         self.assertEqual(True, config_return[indices['c_ucc']]['allow_upgrade'])
@@ -480,7 +480,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
         deploy._config = mock_config
 
         deploy._service_manager = mock_servicemanager
-        mock_cafexutils.get_installed_connectors.return_value = ['c_mgmt', 'c_cal', 'c_ucc', 'd_java']
+        mock_cafexutils.get_installed_connectors.return_value = ['c_mgmt', 'c_cal', 'c_ucc', 'd_openj']
         mock_config.read.side_effect = config_read_side_effect
         mock_service.configure.side_effect = None
 
@@ -493,7 +493,7 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
                 {'connector_type': 'c_ucc', 'display_name': 'UC Connector', 'version': '8.6-1.0.318000', 'packages': []}
             ],
             "dependencies": [
-                {'dependencyType': 'd_java', 'display_name': 'Java', 'version': '8.6-1.0.318968', 'tlpUrl': ''}
+                {'dependencyType': 'd_openj', 'display_name': 'd_openj', 'version': '8.6-1.0.318968', 'tlpUrl': ''}
             ]
         }
 
@@ -505,8 +505,8 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
         indices = {}
         for config in config_return:
             i = i + 1
-            if config['name'] == 'd_java':
-                indices['d_java'] = i
+            if config['name'] == 'd_openj':
+                indices['d_openj'] = i
             elif config['name'] == 'c_mgmt':
                 indices['c_mgmt'] = i
             elif config['name'] == 'c_cal':
@@ -514,12 +514,12 @@ class DeployTestCase(fake_filesystem_unittest.TestCase):
             elif config['name'] == 'c_ucc':
                 indices['c_ucc'] = i
 
-        self.assertEqual('d_java', config_return[indices['d_java']]['name'])
+        self.assertEqual('d_openj', config_return[indices['d_openj']]['name'])
         self.assertEqual('c_mgmt', config_return[indices['c_mgmt']]['name'])
         self.assertEqual('c_cal', config_return[indices['c_cal']]['name'])
         self.assertEqual('c_ucc', config_return[indices['c_ucc']]['name'])
 
-        self.assertEqual(False, config_return[indices['d_java']]['allow_upgrade'])
+        self.assertEqual(False, config_return[indices['d_openj']]['allow_upgrade'])
         self.assertEqual(False, config_return[indices['c_mgmt']]['allow_upgrade'])
         self.assertEqual(False, config_return[indices['c_cal']]['allow_upgrade'])
         self.assertEqual(False, config_return[indices['c_ucc']]['allow_upgrade'])
