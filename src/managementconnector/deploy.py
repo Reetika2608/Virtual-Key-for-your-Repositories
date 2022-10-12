@@ -389,8 +389,8 @@ class Deploy(object):
             self._alarms.raise_alarm('dc463c51-d111-4cc5-9eba-9e09292183b0')
 
         except urllib_error.HTTPError as http_error:
-            DEV_LOGGER.debug('Detail="FMC_Lifecycle HTTP ERROR Triggered %s"' % http_error)
-            if hasattr(http_error, 'code') and int(http_error.code) == HTTPStatus.FOUND.value:
+            DEV_LOGGER.info('Detail="FMC_Lifecycle HTTP ERROR Triggered %s"' % http_error)
+            if hasattr(http_error, 'code') and int(http_error.code) in ManagementConnectorProperties.HTTP_STATUS_CODES_MIGRATION:
                 self._handle_fms_federation_org_migration_response(int(http_error.code))
             else:
                 self._handle_http_exception(http_error, service)
@@ -444,11 +444,11 @@ class Deploy(object):
 
     def _process_federation_org_migration(self, response=None, status_code=HTTPStatus.OK.value):
         """ Federation 4.0 Org Migration """
-        # 'orgMigration' should be present in response or response status code should be 302:
+        # 'orgMigration' should be present in response or response status code should be 302 or if do not get 302 response from FMS, then 401, 403:
         if response is None:
             response = {}
         try:
-            if response.get('orgMigration') or status_code == HTTPStatus.FOUND.value:
+            if response.get('orgMigration') or status_code in ManagementConnectorProperties.HTTP_STATUS_CODES_MIGRATION:
                 federation_org_migration_data = response.get('orgMigration') or {}  # assign empty dict if not found
                 DEV_LOGGER.info(
                     'Detail="FMC_FederationOrgMigration: '

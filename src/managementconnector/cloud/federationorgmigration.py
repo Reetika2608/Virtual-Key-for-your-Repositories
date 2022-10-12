@@ -219,7 +219,7 @@ class FederationOrgMigration(object):
         migration_start_timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]
 
         try:
-            if status_code == HTTPStatus.FOUND.value:
+            if status_code in ManagementConnectorProperties.HTTP_STATUS_CODES_MIGRATION:
                 # if migration is started continue
                 if fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_STARTED:
                     archive_migration_logs = True

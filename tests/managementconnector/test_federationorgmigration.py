@@ -169,14 +169,14 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     def test_migrate_completed(self, mock_config, mock_oauth, mock_servicemanager_enabled_connectors,
                                mock_orgmigration_other_connectors, mock_dbhandler, mock_start_connectors,
                                mock_stop_connectors, mock_refresh_access_token):
-        """ Test migration completed workflow """
+        """ Test migration completed workflow for status code 302/401/403 """
         global FMS_MIGRATION_STATE
         FMS_MIGRATION_STATE = "COMPLETED"
         mock_config.read.side_effect = config_read_side_effect
 
         org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
         mock_config.write_blob.return_value = None
-        org_migration.migrate(status_code=302)
+        org_migration.migrate(status_code=302) # can be tested with other status codes like 401 or 403.
 
         # should have called db write, get_enabled_connectors and start_connectors
         mock_config.write_blob.assert_called()
@@ -205,7 +205,7 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     def test_migrate_started(self, mock_config, mock_oauth_polling, mock_servicemanager_enabled_connectors,
                              mock_orgmigration_other_connectors, mock_dbhandler, mock_operational_status,
                              mock_stop_connectors, mock_http, mock_u2c, mock_sleep, mock_logger_debug):
-        """ Test migration started workflow """
+        """ Test migration started workflow in case of error code 302/401/403 """
         time_in_past = OAuth.get_current_time() - 100
 
         global FMS_MIGRATION_STATE
@@ -242,7 +242,7 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         # custom sleep method
         mock_sleep.side_effect = sleep_side_effect
 
-        org_migration.migrate(status_code=302)
+        org_migration.migrate(status_code=302) # status_code can be be 302 or 401 or 403
 
         # should have called get_enabled_connectors, stop_connectors, exponential_backoff_retry and sleep
         mock_servicemanager_enabled_connectors.assert_called_once()

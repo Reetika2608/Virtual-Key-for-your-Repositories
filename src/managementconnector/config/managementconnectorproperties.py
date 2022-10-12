@@ -5,6 +5,7 @@
 import logging
 import os
 from datetime import datetime
+from http import HTTPStatus
 
 
 class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
@@ -433,6 +434,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     # -------------------------------------------------------------------------
 
     MIGRATION = "migration"
+    HTTP_STATUS_CODES_MIGRATION = [HTTPStatus.FOUND.value, HTTPStatus.UNAUTHORIZED.value, HTTPStatus.FORBIDDEN.value]
     MIGRATION_BASE = MIGRATION + "_"
     MIGRATION_ORG_ID = MIGRATION_BASE + "orgId"
     MIGRATION_ID = MIGRATION_BASE + "migrationId"
