@@ -164,9 +164,10 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors', return_value=['c_xyz', 'c_abc'])
     @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock()], "names": ['c_xyz']})
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.set_migration_status')
     @mock.patch('managementconnector.cloud.oauth.OAuth')
     @mock.patch('managementconnector.config.config.Config')
-    def test_migrate_completed(self, mock_config, mock_oauth, mock_servicemanager_enabled_connectors,
+    def test_migrate_completed(self, mock_config, mock_oauth, mock_orgmigration_set_migration_status, mock_servicemanager_enabled_connectors,
                                mock_orgmigration_other_connectors, mock_dbhandler, mock_start_connectors,
                                mock_stop_connectors, mock_refresh_access_token):
         """ Test migration completed workflow for status code 302/401/403 """
@@ -177,8 +178,8 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         org_migration = federationorgmigration.FederationOrgMigration(mock_config, mock_oauth)
         mock_config.write_blob.return_value = None
         org_migration.migrate(status_code=302) # can be tested with other status codes like 401 or 403.
-
-        # should have called db write, get_enabled_connectors and start_connectors
+        # should have called set_migration_status, db write, get_enabled_connectors and start_connectors
+        mock_orgmigration_set_migration_status.assert_called_with(False)
         mock_config.write_blob.assert_called()
         mock_dbhandler.assert_called()
         mock_orgmigration_other_connectors.assert_called()
@@ -197,12 +198,14 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
     @mock.patch('managementconnector.cloud.federationorgmigration.DatabaseHandler.read', return_value=[])
     @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.get_other_connectors',
                 return_value=['c_xyz', 'c_abc', 'c_def'])
+    @mock.patch('managementconnector.cloud.federationorgmigration.FederationOrgMigration.set_migration_status')
     @mock.patch('managementconnector.cloud.federationorgmigration.ServiceManager.get_enabled_connectors',
                 return_value={"services": [mock.MagicMock(name='c_xyz'), mock.MagicMock(name='c_abc')],
                               "names": ['c_xyz', 'c_abc']})
     @mock.patch('managementconnector.cloud.oauth.OAuth.exponential_backoff_retry')
     @mock.patch('managementconnector.config.config.Config')
     def test_migrate_started(self, mock_config, mock_oauth_polling, mock_servicemanager_enabled_connectors,
+                             mock_orgmigration_set_migration_status, 
                              mock_orgmigration_other_connectors, mock_dbhandler, mock_operational_status,
                              mock_stop_connectors, mock_http, mock_u2c, mock_sleep, mock_logger_debug):
         """ Test migration started workflow in case of error code 302/401/403 """
@@ -243,8 +246,8 @@ class OrgMigrationTest(fake_filesystem_unittest.TestCase):
         mock_sleep.side_effect = sleep_side_effect
 
         org_migration.migrate(status_code=302) # status_code can be be 302 or 401 or 403
-
-        # should have called get_enabled_connectors, stop_connectors, exponential_backoff_retry and sleep
+        # should have called set_migration_status, get_enabled_connectors, stop_connectors, exponential_backoff_retry and sleep
+        mock_orgmigration_set_migration_status.assert_called_with(True)
         mock_servicemanager_enabled_connectors.assert_called_once()
         mock_orgmigration_other_connectors.assert_called_once()
         mock_stop_connectors.assert_called_once()

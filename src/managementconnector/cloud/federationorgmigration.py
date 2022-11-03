@@ -32,7 +32,7 @@ class FederationOrgMigration(object):
     }
 
     # -------------------------------------------------------------------------
-
+    migration_status_started = False
     def __init__(self, config, oauth):
         """ Federation Org Migration __init__ """
         DEV_LOGGER.info('Detail="FMC_FederationOrgMigration: __init__ called"')
@@ -43,6 +43,13 @@ class FederationOrgMigration(object):
         self._database_handler = DatabaseHandler()
 
     # -------------------------------------------------------------------------
+    @staticmethod
+    def check_migration_status():
+        return FederationOrgMigration.migration_status_started
+
+    @staticmethod
+    def set_migration_status(migration_status_started):
+        FederationOrgMigration.migration_status_started = migration_status_started
 
     @staticmethod
     def get_other_connectors():
@@ -228,12 +235,14 @@ class FederationOrgMigration(object):
                         'Detail="FMC_FederationOrgMigration: '
                         'migrate: Migration started, migrationId=%s, '
                         'migration_start_time=%s"' % (migration_id, migration_start_timestamp))
+                    FederationOrgMigration.set_migration_status(True)
+                    DEV_LOGGER.info(
+                        'Detail="FMC_FederationOrgMigration: migrate: Updated flag migration_status_started= %s"' %(FederationOrgMigration.migration_status_started))
+                    # Poll CI
                     # get enabled connectors
                     enabled_connectors = self.get_enabled_connectors()
                     # stop other enabled connectors - disable
                     self.stop_connectors(enabled_connectors)
-
-                    # Poll CI
                     DEV_LOGGER.info(
                         'Detail="FMC_FederationOrgMigration: migrate: Poll CI at source for token refresh"')
                     self.refresh_access_token(
@@ -261,6 +270,9 @@ class FederationOrgMigration(object):
         finally:
             # if migration is completed do not process further
             if fms_migration_state == ManagementConnectorProperties.FMS_MIGRATION_COMPLETED:
+                FederationOrgMigration.set_migration_status(False)
+                DEV_LOGGER.info(
+                        'Detail="FMC_FederationOrgMigration: migrate: Updated flag migration_status_started= %s"' %(FederationOrgMigration.migration_status_started))
                 stopped_connectors = self.get_stopped_connectors()
                 self.update_config_and_start_connectors(stopped_connectors)
 

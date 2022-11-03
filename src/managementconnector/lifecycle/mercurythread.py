@@ -12,6 +12,7 @@ from managementconnector.lifecycle.lifecycleutils import LifecycleUtils
 from managementconnector.cloud.mercury import Mercury
 from managementconnector.cloud.metrics import Metrics
 from managementconnector.cloud.oauth import OAuth
+from managementconnector.cloud.federationorgmigration import FederationOrgMigration
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 ADMIN_LOGGER = ManagementConnectorProperties.get_admin_logger()
@@ -35,7 +36,7 @@ class MercuryThread(threading.Thread):
 
     def run(self):
         """ Run content of Thread """
-        DEV_LOGGER.debug('Detail="FMC_Lifecycle MercuryThread: run()"')
+        DEV_LOGGER.info('Detail="FMC_Lifecycle MercuryThread: run()"')
         # wait two seconds for startup to allow cafe manager time to update the config
         time.sleep(2)
 
@@ -64,11 +65,22 @@ class MercuryThread(threading.Thread):
     def _do_heartbeat(self):
         """ Do Mercury Heartbeat """
         try:
-            if not self._oauth_init:
-                self._oauth_init = self._oauth.init()
+            if FederationOrgMigration.check_migration_status():
+                DEV_LOGGER.info(
+                            'Detail="FMC_FederationOrgMigration: '
+                            'stopping FMC_Lifecycle MercuryThread '
+                            'calling FMC_Websocket Mercury heartbeat"')
+                return
+            else:
+                DEV_LOGGER.info(
+                            'Detail="FMC_FederationOrgMigration: '
+                            'No migration in progress - FMC_Lifecycle MercuryThread"')
 
-            DEV_LOGGER.debug('Detail="FMC_Lifecycle MercuryThread: calling heartbeat"')
-            self._mercury_connection.heartbeat()
+                if not self._oauth_init:
+                    self._oauth_init = self._oauth.init()
+
+                DEV_LOGGER.debug('Detail="FMC_Lifecycle MercuryThread: calling heartbeat"')
+                self._mercury_connection.heartbeat()
 
         except Exception as wdm_error:  # pylint: disable=W0703
             self._mercury_connection.handle_mercury_exception(wdm_error)
