@@ -11,6 +11,7 @@ from managementconnector.cloud.oauth import OAuth
 from managementconnector.cloud.metrics import Metrics
 from managementconnector.config import jsonhandler
 from managementconnector.service.eventsender import EventSender
+from managementconnector.lifecycle.machineaccountrunner import MachineAccountRunner
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
 
@@ -27,6 +28,7 @@ class WatchdogThread(threading.Thread):
         self._metrics = None
         self._watchdog_poll_interval = None
         self._initial_poll_time = None
+        self._machine_account_runner = None
 
     def run(self):
         """Run content of Thread"""
@@ -74,7 +76,7 @@ class WatchdogThread(threading.Thread):
             self._stop_event.wait(self._watchdog_poll_interval)
 
     def is_restart_needed(self):
-        """Verify if restart is necessary"""
+        """Verify if restart of connector/machineaccount thread is necessary"""
         try:
             # A dictionary of states, {"extension": {"timestamp": "2016-12-13T11:17:10Z", "working": true/false}}
             working_states = self.get_working_state()
@@ -84,8 +86,19 @@ class WatchdogThread(threading.Thread):
                 for key, value in working_states.items():
                     if ManagementConnectorProperties.WATCHDOG_WORKING_STATE in value:
                         if not value[ManagementConnectorProperties.WATCHDOG_WORKING_STATE]:
-                            broken = True
-                            break
+                            if key == ManagementConnectorProperties.MACHINE_ACCOUNT_EXTENSION:
+                                if not self._machine_account_runner:
+                                    self._machine_account_runner = MachineAccountRunner(self._config, self._stop_event)
+                                    self._machine_account_runner.start()
+                                    DEV_LOGGER.error('Detail="FMC_Watchdog: MachineAccountRunner restarting MachineAccountThread. Working state: %s"' 
+                                                    % working_states)
+                                    event_detail = "FMC_Watchdog: MachineAccountRunner restarting MachineAccountThread. Working state: " + \
+                                                    str(working_states)
+                                    EventSender.post(self._oauth, self._config, EventSender.WATCHDOG_MACHINEACCOUNT_RUNNER_RESTART_THREAD,
+                                                    detailed_info=event_detail)               
+                            else:
+                                broken = True
+                                break
                     else:
                         DEV_LOGGER.error('Detail="FMC_Watchdog: {} key not found for: {}, total state: {}"'
                                          .format(ManagementConnectorProperties.WATCHDOG_WORKING_STATE,
@@ -98,11 +111,14 @@ class WatchdogThread(threading.Thread):
                 broken = True
 
             if broken:
-                DEV_LOGGER.info('Detail="FMC_Lifecycle: WatchdogThread: restart FMC"')
+                DEV_LOGGER.error('Detail="FMC_Lifecycle: WatchdogThread: restart FMC, working_states:{}"'.format(working_states))
                 self.restart(working_states)
                 return True
         except Exception as ex:
             DEV_LOGGER.error('Detail="FMC_Watchdog: Exception: {}"'.format(ex))
+            event_detail = "FMC_Watchdog exception"
+            EventSender.post(self._oauth, self._config, EventSender.WATCHDOG_EXCEPTION ,
+                                                detailed_info=event_detail) 
             raise
 
         return False
@@ -111,12 +127,19 @@ class WatchdogThread(threading.Thread):
         """Check if FMS and Mercury connections are working"""
         working_state = {}
         connections = [ManagementConnectorProperties.HEARTBEAT_EXTENSION,
-                       ManagementConnectorProperties.MERCURY_EXTENSION]
+                       ManagementConnectorProperties.MERCURY_EXTENSION,
+                       ManagementConnectorProperties.MACHINE_ACCOUNT_EXTENSION]
 
         file_paths = [ManagementConnectorProperties.FULL_VAR % extension for extension in connections]
         status_info = jsonhandler.get_last_modified(file_paths)
 
         for connection in connections:
+            if status_info[connection] is None and connection!=ManagementConnectorProperties.MERCURY_EXTENSION:
+                DEV_LOGGER.info('Detail="FMC_Watchdog: File not found for %s"' %connection)
+                event_detail = "FMC_Watchdog File not found: c_mgmt" + str(connection)
+                EventSender.post(self._oauth, self._config, EventSender.WATCHDOG_FILE_MISSING,
+                                                detailed_info=event_detail) 
+                break
             working_state[connection] = self.get_connection_state(status_info, connection)
 
         DEV_LOGGER.debug('Detail="FMC_Watchdog: checking {} working_state"'.format(working_state))
@@ -137,7 +160,12 @@ class WatchdogThread(threading.Thread):
             utc_time = datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%SZ')
             connection_state["timestamp"] = utc_time
 
-            if since_last_heartbeat < self._watchdog_poll_interval:
+            if file_extension == ManagementConnectorProperties.MACHINE_ACCOUNT_EXTENSION:
+                watchdog_poll_interval = ManagementConnectorProperties.DEFAULT_WATCHDOG_MACHINE_ACCOUNT_TIME
+            else:
+                watchdog_poll_interval = self._watchdog_poll_interval
+
+            if since_last_heartbeat < watchdog_poll_interval:
                 connection_state[ManagementConnectorProperties.WATCHDOG_WORKING_STATE] = True
             else:
                 connection_state[ManagementConnectorProperties.WATCHDOG_WORKING_STATE] = False

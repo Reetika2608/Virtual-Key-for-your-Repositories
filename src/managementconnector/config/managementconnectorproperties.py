@@ -163,6 +163,9 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     MERCURY_EXTENSION = ".mercury"
     MERCURY_FILE = '/var/run/%s' + '/%s' + MERCURY_EXTENSION
 
+    MACHINE_ACCOUNT_EXTENSION = ".machineaccount"
+    MACHINE_ACCOUNT_FILE = '/var/run/%s' + '/%s' + MACHINE_ACCOUNT_EXTENSION
+
     REMOTE_DISPATCHER_EXTENSION = ".remotedispatcher"
     REMOTE_DISPATCHER_FILE = '/var/run/%s' + '/%s' + REMOTE_DISPATCHER_EXTENSION
 
@@ -211,6 +214,7 @@ class ManagementConnectorProperties(object):  # nosec - /tmp usage validated
     MERCURY_HEARTBEAT_POLL_TIME = CONFIG + "mercuryHeartbeatPollTime"
     WATCHDOG_POLL_TIME = CONFIG + "watchdogPollTime"
     DEFAULT_WATCHDOG_TIME = 43200
+    DEFAULT_WATCHDOG_MACHINE_ACCOUNT_TIME = 86400
     INITIAL_WATCHDOG_POLL = CONFIG + "initialWatchdogPoll"
     DEFAULT_INITIAL_POLL = 4200
     DEFAULT_U2C_POLL_TIME = 86400

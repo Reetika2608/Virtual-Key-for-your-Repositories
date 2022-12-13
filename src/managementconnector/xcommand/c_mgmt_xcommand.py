@@ -294,7 +294,7 @@ def run(command_name, parameters, callback, error_callback):
                 config.write_blob(ManagementConnectorProperties.U2C_IDB_HOST, idb_url)
 
             oauth = OAuth(config)
-
+            DEV_LOGGER.debug('Detail="Machine Account Xcommand: %s"' % machine_account)
             oauth.create_machine_account(cluster_id, machine_account)
             oauth.init()
 

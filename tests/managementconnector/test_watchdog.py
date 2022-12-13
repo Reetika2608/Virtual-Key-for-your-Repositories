@@ -11,6 +11,7 @@ import sys
 import mock
 import time
 import datetime
+from time import sleep
 
 from .constants import SYS_LOG_HANDLER
 
@@ -23,6 +24,20 @@ from managementconnector.config.managementconnectorproperties import ManagementC
 from managementconnector.lifecycle.watchdog import WatchdogThread
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
+
+def config_read(path, default=None):
+    if path == ManagementConnectorProperties.WATCHDOG_POLL_TIME:
+        return 60
+    elif path == ManagementConnectorProperties.DEFAULT_WATCHDOG_MACHINE_ACCOUNT_TIME:
+        return 60
+    elif path == ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS:
+        return { "organization_id": "abcd"}
+    elif path == ManagementConnectorProperties.SERIAL_NUMBER:
+        return "AF10S"
+    elif path == ManagementConnectorProperties.TARGET_TYPE:
+        return "c_mgmt"
+    elif path == ManagementConnectorProperties.INITIAL_WATCHDOG_POLL:
+        return 60
 
 
 class WatchdogTest(unittest.TestCase):
@@ -39,44 +54,38 @@ class WatchdogTest(unittest.TestCase):
 
         DEV_LOGGER.info("##### test_no_heartbeat_for_longer_than_poll_time_causes_restart")
 
-        def config_read(path, default=None):
-            if path == ManagementConnectorProperties.WATCHDOG_POLL_TIME:
-                return 60
-            elif path == ManagementConnectorProperties.INITIAL_WATCHDOG_POLL:
-                return 60
 
         mock_event.is_set.return_value = False
         mock_config.read.side_effect = config_read
         mock_read.return_value = None
 
-        modified_time = {ManagementConnectorProperties.HEARTBEAT_EXTENSION: 0}
+        modified_time = {ManagementConnectorProperties.HEARTBEAT_EXTENSION: 0,
+                         ManagementConnectorProperties.MERCURY_EXTENSION: time.time(),
+                         ManagementConnectorProperties.MACHINE_ACCOUNT_EXTENSION: time.time()}
         mock_get_last.return_value = modified_time
 
         watchdog_thread = WatchdogThread(mock_config, mock_event)
         watchdog_thread.run()
 
-        self.assertTrue(mock_restart.called, "Restart was not called")
+        self.assertTrue(mock_restart.called, "Restart was not called: %s" % mock_restart.called)
 
     @mock.patch('time.sleep')
     @mock.patch('threading.Event')
     @mock.patch('managementconnector.lifecycle.watchdog.jsonhandler.read_json_file')
     @mock.patch('managementconnector.lifecycle.watchdog.jsonhandler.get_last_modified')
-    @mock.patch('managementconnector.lifecycle.watchdog.WatchdogThread.restart')
+    @mock.patch('managementconnector.lifecycle.watchdog.WatchdogThread.restart')  
+    @mock.patch('managementconnector.mgmtconnector.MachineAccountRunner')  
     @mock.patch('managementconnector.platform.http.Http')
     @mock.patch('managementconnector.lifecycle.watchdog.OAuth')
     @mock.patch('managementconnector.config.config.Config')
-    def test_no_mercury_heartbeat_for_longer_than_poll_time_causes_restart(self, mock_config, mock_auth, mock_http, mock_restart, mock_get_last, mock_read, mock_event, _):
+    def test_no_mercury_heartbeat_for_longer_than_poll_time_causes_restart(self, mock_config, mock_auth, mock_http, mock_machinerunner, mock_restart, mock_get_last, mock_read, mock_event, _):
 
         DEV_LOGGER.info("##### test_no_mercury_heartbeat_for_longer_than_poll_time_causes_restart")
 
-        def config_read(path, default=None):
-            if path == ManagementConnectorProperties.WATCHDOG_POLL_TIME:
-                return 60
-            elif path == ManagementConnectorProperties.INITIAL_WATCHDOG_POLL:
-                return 60
 
         modified_time = {ManagementConnectorProperties.HEARTBEAT_EXTENSION: time.time(),
-                         ManagementConnectorProperties.MERCURY_EXTENSION: 0}
+                         ManagementConnectorProperties.MERCURY_EXTENSION: 0,
+                         ManagementConnectorProperties.MACHINE_ACCOUNT_EXTENSION: time.time()}
 
         mock_get_last.return_value = modified_time
         mock_read.return_value = None
@@ -87,7 +96,8 @@ class WatchdogTest(unittest.TestCase):
         watchdog_thread = WatchdogThread(mock_config, mock_event)
         watchdog_thread.run()
 
-        self.assertTrue(mock_restart.called, "Restart was not called")
+        self.assertTrue(mock_restart.called, "Restart was not called")   
+
 
     @mock.patch('time.sleep')
     @mock.patch('threading.Event')
@@ -111,11 +121,18 @@ class WatchdogTest(unittest.TestCase):
         def config_read(path, default=None):
             if path == ManagementConnectorProperties.WATCHDOG_POLL_TIME:
                 return watch_dog_poll
+            if path == ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS:
+                return { "organization_id": "abcd"}
+            if path == ManagementConnectorProperties.SERIAL_NUMBER:
+                return "AF10S"
+            if path == ManagementConnectorProperties.TARGET_TYPE:
+                return "c_mgmt"
             elif path == ManagementConnectorProperties.INITIAL_WATCHDOG_POLL:
                 return 60
 
         modified_time = {ManagementConnectorProperties.HEARTBEAT_EXTENSION: time.time(),
-                         ManagementConnectorProperties.MERCURY_EXTENSION: time.time()}
+                         ManagementConnectorProperties.MERCURY_EXTENSION: time.time(),
+                         ManagementConnectorProperties.MACHINE_ACCOUNT_EXTENSION: time.time()}
 
         mock_get_last.return_value = modified_time
         mock_read.return_value = {"something": "broken"}
@@ -172,6 +189,41 @@ class WatchdogTest(unittest.TestCase):
                                                             ManagementConnectorProperties.MERCURY_EXTENSION)
 
         self.assertEqual(actual_state, {}, msg="expected empty dict returned when no file exists")
+
+    @mock.patch('time.sleep')
+    @mock.patch('threading.Event')
+    @mock.patch('managementconnector.lifecycle.watchdog.jsonhandler.read_json_file')
+    @mock.patch('managementconnector.lifecycle.watchdog.jsonhandler.get_last_modified')
+    @mock.patch('managementconnector.lifecycle.watchdog.WatchdogThread.restart')
+    @mock.patch('managementconnector.lifecycle.watchdog.MachineAccountRunner')
+    @mock.patch("managementconnector.platform.logarchiver.EventSender.post")
+    @mock.patch('managementconnector.platform.system.System.am_i_master')
+    @mock.patch('managementconnector.platform.http.Http')
+    @mock.patch('managementconnector.lifecycle.watchdog.OAuth')
+    @mock.patch('managementconnector.config.config.Config')
+    def test_no_machine_account_read_expiry_for_longer_than_poll_time_causes_restart(self, mock_config, mock_auth, 
+                                                mock_http, mock_master, mock_post, mock_machinerunner, mock_restart, mock_get_last, mock_read, mock_event, _):
+
+        DEV_LOGGER.info("##### test_no_machine_account_read_expiry_for_longer_than_poll_time_causes_restart")
+
+
+        mock_event.is_set.return_value = False
+        mock_config.read.side_effect = config_read
+        mock_read.return_value = None
+
+        modified_time = {ManagementConnectorProperties.HEARTBEAT_EXTENSION: time.time(),
+                         ManagementConnectorProperties.MERCURY_EXTENSION: time.time(),
+                         ManagementConnectorProperties.MACHINE_ACCOUNT_EXTENSION: 0}
+        
+        mock_get_last.return_value = modified_time
+        watchdog_thread = WatchdogThread(mock_config, mock_event)
+        watchdog_thread._watchdog_poll_interval = 60
+        watchdog_thread._stop_event = False
+        
+        watchdog_thread.is_restart_needed()
+
+        self.assertFalse(mock_restart.called, "Restart was not called")
+        self.assertTrue(watchdog_thread._machine_account_runner.start.called)        
 
 
 if __name__ == "__main__":

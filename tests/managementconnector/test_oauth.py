@@ -474,7 +474,7 @@ class OAuthTest(unittest.TestCase):
 
         # test_oauth.oauth_response = {'refresh_token': REFRESH_TOKEN, 'refresh_time_read': time_in_past}
         mock_http.post.side_effect = urllib.error.HTTPError(url, 401, "invalid", headers, stream)
-
+        
         # REREGISTER, 'true'
         try:
             test_oauth._get_token_for_machine_account()

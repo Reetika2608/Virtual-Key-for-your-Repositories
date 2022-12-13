@@ -144,7 +144,7 @@ class RegisteredTest(unittest.TestCase):
             self.assertTrue(wait_until_true(is_alarm_raised_on_exp, 30, 1, alarm_to_raise),
                             "Alarm {} was not raised in time on the Expressway.".format(alarm_to_raise))
 
-            self.assertTrue(wait_until_true(is_alarm_raised, 90, 1, *(self.config.org_id(),
+            self.assertTrue(wait_until_true(is_alarm_raised, 180, 1, *(self.config.org_id(),
                                                                       self.cluster_id,
                                                                       self.config.fms_server(),
                                                                       self.connector_id,
@@ -437,7 +437,7 @@ class RegisteredTest(unittest.TestCase):
                           "c_mgmt")
 
         # 3. Confirm revive message and button are available on fusion page.
-        self.assertTrue(wait_until_true(is_text_on_page, 120, 10, *(self.config.exp_hostname_primary(),
+        self.assertTrue(wait_until_true(is_text_on_page, 300, 10, *(self.config.exp_hostname_primary(),
                                                                    self.config.exp_admin_user(),
                                                                    self.config.exp_admin_pass(),
                                                                    "fusionregistration",

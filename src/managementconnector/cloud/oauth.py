@@ -13,7 +13,7 @@ from managementconnector.platform.http import Http
 from managementconnector.cloud import schema
 from managementconnector.cloud.u2c import U2C
 from managementconnector.config.databasehandler import DatabaseHandler
-
+from managementconnector.service.eventsender import EventSender
 from managementconnector.config.managementconnectorproperties import ManagementConnectorProperties
 
 DEV_LOGGER = ManagementConnectorProperties.get_dev_logger()
@@ -71,6 +71,9 @@ class OAuth(object):
         if self.machine_response is None:
             DEV_LOGGER.error('Detail="FMC_OAuth Machine Account Info missing from DB"')
             rtn_value = False
+            event_detail = "FMC_OAuth Machine Account Info missing from DB"
+            EventSender.post(self, self._config, EventSender.MISSING_MACHINE_ACCOUNT_INFO_DB,
+                             detailed_info=event_detail)
         else:
             # Get an access token based on machine account
             bearer_token = self._get_token_for_machine_account()
@@ -101,7 +104,6 @@ class OAuth(object):
                     self.oauth_response = self._get_oauth_resp_from_idp(bearer_token['BearerToken'])
                 else:
                     self.oauth_response = self.refresh_oauth_resp_with_idp()
-
             return self.oauth_response["access_token"]
         else:
             DEV_LOGGER.error('Detail="FMC_OAuth The OAuth Object has not been initialized correctly"')
@@ -115,12 +117,22 @@ class OAuth(object):
         account_expiration = None
 
         # Make sure oauth response is up to date
-        self.get_access_token()
-
-        if "accountExpiration" in self.oauth_response:
+        try:
+            self.get_access_token()
             account_expiration = self.oauth_response["accountExpiration"]
-
-        return account_expiration
+            DEV_LOGGER.info('Detail="FMC_OAuth: MachineAccountThread : accountExpiration details : %s "' % account_expiration)
+            event_detail = "found - Account Expiration details in oauth response: " + \
+                            str(account_expiration)
+            EventSender.post(self, self._config, EventSender.FOUND_MACHINE_ACCOUNT_EXPIRATION,
+                             detailed_info=event_detail)
+            return account_expiration
+        except Exception as e:
+            DEV_LOGGER.error('Detail="FMC_OAuth: MachineAccountThread : accountExpiration details'
+                            'not found in oauth response. Error: %s"' % e)
+            event_detail = "Not found - Machine Account password Expiration details in oauth response"
+            EventSender.post(self, self._config, EventSender.OAUTH_MISSING_MACHINE_ACCOUNT_EXPIRATION,
+                             detailed_info=event_detail)   
+            raise     
 
     # -------------------------------------------------------------------------
 
@@ -175,29 +187,35 @@ class OAuth(object):
     def _get_oauth_resp_from_idp(self, bearer_token):
         """Authentication for organization - based machine account"""
 
-        DEV_LOGGER.info('Detail="FMC_OAuth _get_oauth_resp_from_idp:"')
+        try:
+            DEV_LOGGER.info('Detail="FMC_OAuth _get_oauth_resp_from_idp:"')
 
-        grant_type = 'urn:ietf:params:oauth:grant-type:saml2-bearer'
-        encoded_grant_type = urllib_quote(grant_type)
-        scopes = 'Identity:SCIM Identity:Organization squared-fusion-mgmt:management spark:logs_write'
-        encoded_scopes = urllib_quote(scopes)
-        body = "grant_type={}&assertion={}&scope={}".format(encoded_grant_type, bearer_token, encoded_scopes)
+            grant_type = 'urn:ietf:params:oauth:grant-type:saml2-bearer'
+            encoded_grant_type = urllib_quote(grant_type)
+            scopes = 'Identity:SCIM Identity:Organization squared-fusion-mgmt:management spark:logs_write'
+            encoded_scopes = urllib_quote(scopes)
+            body = "grant_type={}&assertion={}&scope={}".format(encoded_grant_type, bearer_token, encoded_scopes)
 
-        headers = self._get_idp_headers()
+            headers = self._get_idp_headers()
 
-        idp_info = self._config.read(ManagementConnectorProperties.OAUTH_BASE)
+            idp_info = self._config.read(ManagementConnectorProperties.OAUTH_BASE)
 
-        idp_url = idp_info["idpHost"] + "/" + ManagementConnectorProperties.IDP_URL
+            idp_url = idp_info["idpHost"] + "/" + ManagementConnectorProperties.IDP_URL
 
-        self.oauth_response = Http.post(idp_url, headers, body, silent=True, schema=schema.ACCESS_TOKEN_RESPONSE)
+            self.oauth_response = Http.post(idp_url, headers, body, silent=True, schema=schema.ACCESS_TOKEN_RESPONSE)
 
-        self.oauth_response["time_read"] = self.get_current_time()
-        self.oauth_response["refresh_time_read"] = self.get_current_time()
-
-        DEV_LOGGER.info('Detail="FMC_OAuth _get_oauth_resp_from_idp: refresh_time_read %s "' %
-                        (self.oauth_response["refresh_time_read"]))
-
-        return self.oauth_response
+            self.oauth_response["time_read"] = self.get_current_time()
+            self.oauth_response["refresh_time_read"] = self.get_current_time()
+            DEV_LOGGER.info('Detail="FMC_OAuth _get_oauth_resp_from_idp: refresh_time_read %s "' %
+                        (str(self.oauth_response["refresh_time_read"])))
+            return self.oauth_response        
+        except Exception as error:
+            DEV_LOGGER.error('Detail="FMC_OAuth _get_oauth_resp_from_idp: refresh_time_read %s"'
+                %error)
+            event_detail = "FMC_Oauth response: Failure getting new access token"
+            EventSender.post(self, self._config, EventSender.FAILURE_GETTING_OAUTH_RESPONSE_REFRESH ,
+                detailed_info=event_detail)
+            raise
 
     # -------------------------------------------------------------------------
 
@@ -214,6 +232,8 @@ class OAuth(object):
                                  'username': machine_account['username']}
 
         self._store_machine_response_in_db()
+        if self.machine_response is None:
+            DEV_LOGGER.error('Detail="FMC_OAuth create_machine_account: Error while storing machine account"')  
 
         return self.machine_response
 
@@ -352,6 +372,7 @@ class OAuth(object):
         """Retrieve OAuth Detail from the DB"""
 
         # MACHINE_ACCOUNT_CDB_POSTFIX = 'oauth_machine_account_details'
+        DEV_LOGGER.info('Detail="FMC_OAuth _get_machine_details_from_json"')
         rtn_value = self._config.read(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS)
 
         if rtn_value is None:
@@ -372,8 +393,9 @@ class OAuth(object):
         machine_response_copy['password'] = encrypt_with_system_key(machine_response_copy['password'])
 
         self._config.write_blob(ManagementConnectorProperties.OAUTH_MACHINE_ACCOUNT_DETAILS, machine_response_copy)
+        DEV_LOGGER.info('Detail="FMC_OAuth: created Machine Account: store machine response in DB"')
 
-    # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
     @staticmethod
     def get_current_time():
