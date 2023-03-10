@@ -1,12 +1,12 @@
 expressway:
   resource_groups:
     # Master resources
-    - exp_hostname_unreg_1: blr-unreg-01-master.cisco.com
-      exp_hostname_unreg_2: blr-unreg-02-master.cisco.com
-      exp_hostname_reg_1: blr-reg-01-master.cisco.com
-      exp_hostname_reg_2: blr-reg-02-master.cisco.com
-      exp_hostname_unreg_cluster_node_1: blr-unreg-cluster-primary-master.cisco.com
-      exp_hostname_unreg_cluster_node_2: blr-unreg-cluster-secondary-master.cisco.com
+    - exp_hostname_unreg_1: blr-unreg-01-primary.cisco.com
+      exp_hostname_unreg_2: blr-unreg-02-primary.cisco.com
+      exp_hostname_reg_1: blr-reg-01-primary.cisco.com
+      exp_hostname_reg_2: blr-reg-02-primary.cisco.com
+      exp_hostname_unreg_cluster_node_1: blr-unreg-cluster-primary.cisco.com
+      exp_hostname_unreg_cluster_node_2: blr-unreg-cluster-secondary.cisco.com
   exp_admin_user: admin
   exp_admin_pass: x
   exp_root_user: root
