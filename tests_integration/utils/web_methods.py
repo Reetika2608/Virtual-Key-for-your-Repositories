@@ -37,21 +37,20 @@ def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_i
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(3)
-    web_driver.get('https://' + control_hub + '/hybrid-services/cluster/expressway/' + cluster_id + '/settings')
-    time.sleep(10)
+    web_driver.get('https://' + control_hub + '/services/cluster/expressway/' + cluster_id + '/settings')
+    time.sleep(2)
     while True:
         try:
-            web_driver.find_element_by_xpath(
-                '//a[text()= " Cluster Settings "]').click()
+            web_driver.find_element_by_css_selector(
+                'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
             time.sleep(3)
-            web_driver.find_element_by_xpath('//button[@id="deactivateCalendar"]').click()
-            web_driver.find_element_by_xpath('//button[@mchbuttontheme="destructive"]').click()
+            web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
             time.sleep(3)
         except NoSuchElementException:
             LOG.info("All services have been deactivated. Proceeding to deregister the cluster.")
             break
-    web_driver.find_element_by_xpath('//button[@aria-label="Remove"]').click()
-    web_driver.find_element_by_xpath('//button[@data-test-id="confirmRemoveClusterButton"]').click()
+    web_driver.find_element_by_css_selector('button[ng-click="$ctrl.deregisterCluster()"]').click()
+    web_driver.find_element_by_css_selector('button[ng-click="clusterDeregister.deregister()"]').click()
     LOG.info('Wait 10 seconds for deregister to be acknowledged')
     time.sleep(10)
     if close_web_driver:
@@ -74,13 +73,12 @@ def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id, 
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(10)
-    web_driver.get('https://' + control_hub + '/hybrid-services/cluster/expressway/' + cluster_id + '/settings')
+    web_driver.get('https://' + control_hub + '/services/cluster/expressway/' + cluster_id + '/settings')
     time.sleep(10)
-    web_driver.find_element_by_xpath(
-        '//a[text()= " Cluster Settings "]').click()
+    web_driver.find_element_by_css_selector(
+        'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
     time.sleep(3)
-    web_driver.find_element_by_xpath('//button[@id="deactivateCalendar"][1]').click()
-    web_driver.find_element_by_xpath('//button[@mchbuttontheme="destructive"]').click()
+    web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
     time.sleep(3)
     if close_web_driver:
         web_driver.quit()
@@ -106,21 +104,21 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     time.sleep(10)
     web_driver.get('https://' + control_hub + '/hybrid-services/clusters')
     time.sleep(60)
-    web_driver.find_element_by_css_selector('button[class="mch-button mch-button--default mch-button--normal-primary"]').click()
+    web_driver.find_element_by_css_selector('button[class="md-button md-button--32 md-button--blue"]').click()
     web_driver.find_element_by_xpath('//label[@class="md-radio__label" and @for="selectedType_expressway"]').click()
-    web_driver.find_element_by_xpath('//button[text()=" Next "]').click()
+    web_driver.find_element_by_xpath('//md-modal-footer/button[@class="md-button md-button--32 md-button--blue"]').click()
     time.sleep(3)
     web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_calendar"]').click()
-#   web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_call"]').click()
     web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_imp"]').click()
-    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
+    web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_serab"]').click()
+    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
     web_driver.find_element_by_name('hostname').send_keys(exp_hostname)
-    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
+    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
     web_driver.find_element_by_name('name').send_keys(exp_hostname)
-    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
+    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
     time.sleep(3)
-    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
-    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
+    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
+    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
     time.sleep(3)
 
 
@@ -151,6 +149,48 @@ def register_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostnam
         if close_web_driver:
             web_driver.quit()
 
+def run_iptables_script(exp_hostname, root_user, root_pass):
+    os.system("ssh-keygen -R {hostname}".format(hostname=exp_hostname))
+    os.system("sshpass -p {root_pass} scp -o StrictHostKeyChecking=no set_vcs_iptables_bangalore.sh root@{exp_hostname}:"
+              .format(root_user=root_user, root_pass=root_pass, exp_hostname=exp_hostname))
+    os.system("sshpass -p {root_pass} ssh -o StrictHostKeyChecking=no {root_user}@{exp_hostname} \"chmod +x set_vcs_iptables_bangalore.sh && set_vcs_iptables_bangalore.sh {exp_hostname}\""
+              .format(root_user=root_user, root_pass=root_pass, exp_hostname=exp_hostname))
+
+def set_hybrid_proxy(exp_hostname, admin_user, admin_pass, proxy_host, proxy_port, proxy_user, proxy_pass):
+    close_web_driver = True
+    web_driver = create_web_driver()
+
+    try:
+        LOG.info("set proxy")
+        web_driver.get('https://' + exp_hostname)
+        web_driver.find_element_by_name('username').send_keys(admin_user)
+        web_driver.find_element_by_name('password').send_keys(admin_pass)
+        web_driver.find_element_by_name('formbutton').click()
+        time.sleep(10)
+        test = "Cisco Webex Hybrid Services"
+        if test in web_driver.page_source:
+            LOG.info("page available")
+        navigate_expressway_menus(web_driver, ["Applications", "Hybrid Services", "Connector Proxy"])
+        Select(web_driver.find_element_by_id("enabled")).select_by_visible_text("Yes")
+        LOG.info("Set enabled to yes")
+        wait_until_true(is_visible, 20, 2, *(web_driver, '//div[@id="addressPeer"]'))
+
+        def clear_and_send_keys(element_id, new_contents):
+            el = web_driver.find_element_by_id(element_id)
+            el.clear()
+            el.send_keys(new_contents)
+
+        clear_and_send_keys("address", proxy_host)
+        clear_and_send_keys("port", proxy_port)
+        clear_and_send_keys("username", proxy_user)
+        clear_and_send_keys("password", proxy_pass)
+        web_driver.find_element_by_id("save_button").click()
+
+        wait_until_true(is_in_page_source, 20, 2, *(web_driver, ": Saved"))
+        LOG.info("Proxy settings saved")
+    finally:
+        if close_web_driver:
+            web_driver.quit()
 
 def create_web_driver(driver_class=webdriver.Chrome):
     """ Create a web_driver """
@@ -308,19 +348,10 @@ def login_expressway(web_driver, exp_hostname, admin_user, admin_pass):
 def navigate_expressway_menus(web_driver, menus):
     """ Navigate the menus of the Expressway through the browser. The Expressway must be logged in. """
     LOG.info("Navigate through the menus %s", menus)
-    close_web_driver = False
-    if not web_driver:
-        close_web_driver = True
-        web_driver = create_web_driver()
-
     for menu in menus:
+        LOG.info(menu)
         ActionChains(web_driver).move_to_element(web_driver.find_element_by_partial_link_text(menu)).perform()
-
     ActionChains(web_driver).click().perform()
-
-    if close_web_driver:
-        # If we created the web driver we should close it again.
-        web_driver.quit()
 
 
 def enable_expressway_connector(web_driver, exp_hostname, admin_user, admin_pass, connector):
@@ -340,37 +371,6 @@ def enable_expressway_connector(web_driver, exp_hostname, admin_user, admin_pass
         # Retrying.
         web_driver.find_element_by_partial_link_text("%s" % connector).click()
     select = Select(web_driver.find_element_by_id('enable_service'))
-    select.select_by_visible_text('Enabled')
-    web_driver.find_element_by_id('save_button').click()
-    res = "<b>Success</b>: Saved" in web_driver.page_source
-
-    if close_web_driver:
-        # If we created the web driver we should close it again.
-        web_driver.quit()
-
-    return res
-
-
-def enable_expressway_cert_management(exp_hostname, admin_user, admin_pass, web_driver=None):
-    """ Enable cert management on Expreswway through the UI """
-    LOG.info("Logging in to Expressway %s and enabling managed certs.", exp_hostname)
-    close_web_driver = False
-    if not web_driver:
-        close_web_driver = True
-        web_driver = create_web_driver()
-
-    try:
-        login_expressway(web_driver, exp_hostname, admin_user, admin_pass)
-        web_driver.get("https://" + exp_hostname + "/fusioncerts")
-        if not is_in_page_source(web_driver, "The following certificates have been added by Cisco."):
-            web_driver.find_element_by_name('formbutton').click()
-        web_driver.get("https://" + exp_hostname + "/fusioncerts")
-        if not wait_until_true(is_in_page_source, 90, 1, *(web_driver, "The following certificates have been added by Cisco.")):
-            raise WaitTimeoutException("Timed out waiting for certificates-managed-by-Cisco message")
-    finally:
-        if close_web_driver:
-            # If we created the web driver we should close it again.
-            web_driver.quit()
     select.select_by_visible_text('Enabled')
     web_driver.find_element_by_id('save_button').click()
     res = "<b>Success</b>: Saved" in web_driver.page_source
