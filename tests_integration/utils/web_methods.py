@@ -113,8 +113,9 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_calendar"]').click()
     web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_imp"]').click()
     #web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_serab"]').click()
-    #In case of service_serab available uncomment the above line, in case of service_call available uncomment the below line
+    #In case of service_serab available uncomment the above line
     #web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_call"]').click()
+    #In case of service_call available uncomment the below line
     web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
     web_driver.find_element_by_name('hostname').send_keys(exp_hostname)
     web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
