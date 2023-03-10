@@ -37,20 +37,21 @@ def deregister_expressway(control_hub, org_admin_user, org_admin_pass, cluster_i
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(3)
-    web_driver.get('https://' + control_hub + '/services/cluster/expressway/' + cluster_id + '/settings')
-    time.sleep(2)
+    web_driver.get('https://' + control_hub + '/hybrid-services/cluster/expressway/' + cluster_id + '/settings')
+    time.sleep(10)
     while True:
         try:
-            web_driver.find_element_by_css_selector(
-                'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
+            web_driver.find_element_by_xpath(
+                '//a[text()= " Cluster Settings "]').click()
             time.sleep(3)
-            web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
+            web_driver.find_element_by_xpath('//button[@id="deactivateCalendar"]').click()
+            web_driver.find_element_by_xpath('//button[@mchbuttontheme="destructive"]').click()
             time.sleep(3)
         except NoSuchElementException:
             LOG.info("All services have been deactivated. Proceeding to deregister the cluster.")
             break
-    web_driver.find_element_by_css_selector('button[ng-click="$ctrl.deregisterCluster()"]').click()
-    web_driver.find_element_by_css_selector('button[ng-click="clusterDeregister.deregister()"]').click()
+    web_driver.find_element_by_xpath('//button[@aria-label="Remove"]').click()
+    web_driver.find_element_by_xpath('//button[@data-test-id="confirmRemoveClusterButton"]').click()
     LOG.info('Wait 10 seconds for deregister to be acknowledged')
     time.sleep(10)
     if close_web_driver:
@@ -73,12 +74,13 @@ def deactivate_service(control_hub, org_admin_user, org_admin_pass, cluster_id, 
     web_driver.find_element_by_name('IDToken2').send_keys(org_admin_pass)
     web_driver.find_element_by_xpath('//button').click()
     time.sleep(10)
-    web_driver.get('https://' + control_hub + '/services/cluster/expressway/' + cluster_id + '/settings')
+    web_driver.get('https://' + control_hub + '/hybrid-services/cluster/expressway/' + cluster_id + '/settings')
     time.sleep(10)
-    web_driver.find_element_by_css_selector(
-        'button[ng-click="$ctrl.deactivateService(service, $ctrl.cluster);"]').click()
+    web_driver.find_element_by_xpath(
+        '//a[text()= " Cluster Settings "]').click()
     time.sleep(3)
-    web_driver.find_element_by_css_selector('button[ng-click="vm.deactivateService()"]').click()
+    web_driver.find_element_by_xpath('//button[@id="deactivateCalendar"][1]').click()
+    web_driver.find_element_by_xpath('//button[@mchbuttontheme="destructive"]').click()
     time.sleep(3)
     if close_web_driver:
         web_driver.quit()
@@ -104,21 +106,23 @@ def bootstrap_expressway(control_hub, org_admin_user, org_admin_pass, exp_hostna
     time.sleep(10)
     web_driver.get('https://' + control_hub + '/hybrid-services/clusters')
     time.sleep(60)
-    web_driver.find_element_by_css_selector('button[class="md-button md-button--32 md-button--blue"]').click()
+    web_driver.find_element_by_css_selector('button[class="mch-button mch-button--default mch-button--normal-primary"]').click()
     web_driver.find_element_by_xpath('//label[@class="md-radio__label" and @for="selectedType_expressway"]').click()
-    web_driver.find_element_by_xpath('//md-modal-footer/button[@class="md-button md-button--32 md-button--blue"]').click()
+    web_driver.find_element_by_xpath('//button[text()=" Next "]').click()
     time.sleep(3)
     web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_calendar"]').click()
     web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_imp"]').click()
-    web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_serab"]').click()
-    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
+    #web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_serab"]').click()
+    #In case of service_serab available uncomment the above line, in case of service_call available uncomment the below line
+    #web_driver.find_element_by_xpath('//label[@class="md-checkbox__label" and @for="service_call"]').click()
+    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
     web_driver.find_element_by_name('hostname').send_keys(exp_hostname)
-    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
+    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
     web_driver.find_element_by_name('name').send_keys(exp_hostname)
-    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
+    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
     time.sleep(3)
-    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
-    web_driver.find_element_by_xpath('//span[@translate="common.next"]').click()  
+    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
+    web_driver.find_element_by_xpath('//button[@class="mch-button mch-button--default mch-button--normal-primary ng-star-inserted"]').click()
     time.sleep(3)
 
 
